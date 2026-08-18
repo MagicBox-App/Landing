@@ -804,7 +804,11 @@
     object-fit: contain; padding: 14px; box-sizing: border-box;
     filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
   }
-  #clientItemList .item-card__row { flex-direction: column; align-items: center; width: 100%; justify-content: flex-start; gap: 8px; }
+  /* flex:0 1 auto anula el "flex: 1 1 260px" heredado de la regla base
+     (pensada para el layout horizontal) -- ese flex-grow:1 estiraba la
+     fila para llenar espacio vertical que no deberia existir, dejando un
+     hueco grande antes del boton "Agregar". */
+  #clientItemList .item-card__row { flex: 0 1 auto; flex-direction: column; align-items: center; width: 100%; justify-content: flex-start; gap: 8px; }
   #clientItemList .item-card__row > div:first-child { display: flex; flex-direction: column; align-items: center; }
   #clientItemList .inc-list { text-align: left; display: inline-block; margin-left: auto; margin-right: auto; }
   /* Boton "Ver que incluye": la tarjeta arranca limpia (nombre, precio,
