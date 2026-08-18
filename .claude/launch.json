@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dev-server.js"],
+      "port": 8934
+    },
+    {
       "name": "static",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8934"],

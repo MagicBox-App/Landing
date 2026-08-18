@@ -1089,7 +1089,7 @@
       <input type="text" id="chatInputText" placeholder="Escribe tu pregunta, ej. &quot;qué necesito para un baby shower&quot;..." aria-label="Escribe tu mensaje" autocomplete="off">
       <button type="submit" class="chat-fullscreen__send" aria-label="Enviar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
     </form>
-    <p class="chat-fullscreen__privacy">Lo que escribas aqu&#237; se procesa con IA (Google Gemini) para responderte &#8212; evita compartir datos sensibles. <a href="#" id="chatPrivacyLink">Pol&#237;tica de privacidad</a></p>
+    <p class="chat-fullscreen__privacy">Al hablar con este chat aceptas los t&#233;rminos y condiciones de esta app &#8212; ning&#250;n dato tuyo es guardado, as&#237; que no te preocupes 🙂 <a href="#" id="chatPrivacyLink">M&#225;s info</a></p>
   </div>
 </div>
 
@@ -2052,7 +2052,18 @@
       wrap.appendChild(btn);
     });
   }
+  /* Solo se sugiere "Combos" de entrada -- 14 botones de categoria de
+     golpe abruma el primer vistazo del chat. El resto del catalogo sigue
+     disponible con "Ver todas las categorias" o escribiendo lo que se
+     busca; el buscador de texto libre no cambia. */
   function chatShowCategories() {
+    var combos = findCategory('combos');
+    chatQuickReplies([
+      { label: combos.name, onClick: function () { chatPush('user', combos.name); chatShowItems('combos'); } },
+      { label: 'Ver todas las categorías', onClick: function () { chatPush('user', 'Ver todas las categorías'); chatShowAllCategories(); } }
+    ]);
+  }
+  function chatShowAllCategories() {
     chatQuickReplies(CATALOG.map(function (cat) {
       return { label: cat.name, onClick: function () { chatPush('user', cat.name); chatShowItems(cat.id); } };
     }));
@@ -2065,9 +2076,18 @@
       return { label: item.name + ' \u2014 ' + from, onClick: function () { chatPush('user', item.name); chatAskQty(item); } };
     }).concat([{ label: String.fromCharCode(8592) + ' Otras categor\u00edas', onClick: function () { chatPush('user', 'Ver otras categor\u00edas'); chatShowCategories(); } }]));
   }
+  /* Igual que el panel interno: solo se pregunta "cuantos" a lo que
+     realmente se pide por unidad (sillas, mesas, hora extra...) o tiene
+     tamanos. Un paquete/evento cerrado (alquiler de local, show, etc.) se
+     agrega de una vez, sin preguntar cantidad -- no tiene sentido pedir
+     "3 Paquete Premium". */
   function chatAskQty(item) {
     var si = 0;
-    var html = '<p>' + (item.sizes ? 'Elige la cantidad de <strong>' + item.name + '</strong>:' : '\u00bfCu\u00e1ntos/as necesitas de <strong>' + item.name + '</strong>?') + '</p>' +
+    var asksQty = hasQtyStepper(item) || !!item.allowUnlimited;
+    var intro = item.sizes ? 'Elige la cantidad de <strong>' + item.name + '</strong>:'
+      : asksQty ? '\u00bfCu\u00e1ntos/as necesitas de <strong>' + item.name + '</strong>?'
+      : '<strong>' + item.name + '</strong>';
+    var html = '<p>' + intro + '</p>' +
       sizeMarkup(item) +
       '<p class="chat-price" data-role="cprice">' + money(priceOf(item, 0)) + ' / ' + item.unit + '</p>' +
       (item.allowUnlimited ? '<button type="button" class="unlimited-pill" data-role="cunlimited" aria-pressed="false">Ilimitado</button>' : '') +
