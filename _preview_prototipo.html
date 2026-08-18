@@ -2564,10 +2564,23 @@
 
     var paused = false;
     var speed = 0.6;
-    track.addEventListener('mouseenter', function () { paused = true; });
-    track.addEventListener('mouseleave', function () { paused = false; });
-    track.addEventListener('touchstart', function () { paused = true; }, { passive: true });
-    track.addEventListener('touchend', function () { paused = false; });
+    var pauseWatchdog = null;
+    function pauseTrack() {
+      paused = true;
+      // Red de seguridad: si por lo que sea nunca llega el evento que
+      // deberia reanudar (touchend no siempre llega -- el navegador puede
+      // cancelar el toque con touchcancel, o directamente no dispararlo
+      // si se convierte en scroll de la pagina), esto igual lo reanuda a
+      // los 4s en vez de quedar pausado para siempre.
+      clearTimeout(pauseWatchdog);
+      pauseWatchdog = setTimeout(function () { paused = false; }, 4000);
+    }
+    function resumeTrack() { paused = false; clearTimeout(pauseWatchdog); }
+    track.addEventListener('mouseenter', pauseTrack);
+    track.addEventListener('mouseleave', resumeTrack);
+    track.addEventListener('touchstart', pauseTrack, { passive: true });
+    track.addEventListener('touchend', resumeTrack);
+    track.addEventListener('touchcancel', resumeTrack);
 
     function step() {
       if (!paused) {
