@@ -1,0 +1,2231 @@
+<meta charset="UTF-8">
+<title>Magic Box &#8212; Prototipo</title>
+<script>
+  (function () {
+    /* Oscuro por defecto (pedido del cliente) -- se decide antes de pintar
+       para no destellar en claro al cargar. */
+    var saved = localStorage.getItem('ff_proto_theme');
+    document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : 'dark');
+  })();
+</script>
+<style>
+  :root {
+    --bg: #FBF1E4;
+    --surface: #FFFDF8;
+    --surface-2: #F6E9D8;
+    --ink: #2C1B2A;
+    --ink-soft: #6B5661;
+    --ink-faint: #9A8790;
+    --line: #E7D5C0;
+    --primary: #7C2E52;
+    --primary-dark: #5C2140;
+    --primary-tint: #F1DCE6;
+    --accent: #E2982F;
+    --accent-tint: #FBE7C4;
+    --teal: #3E7C74;
+    --coral: #E15D5D;
+    --success: #4C8A5C;
+    --success-tint: #DDEFDF;
+    --danger: #B24A3E;
+    --r-sm: 8px; --r-md: 14px; --r-lg: 22px;
+    --shadow-sm: 0 1px 2px rgba(44,27,42,.08);
+    --shadow-md: 0 8px 24px rgba(44,27,42,.14);
+    --shadow-lg: 0 22px 50px rgba(44,27,42,.22);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --glass-bg: rgba(255,253,248,.9);
+    --glass-bg-strong: rgba(255,253,248,.98);
+    --glass-border: rgba(255,255,255,.8);
+    --glass-blur: 22px;
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #221520; --surface: #2C1C29; --surface-2: #38222F;
+    --ink: #F6EAF0; --ink-soft: #CBB6C4; --ink-faint: #93798B; --line: #4A3243;
+    --primary: #E890B8; --primary-dark: #F2A9C9; --primary-tint: #4A2A3D;
+    --accent: #F0B45D; --accent-tint: #4A371E; --teal: #6FB3A8; --coral: #F08A8A;
+    --success: #8FCC9E; --success-tint: #24382A; --danger: #E6897C;
+    --glass-bg: rgba(38,25,36,.66); --glass-bg-strong: rgba(38,25,36,.86); --glass-border: rgba(255,255,255,.09);
+  }
+  /* Sin preferencia guardada manda el sistema operativo. Si la persona toca
+     el boton, su eleccion gana y se recuerda. Por eso el :not(): un
+     data-theme="light" explicito bloquea el oscuro del sistema. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #221520; --surface: #2C1C29; --surface-2: #38222F;
+      --ink: #F6EAF0; --ink-soft: #CBB6C4; --ink-faint: #93798B; --line: #4A3243;
+      --primary: #E890B8; --primary-dark: #F2A9C9; --primary-tint: #4A2A3D;
+      --accent: #F0B45D; --accent-tint: #4A371E; --teal: #6FB3A8; --coral: #F08A8A;
+      --success: #8FCC9E; --success-tint: #24382A; --danger: #E6897C;
+      --glass-bg: rgba(38,25,36,.66); --glass-bg-strong: rgba(38,25,36,.86); --glass-border: rgba(255,255,255,.09);
+      --gold: #F5B921; --gold-deep: #F5D06B;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--ink); font-size: 17px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  h1, h2, h3 { margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  button { font-family: inherit; cursor: pointer; color: inherit; }
+  input { font-family: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+
+  /* ============ FONDO FESTIVO CON BLUR (mas colorido) ============ */
+  .bg-decor { position: fixed; inset: 0; overflow: hidden; z-index: 0; background: var(--bg); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(70px); }
+  .blob--1 { width: 540px; height: 540px; background: var(--primary); opacity: .5; top: -170px; left: -150px; }
+  .blob--2 { width: 480px; height: 480px; background: var(--accent); opacity: .52; bottom: -170px; right: -130px; }
+  .blob--3 { width: 400px; height: 400px; background: var(--teal); opacity: .4; top: 22%; right: 6%; }
+  .blob--4 { width: 320px; height: 320px; background: var(--coral); opacity: .38; bottom: 8%; left: 4%; }
+  .blob--5 { width: 260px; height: 260px; background: var(--primary); opacity: .3; top: 55%; left: 42%; }
+  /* En oscuro los mismos blobs saturan mucho mas (el fondo ya es oscuro, hay
+     menos contraste que los apague). Se bajan a la mitad para que sigan
+     dando ambiente sin competir con las tarjetas. */
+  [data-theme="dark"] .blob--1 { opacity: .25; }
+  [data-theme="dark"] .blob--2 { opacity: .26; }
+  [data-theme="dark"] .blob--3 { opacity: .2; }
+  [data-theme="dark"] .blob--4 { opacity: .19; }
+  [data-theme="dark"] .blob--5 { opacity: .15; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .blob--1 { opacity: .25; }
+    :root:not([data-theme="light"]) .blob--2 { opacity: .26; }
+    :root:not([data-theme="light"]) .blob--3 { opacity: .2; }
+    :root:not([data-theme="light"]) .blob--4 { opacity: .19; }
+    :root:not([data-theme="light"]) .blob--5 { opacity: .15; }
+  }
+  .stage { position: relative; z-index: 1; }
+
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    border: 1px solid var(--glass-border);
+  }
+  .glass-strong {
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    border: 1px solid var(--glass-border);
+  }
+
+  /* ============ SWITCHER DE PROTOTIPO (no es parte del producto) ============ */
+  .proto-switch-wrap { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .proto-switch {
+    display: flex; gap: 3px; padding: 4px;
+    border-radius: 999px; border: 1px dashed var(--ink-faint);
+    background: var(--glass-bg-strong); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
+  .proto-switch button {
+    border: none; background: transparent; padding: 7px 14px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; color: var(--ink-soft);
+  }
+  .proto-switch button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+  .proto-note {
+    font-size: 10.5px; font-weight: 600; color: var(--ink-faint); text-align: center;
+    background: var(--glass-bg-strong); padding: 3px 10px; border-radius: 999px; max-width: 300px;
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; text-align: left; }
+  .field label { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .field input {
+    padding: 13px 14px; border: 1.5px solid var(--line); border-radius: var(--r-sm);
+    font-size: 15.5px; color: var(--ink); background: var(--surface-2);
+  }
+  .field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-tint); }
+  .field input.field-error { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(225,93,93,.18); }
+
+  /* ============ TOPBAR ============ */
+  /* flex-wrap + min-width:0 evitan que en pantallas angostas el bot&#243;n de la
+     derecha se salga del viewport y la p&#225;gina scrollee de lado. */
+  .topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 20px; position: sticky; top: 0; z-index: 30; margin: 12px 12px 0; border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
+  .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+  .brand > div { min-width: 0; }
+  .brand__name, .brand__tag { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .brand__mark { width: 42px; height: 42px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--primary), var(--coral)); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .brand__mark svg { width: 22px; height: 22px; }
+  .brand__name { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+  .brand__tag { font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
+  .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 999px; }
+  .tab { border: none; background: transparent; padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+  .tab[aria-selected="true"] { background: var(--primary); color: #fff; }
+  .icon-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--ink-soft); flex-shrink: 0; }
+  .icon-btn:hover { border-color: var(--danger); color: var(--danger); }
+  @media (max-width: 720px) { .brand__tag { display: none; } }
+
+  /* ============ MAIN LAYOUT ============ */
+  .main { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; padding: 22px 20px 40px; max-width: 1180px; margin: 0 auto; }
+  @media (max-width: 960px) { .main { grid-template-columns: 1fr; } }
+
+  .view-head { max-width: 620px; margin-bottom: 22px; }
+  .view-head h1 { font-size: 28px; font-weight: 800; }
+  .view-head p { color: var(--ink-soft); margin-top: 6px; font-size: 15.5px; }
+
+  /* ============ CATEGORY GRID (interno) ============ */
+  .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .category-card { position: relative; text-align: left; border-radius: var(--r-lg); padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-sm); transition: transform .15s ease, box-shadow .15s ease; min-height: 148px; }
+  .category-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .category-card__icon { width: 50px; height: 50px; border-radius: var(--r-md); background: var(--cat-tint, var(--primary-tint)); color: var(--cat-color, var(--primary)); display: flex; align-items: center; justify-content: center; }
+  .category-card__icon svg { width: 26px; height: 26px; }
+  .category-card__name { font-size: 16.5px; font-weight: 700; }
+  .category-card__count { font-size: 13px; color: var(--ink-soft); margin-top: -8px; }
+
+  /* ============ SHOWCASE GRID (cliente, mas colorido con gradiente) ============ */
+  .showcase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .showcase-card { border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-md); border: 1px solid var(--glass-border); transition: transform .15s ease; text-align: left; }
+  .showcase-card:hover { transform: translateY(-4px); }
+  .showcase-card__art { height: 128px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--art, var(--primary)), var(--art2, var(--accent))); position: relative; overflow: hidden; }
+  .showcase-card__art svg { width: 46px; height: 46px; color: #fff; opacity: .95; position: relative; z-index: 1; }
+  .showcase-card__art::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 75% 20%, rgba(255,255,255,.4), transparent 55%); }
+  .showcase-card__body { padding: 14px 16px 16px; }
+  .showcase-card__name { font-size: 15.5px; font-weight: 800; }
+  .showcase-card__count { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+
+  /* ============ ITEM LIST ============ */
+  .back-link { border: none; background: none; color: var(--primary); font-weight: 700; font-size: 15px; padding: 6px 0 16px; display: flex; align-items: center; gap: 6px; }
+  .back-link:hover { text-decoration: underline; }
+  .item-view h2, .items-title { font-size: 22px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .items-title .cat-icon { width: 32px; height: 32px; border-radius: 10px; background: var(--cat-tint); color: var(--cat-color); display: flex; align-items: center; justify-content: center; }
+  .items-title .cat-icon svg { width: 18px; height: 18px; }
+
+  .item-list { display: flex; flex-direction: column; gap: 12px; }
+  .item-card { border-radius: var(--r-md); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; box-shadow: var(--shadow-sm); }
+  /* La fila interior lleva el texto y los controles; crece para ocupar lo que
+     deja la foto. min-width:0 evita que un nombre largo la desborde. */
+  .item-card__row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex: 1 1 260px; min-width: 0; flex-wrap: wrap; }
+
+  .item-card__name { font-weight: 700; font-size: 15.5px; }
+  .item-card__desc { font-size: 13.5px; color: var(--ink-soft); margin-top: 2px; }
+  .item-card__price { font-size: 14px; color: var(--primary); font-weight: 800; margin-top: 7px; font-variant-numeric: tabular-nums; }
+  .item-card__controls { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+
+  .stepper { display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+  .stepper button { width: 38px; height: 38px; border: none; background: transparent; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: var(--primary); }
+  .stepper button:hover { background: var(--primary-tint); }
+  .stepper span { width: 38px; text-align: center; font-weight: 800; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  /* Al marcar "Ilimitado" la cantidad deja de aplicar: se apaga en vez de desaparecer,
+     as&#237; el bloque no salta y queda claro por qu&#233; no responde. */
+  .stepper[data-off="true"] { opacity: .35; pointer-events: none; }
+
+  /* Selector de cantidad: un producto = una tarjeta, con sus tama&#241;os en l&#237;nea. */
+  /* Foto del producto dentro de la fila. `contain` porque son recortes con
+     fondo claro: si los recortara, se veria la comida cortada. */
+  .prod-thumb {
+    flex: 0 0 128px; width: 128px; height: 128px; border-radius: var(--r-md);
+    overflow: hidden; background: var(--surface-2); align-self: center;
+  }
+  .prod-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  #stage-internal .prod-thumb { flex-basis: 120px; width: 120px; height: 120px; }
+  @media (max-width: 520px) { .prod-thumb { flex: 0 0 92px; width: 92px; height: 92px; } }
+
+  /* Galeria de fotos que el asistente adjunta bajo su respuesta -- son
+     siempre las mismas fotos reales del catalogo (nunca elegidas o
+     inventadas por la IA): se buscan por coincidencia de nombre contra
+     CATALOG despues de recibir el texto. Cada tarjeta es clicable y lleva
+     directo a "cuantos quieres" de ese producto. */
+  .chat-photo-gallery { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chat-photo-card { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 84px; background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; }
+  .chat-photo-card__img { width: 84px; height: 84px; border-radius: var(--r-md); overflow: hidden; background: var(--surface-2); border: 1px solid var(--line); }
+  .chat-photo-card__img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .chat-photo-card__name { font-size: 11px; color: var(--ink); text-align: center; line-height: 1.25; }
+  .chat-photo-card:hover .chat-photo-card__img { border-color: var(--primary); }
+
+  .size-select { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
+  .size-select button {
+    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 13px; font-size: 12.5px; font-weight: 700;
+    font-variant-numeric: tabular-nums; transition: background .12s, color .12s, border-color .12s;
+  }
+  .size-select button:hover { border-color: var(--primary); color: var(--primary); }
+  .size-select button[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  .unlimited-pill { border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 15px; font-size: 13px; font-weight: 700; color: var(--ink-soft); background: var(--surface); }
+  .unlimited-pill[aria-pressed="true"] { background: var(--accent-tint); border-color: var(--accent); color: var(--ink); }
+
+  .btn-add { border: none; background: var(--primary); color: #fff; font-weight: 700; font-size: 14px; padding: 11px 18px; border-radius: 999px; white-space: nowrap; transition: background .15s ease, transform .1s ease; }
+  .btn-add:hover { background: var(--primary-dark); }
+  .btn-add:active { transform: scale(.97); }
+  .btn-add[data-added="true"] { background: var(--success); }
+
+  /* ============ ORDER PANEL (interno) ============ */
+  .order-panel { position: sticky; top: 100px; border-radius: var(--r-lg); box-shadow: var(--shadow-md); overflow: hidden; }
+  .order-panel__scallop { height: 16px; background: radial-gradient(circle at 8px 8px, var(--bg) 8px, transparent 8.5px) 0 0/16px 16px repeat-x, var(--surface-2); }
+  .order-panel__inner { padding: 20px; }
+  .order-panel h2 { font-size: 17px; font-weight: 800; margin-bottom: 16px; }
+  .order-items { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; min-height: 40px; }
+  .order-empty { font-size: 14px; color: var(--ink-faint); text-align: center; padding: 20px 8px; line-height: 1.6; }
+  .order-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px; background: var(--surface-2); border-radius: var(--r-sm); animation: line-in .18s ease; }
+  @keyframes line-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .order-line__name { font-size: 14px; font-weight: 700; }
+  .order-line__meta { font-size: 12px; color: var(--ink-soft); }
+  .order-line__price { font-size: 14px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .order-line__remove { border: none; background: none; color: var(--ink-faint); font-size: 19px; line-height: 1; padding: 4px 6px; }
+  .order-line__remove:hover { color: var(--danger); }
+  .order-total { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 0; border-top: 2px solid var(--line); }
+  .order-total span { font-size: 13.5px; color: var(--ink-soft); font-weight: 700; }
+  .order-total strong { font-size: 26px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+  
+  .deposit-pill {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--accent-tint); border: 1.5px solid var(--accent);
+    padding: 10px 14px; border-radius: var(--r-sm); margin-top: 6px; margin-bottom: 14px;
+    font-size: 13.5px; color: var(--ink); box-shadow: 0 2px 6px rgba(226,152,47,.15);
+  }
+  .deposit-pill strong { color: var(--primary-dark); font-size: 16.5px; font-weight: 900; }
+
+  .search-box { position: relative; margin-bottom: 18px; display: flex; align-items: center; }
+  .search-box input {
+    width: 100%; padding: 12px 38px 12px 42px; border: 1.5px solid var(--line);
+    border-radius: 999px; font-size: 15px; background: var(--surface);
+    color: var(--ink); box-shadow: var(--shadow-sm); transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3.5px var(--primary-tint); }
+  .search-box .search-icon { position: absolute; left: 14px; color: var(--ink-faint); pointer-events: none; }
+  .search-box #clearSearch { position: absolute; right: 12px; border: none; background: transparent; font-size: 20px; color: var(--ink-faint); cursor: pointer; padding: 4px; line-height: 1; }
+  
+  .order-actions { display: flex; flex-direction: column; gap: 9px; }
+
+  .btn { border: none; border-radius: var(--r-sm); padding: 13px 18px; font-size: 14.5px; font-weight: 700; }
+  .btn:active { transform: scale(.98); }
+  .btn--primary { background: linear-gradient(135deg, var(--primary), var(--coral)); color: #fff; box-shadow: 0 8px 18px rgba(124,46,82,.3); }
+  .btn--primary:hover { filter: brightness(1.06); }
+  .btn--secondary { background: var(--primary-tint); color: var(--primary-dark); }
+  .btn--ghost { background: transparent; border: 1.5px solid var(--line); color: var(--ink-soft); }
+  .btn--ghost:hover { background: var(--surface-2); }
+
+  /* ============ PANEL DE LA DUE&#209;A: LETRA Y BOTONES GRANDES ============
+     Lo usa una persona mayor. Todo lo que se toca mide 52px o m&#225;s (la gu&#237;a
+     de accesibilidad pide 44 como m&#237;nimo) y la letra sube para que se lea
+     sin esfuerzo. Las acciones dejan de competir: una manda, dos acompa&#241;an. */
+  #stage-internal .view-head h1 { font-size: 31px; }
+  #stage-internal .view-head p { font-size: 17px; }
+
+  /* Tarjeta con foto: la imagen manda, el texto la acompa&#241;a. */
+  #stage-internal .category-card { min-height: 0; padding: 0; overflow: hidden; gap: 0; }
+  #stage-internal .category-card__photo { display: block; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: var(--cat-tint); }
+  #stage-internal .category-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #stage-internal .category-card__name { font-size: 19px; font-weight: 800; padding: 14px 18px 0; }
+  #stage-internal .category-card__count { font-size: 15px; margin-top: 2px; padding: 0 18px 16px; }
+
+  #stage-internal .item-card__name { font-size: 17.5px; }
+  #stage-internal .item-card__desc { font-size: 15px; }
+  #stage-internal .item-card__price { font-size: 16px; }
+  #stage-internal .size-select button { font-size: 15px; padding: 10px 18px; min-height: 46px; }
+
+  #stage-internal .stepper button { width: 52px; height: 52px; font-size: 24px; }
+  #stage-internal .stepper span { width: 56px; font-size: 19px; }
+  #stage-internal .btn-add { font-size: 16.5px; padding: 15px 26px; min-height: 52px; }
+
+  #stage-internal .field label { font-size: 15px; }
+  #stage-internal .field input { font-size: 17px; padding: 15px 16px; min-height: 54px; }
+
+  #stage-internal .order-line { padding: 14px; }
+  #stage-internal .order-line__name { font-size: 16px; }
+  #stage-internal .order-line__meta { font-size: 14px; }
+  #stage-internal .order-line__price { font-size: 16px; }
+  /* La X de quitar era de 4px de padding: imposible de acertar. */
+  #stage-internal .order-line__remove { font-size: 26px; padding: 10px 14px; min-width: 48px; min-height: 48px; }
+  #stage-internal .order-total span { font-size: 16px; }
+  #stage-internal .order-total strong { font-size: 32px; }
+  #stage-internal .order-panel h2 { font-size: 22px; }
+
+  /* Una accion principal grande + dos de apoyo, en vez de tres botones iguales. */
+  #stage-internal .order-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #stage-internal .order-actions .btn { min-height: 54px; font-size: 15.5px; }
+  #stage-internal .order-actions .btn:first-child {
+    grid-column: 1 / -1; min-height: 66px; font-size: 19px; font-weight: 800;
+  }
+  #stage-internal .btn { padding: 15px 20px; }
+  #stage-internal .tab { font-size: 15.5px; padding: 11px 20px; min-height: 46px; }
+  #stage-internal .back-link { font-size: 16px; padding: 10px 4px; min-height: 46px; }
+
+  /* La barra del prototipo estaba fija encima de la cabecera y la tapaba. */
+  .proto-switch-wrap { position: static; transform: none; margin: 14px auto 4px; }
+
+  /* FAB flotante de pedido para movil */
+  .mobile-cart-fab { display: none; }
+
+  @media (max-width: 960px) {
+    .main { grid-template-columns: 1fr; gap: 20px; padding: 14px 12px 90px; }
+    
+    /* El panel de pedido NO tapa fijamente la pantalla en movil; se coloca de forma natural y limpia */
+    .order-panel {
+      position: relative; top: 0; left: 0; right: 0; bottom: 0;
+      max-height: none; z-index: 1; margin-top: 20px; width: 100%;
+      border-radius: var(--r-lg); box-shadow: var(--shadow-md);
+      overflow: visible;
+    }
+    .order-panel__inner { padding: 18px 16px; }
+
+    .mobile-cart-fab {
+      display: flex; position: fixed; bottom: 14px; left: 12px; right: 12px; z-index: 95;
+      background: var(--glass-bg-strong); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid var(--primary); border-radius: 999px;
+      padding: 10px 16px; align-items: center; justify-content: space-between;
+      box-shadow: 0 10px 28px rgba(44,27,42,.25); text-decoration: none; color: var(--ink);
+    }
+    .mobile-cart-fab[hidden] { display: none !important; }
+    .mobile-cart-fab__info { font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+    .mobile-cart-fab__info strong { color: var(--primary); font-size: 16px; }
+    .mobile-cart-fab__btn { background: var(--primary); color: #fff; border: none; font-size: 13px; font-weight: 800; padding: 8px 15px; border-radius: 999px; }
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 15px; }
+
+    /* Switcher prototipo mas compacto */
+    .proto-switch-wrap { margin: 8px auto 4px; padding: 0 8px; width: 100%; max-width: 360px; }
+    .proto-switch { width: 100%; justify-content: center; }
+    .proto-switch button { padding: 6px 10px; font-size: 11.5px; flex: 1; text-align: center; }
+    .proto-note { font-size: 10px; padding: 3px 8px; max-width: 100%; }
+
+    /* Topbar responsive */
+    .topbar { padding: 10px 12px; margin: 6px 8px 0; border-radius: var(--r-md); gap: 8px 12px; }
+    .brand { gap: 8px; }
+    .brand__mark { width: 36px; height: 36px; border-radius: 10px; }
+    .brand__mark svg { width: 18px; height: 18px; }
+    .brand__name { font-size: 15.5px; }
+    .brand__tag { display: none; }
+    .tabs { width: 100%; margin-top: 2px; }
+    .tab { flex: 1; text-align: center; padding: 8px 10px; font-size: 13.5px; }
+    .theme-btn { width: 36px; height: 36px; flex: 0 0 36px; }
+
+    /* Encabezados */
+    .view-head { margin-bottom: 14px; }
+    .view-head h1 { font-size: 22px; }
+    .view-head p { font-size: 14px; }
+
+    /* Grid de Categorias en 2 columnas parejas en movil */
+    .category-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .category-card { min-height: 110px; border-radius: var(--r-md); padding: 0; }
+    #stage-internal .category-card__name { font-size: 14.5px; padding: 8px 10px 0; line-height: 1.25; }
+    #stage-internal .category-card__count { font-size: 11.5px; padding: 0 10px 10px; margin-top: 1px; }
+    #stage-internal .category-card__photo { aspect-ratio: 16 / 9; }
+
+    /* Showcase Grid en vista cliente */
+    .showcase-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .showcase-card { border-radius: var(--r-md); }
+    .showcase-card__art { height: 90px; }
+    .showcase-card__art svg { width: 34px; height: 34px; }
+    .showcase-card__body { padding: 10px; }
+    .showcase-card__name { font-size: 13.5px; line-height: 1.25; }
+    .showcase-card__count { font-size: 11px; }
+
+    /* Tarjetas de productos en movil */
+    .item-card { padding: 12px; gap: 10px; flex-direction: column; align-items: stretch; }
+    .item-card__row { flex-direction: row; align-items: center; gap: 10px; width: 100%; }
+    .item-card__controls { width: 100%; justify-content: space-between; gap: 8px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 10px; }
+    .prod-thumb { flex: 0 0 64px; width: 64px; height: 64px; }
+    #stage-internal .prod-thumb { flex-basis: 64px; width: 64px; height: 64px; }
+    #stage-internal .stepper button { width: 42px; height: 42px; font-size: 20px; }
+    #stage-internal .stepper span { width: 36px; font-size: 16px; }
+    #stage-internal .btn-add { font-size: 14px; padding: 10px 18px; min-height: 44px; flex: 1; text-align: center; }
+    #stage-internal .size-select button { font-size: 13px; padding: 7px 12px; min-height: 38px; }
+
+    /* Formulario de pedido en movil */
+    #stage-internal .field label { font-size: 13.5px; }
+    #stage-internal .field input { font-size: 15px; padding: 11px 13px; min-height: 46px; }
+    #stage-internal .order-actions .btn { min-height: 48px; font-size: 14px; }
+    #stage-internal .order-actions .btn:first-child { min-height: 52px; font-size: 16px; }
+
+    /* Vista cliente */
+    .client-hero { padding: 20px 16px; margin-bottom: 16px; border-radius: var(--r-md); }
+    .client-hero h1 { font-size: 20px; }
+    .client-hero p { font-size: 14px; }
+    .cfoot { margin: 24px 0 10px; border-radius: 18px; }
+    .cfoot__cta { padding: 22px 16px 20px; }
+    .cfoot__cta h3 { font-size: 19px; }
+    .cfoot__wa { width: 100%; justify-content: center; padding: 12px 18px; font-size: 15px; }
+    .fact { padding: 14px 16px; gap: 10px; }
+    .fact__ico { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 8px; }
+    .fact__ico svg { width: 18px; height: 18px; }
+
+    /* Modales */
+    .modal-overlay { padding: 10px; }
+    .sheet { border-radius: var(--r-md); max-height: 92vh; }
+    .sheet__top { padding: 16px 18px 22px; }
+    .sheet__body { padding: 16px 18px; }
+  }
+
+  /* ============ HISTORY ============ */
+  .history-list { display: flex; flex-direction: column; gap: 12px; }
+  .history-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 16px; border-radius: var(--r-md); box-shadow: var(--shadow-sm); }
+  .history-row__who { font-weight: 700; font-size: 15px; }
+  .history-row__meta { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .history-row__total { font-weight: 800; font-size: 16.5px; color: var(--primary); font-variant-numeric: tabular-nums; }
+  .history-row__right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .status-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .status-badge--pending { background: var(--accent-tint); color: var(--accent); }
+  .status-badge--done { background: var(--success-tint); color: var(--success); }
+  .history-row__btn { border: none; background: var(--primary); color: #fff; font-size: 11.5px; font-weight: 700; padding: 7px 12px; border-radius: 999px; }
+
+  /* ============ MODAL ============ */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(30,16,26,.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; }
+  .modal-overlay[hidden] { display: none; }
+  .sheet { width: min(440px, 100%); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); position: relative; max-height: 88vh; overflow-y: auto; }
+  .sheet__top { background: linear-gradient(135deg, var(--primary), var(--coral)); color: #fff; padding: 22px 24px 28px; position: relative; }
+  .sheet__top h3 { font-size: 19px; font-weight: 800; }
+  .sheet__top p { font-size: 12.5px; opacity: .85; margin-top: 4px; }
+  .sheet__scallop { height: 16px; margin-top: -1px; background: radial-gradient(circle at 8px 8px, var(--surface) 8px, transparent 8.5px) 0 0/16px 16px repeat-x var(--primary); }
+  .sheet__close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(255,255,255,.2); color: #fff; font-size: 16px; }
+  .sheet__body { padding: 20px 22px 24px; font-size: 14px; }
+  .sheet__body dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin-bottom: 16px; font-size: 13.5px; }
+  .sheet__body dt { color: var(--ink-soft); }
+  .sheet__body dd { margin: 0; font-weight: 600; }
+  .sheet__table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .sheet__table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .sheet__table td { padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+  .sheet__table td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sheet__grand { display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; }
+  .sheet__grand strong { font-size: 22px; color: var(--primary); font-variant-numeric: tabular-nums; }
+  .sheet__confirm { text-align: center; padding: 12px 4px 6px; }
+  .sheet__confirm-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--success); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .sheet__confirm-icon svg { width: 28px; height: 28px; }
+  .sheet__confirm h4 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+  .sheet__confirm p { color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
+  .sheet__note { margin-top: 14px; font-size: 11.5px; color: var(--ink-faint); line-height: 1.5; }
+
+  /* ============ VISTA CLIENTE ============ */
+  #stage-client .main { grid-template-columns: 1fr; max-width: 760px; }
+
+  /* ---- Barra de contacto (encima del topbar) ----
+     Igual que casi cualquier web de servicios real: telefono/WhatsApp y
+     horario visibles antes de que la persona haga scroll un solo pixel. */
+  .client-utilitybar {
+    text-align: center; padding: 8px 16px; font-size: 12.5px; font-weight: 700;
+    color: var(--ink-soft); background: var(--surface-2);
+  }
+  .client-utilitybar strong { color: var(--primary); }
+  .client-utilitybar__sep { margin: 0 8px; opacity: .6; }
+  @media (max-width: 560px) {
+    .client-utilitybar { font-size: 11px; padding: 7px 10px; }
+    .client-utilitybar__sep, .client-utilitybar span:last-child { display: none; }
+  }
+
+  /* ---- Hero full-bleed con fotos reales de fondo ----
+     Antes era una tarjeta de solo texto y logo, angosta y centrada -- se
+     sentia como panel de app, no como pagina de un negocio real. Ahora
+     rompe el ancho del contenedor (100vw + margen negativo) y usa un
+     mosaico de fotos reales de servicios con un velo oscuro para que el
+     texto en blanco siga siendo perfectamente legible, igual que el hero
+     de foto grande que usa la competencia. */
+  .client-hero {
+    position: relative; isolation: isolate; overflow: hidden;
+    width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+    margin-bottom: 28px;
+    padding: 52px 24px 44px;
+    text-align: center;
+    min-height: 460px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .client-hero__bg {
+    position: absolute; inset: 0; z-index: 0;
+    display: grid; grid-template-columns: repeat(6, 1fr);
+  }
+  .client-hero__bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .client-hero__veil {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(44,20,36,.6) 0%, rgba(44,20,36,.72) 55%, rgba(30,14,25,.92) 100%);
+  }
+  .client-hero__content { position: relative; z-index: 2; max-width: 640px; }
+  .client-hero__mark { width: 56px; height: 56px; border-radius: var(--r-md); background: linear-gradient(135deg, var(--primary), var(--coral)); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; box-shadow: 0 10px 24px rgba(124,46,82,.3); }
+  .client-hero__mark svg { width: 28px; height: 28px; }
+  .client-hero h1 { font-size: 30px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.3); }
+  .client-hero p { color: rgba(255,255,255,.88); font-size: 15.5px; margin-top: 8px; }
+  .client-namebar { color: rgba(255,255,255,.75) !important; }
+  .client-namebar strong { color: #fff !important; }
+  @media (max-width: 620px) {
+    .client-hero { min-height: 400px; padding: 40px 18px 34px; }
+    .client-hero h1 { font-size: 24px; }
+  }
+  .client-hero__eyebrow { color: var(--primary); font-weight: 800; font-size: 12px; letter-spacing: .06em; margin-top: 0 !important; }
+
+  /* ---- Franja de confianza (arriba del catalogo) ----
+     Retoma los mismos cuatro valores que ya estaban escondidos al final,
+     en el footer -- una persona nueva casi nunca llega hasta ahi. Puestos
+     aqui, generan confianza antes de que empiece a elegir servicios. */
+  .client-trust {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    margin: 18px 0 26px;
+  }
+  .client-trust__pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--surface); color: var(--ink-soft);
+    padding: 9px 15px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 700;
+    box-shadow: var(--shadow-sm);
+    box-shadow: 0 0 0 1px var(--line), var(--shadow-sm);
+  }
+  .client-trust__pill svg { width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; }
+  @media (max-width: 520px) {
+    .client-trust { gap: 8px; margin: 14px 0 22px; }
+    .client-trust__pill { padding: 8px 12px; font-size: 11.5px; }
+  }
+
+  /* ============ CIERRE DE LA VISTA CLIENTE ============
+     El anterior era un volcado: seis bloques del mismo peso, la letra chica
+     compitiendo con el telefono. Aqui hay tres niveles claros:
+     1) la accion (escribir por WhatsApp), 2) los datos practicos,
+     3) las condiciones, plegadas: presentes pero sin gritar. */
+  .cfoot { margin: 34px 0 10px; border-radius: 26px; overflow: hidden; box-shadow: var(--shadow-md); background: var(--surface); }
+
+  .cfoot__cta {
+    position: relative; text-align: center; padding: 34px 26px 30px;
+    background:
+      radial-gradient(120% 90% at 50% 0%, var(--primary-tint) 0%, transparent 70%),
+      linear-gradient(180deg, var(--surface-2), var(--surface));
+    border-bottom: 1px solid var(--line);
+  }
+  .cfoot__kicker {
+    display: inline-block; font-size: 11.5px; font-weight: 900; letter-spacing: .10em;
+    color: var(--primary-dark); background: var(--surface); border: 1.5px solid var(--line);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 14px;
+  }
+  .cfoot__cta h3 { font-size: 25px; font-weight: 900; letter-spacing: -.02em; line-height: 1.15; }
+  .cfoot__cta > p:not(.cfoot__kicker) { color: var(--ink-soft); font-size: 15px; margin-top: 8px; }
+
+  /* El telefono deja de ser una linea de texto y pasa a ser la accion. */
+  .cfoot__wa {
+    display: inline-flex; align-items: center; gap: 12px; margin-top: 20px;
+    padding: 15px 26px; border-radius: 999px; text-decoration: none;
+    background: linear-gradient(135deg, var(--primary), var(--coral));
+    color: #fff; font-weight: 800; font-size: 16.5px;
+    box-shadow: 0 10px 24px rgba(124,46,82,.32);
+    transition: transform .14s ease, box-shadow .14s ease;
+  }
+  .cfoot__wa:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(124,46,82,.4); }
+  .cfoot__wa svg { width: 22px; height: 22px; flex: 0 0 22px; }
+  .cfoot__wa b { display: block; font-size: 12.5px; font-weight: 700; opacity: .85; margin-top: 1px; }
+
+  .cfoot__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 2px; background: var(--line); }
+  .fact { display: flex; gap: 13px; padding: 22px 24px; background: var(--surface); }
+  .fact__ico {
+    flex: 0 0 40px; width: 40px; height: 40px; border-radius: 12px;
+    background: var(--primary-tint); color: var(--primary-dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fact__ico svg { width: 20px; height: 20px; }
+  .fact h4 { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+  .fact p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; }
+
+  /* Plegado: la letra chica esta, pero no compite con el boton de arriba. */
+  .cfoot__fine { border-top: 1px solid var(--line); background: var(--surface-2); }
+  .cfoot__fine summary {
+    cursor: pointer; list-style: none; padding: 16px 24px;
+    font-size: 13.5px; font-weight: 800; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .cfoot__fine summary::-webkit-details-marker { display: none; }
+  .cfoot__fine summary::before {
+    content: ""; width: 8px; height: 8px; flex: 0 0 8px;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg); transition: transform .18s ease; margin-left: 2px;
+  }
+  .cfoot__fine[open] summary::before { transform: rotate(45deg); }
+  .cfoot__fine summary:hover { color: var(--primary); }
+  .cfoot__fine-body { padding: 0 24px 20px; display: grid; gap: 10px; }
+  .cfoot__fine-body p { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+  .cfoot__fine-body strong { color: var(--ink); font-weight: 800; }
+
+  .cfoot__sign { padding: 20px 24px 24px; text-align: center; border-top: 1px solid var(--line); }
+  .cfoot__values { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-bottom: 12px; }
+  .cfoot__values span { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+  .cfoot__values span + span::before { content: "\00b7"; margin-right: 7px; opacity: .6; }
+  .cfoot__sign em { display: block; font-size: 13.5px; color: var(--ink-soft); font-style: italic; }
+
+  @media (max-width: 520px) {
+    .cfoot__cta { padding: 28px 20px 26px; }
+    .cfoot__cta h3 { font-size: 21px; }
+    .cfoot__wa { width: 100%; justify-content: center; }
+  }
+
+  .client-cartbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 -8px 24px rgba(44,27,42,.14); }
+
+  /* ---- Burbuja flotante de WhatsApp (vista cliente) ----
+     Siempre visible mientras navega el catalogo, no solo al final en el
+     footer -- es el patron estandar en webs de este rubro (ver referencia
+     de la competencia) y reduce la friccion para escribir directo. */
+  /* ---- Acciones en la barra de control superior ----
+     Iban sueltas como burbujas flotando sobre el hero -- se sentian
+     desubicadas, tapando contenido. Viven mejor junto al logo y el toggle
+     de tema, en la misma barra de control que ya usa la persona para todo
+     lo demas: WhatsApp (verde) y el asistente con IA (rosa), siempre a la
+     vista sin importar el scroll, sin competir con el hero. */
+  .topbar-action {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px 8px 8px; border-radius: 999px; border: none;
+    text-decoration: none; cursor: pointer; font-family: inherit;
+    font-size: 13px; font-weight: 700; color: #fff;
+    box-shadow: var(--shadow-sm);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .topbar-action:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .topbar-action--wa { background: #25D366; }
+  .topbar-action--chat { background: linear-gradient(120deg, var(--primary), var(--coral)); }
+  .topbar-action__icon {
+    width: 24px; height: 24px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .topbar-action__icon svg { width: 17px; height: 17px; }
+  @media (max-width: 640px) {
+    .topbar-action__label { display: none; }
+    .topbar-action { padding: 9px; }
+    .topbar-action__icon { width: 20px; height: 20px; }
+  }
+  .client-cartbar__info { font-size: 13.5px; color: var(--ink-soft); }
+  .client-cartbar__total { font-size: 19px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+  .client-cartbar .btn { padding: 12px 22px; }
+  #stage-client .main { padding-bottom: 96px; }
+
+  .client-namebar { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 14px; font-size: 13px; color: var(--ink-soft); }
+  .client-namebar strong { color: var(--ink); }
+
+  /* La paleta rosada del sistema se mantiene en TODO (es la que aprobo la
+     due&#241;a). El dorado entra solo en el precio: un unico acento para el dato
+     mas importante de la pantalla. */
+  :root { --gold: #F5B921; --gold-deep: #C98A0B; }
+  [data-theme="dark"] { --gold: #F5B921; --gold-deep: #F5D06B; }
+
+  /* Precio en pastilla dorada: es la firma visual del catalogo impreso. */
+  .price-pill {
+    display: inline-block; background: linear-gradient(180deg, #FFE9A8, var(--gold));
+    color: #6B3A00; border: 1.5px solid var(--gold-deep); border-radius: 999px;
+    padding: 5px 15px; font-size: 16px; font-weight: 900; letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 rgba(0,0,0,.10);
+  }
+  .price-pill__unit { font-size: 11.5px; font-weight: 700; opacity: .75; margin-left: 3px; }
+
+  /* Lista de beneficios con estrella: asi se venden los paquetes en el PDF. */
+  .inc-list { list-style: none; margin: 10px 0 2px; display: grid; gap: 5px; }
+  .inc-list li { position: relative; padding-left: 20px; font-size: 13px; color: var(--ink-soft); line-height: 1.45; }
+  .inc-list li::before {
+    content: ""; position: absolute; left: 0; top: 4px; width: 13px; height: 13px;
+    background: var(--gold); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+
+  /* Foto real de cada categoria en la vitrina. */
+  .showcase-card__photo { display: block; width: 100%; height: 100%; object-fit: cover; }
+  /* display:block es necesario: como span en linea no tiene ancho definido
+     y el aspect-ratio lo colapsaba a una miniatura. */
+  .cat-banner {
+    display: block; width: 100%; position: relative; border-radius: var(--r-lg);
+    overflow: hidden; margin-bottom: 18px; box-shadow: var(--shadow-md); aspect-ratio: 21 / 8;
+  }
+  .items-title { display: block; }
+  .cat-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cat-banner__veil { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(59,19,97,.82) 0%, rgba(59,19,97,.45) 55%, rgba(59,19,97,.06) 100%); }
+  .cat-banner__txt { position: absolute; left: 20px; right: 20px; bottom: 16px; color: #fff; }
+  .cat-banner__txt h2 { font-size: 22px; font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+  .cat-banner__txt p { font-size: 13px; opacity: .92; margin-top: 2px; }
+
+  /* El logo es un JPG con fondo crema recortado del catalogo impreso: puesto
+     directo sobre una tarjeta oscura se ve como una calcomania pegada. La
+     placa (fondo + sombra + halo dorado) lo integra como una pieza de marca,
+     no como una imagen suelta. */
+  .logo-plate {
+    display: inline-flex; padding: 6px; border-radius: 14px;
+    background: var(--surface); box-shadow: var(--shadow-sm);
+  }
+  .client-logo { height: 40px; width: auto; display: block; border-radius: 9px; }
+
+  .client-hero__logo-plate {
+    display: inline-block; padding: 16px 20px; border-radius: 28px; margin: 0 auto 18px;
+    background: var(--surface);
+    box-shadow:
+      0 0 0 1px var(--line),
+      0 0 70px 14px rgba(226,152,47,.32),
+      0 0 40px 4px rgba(124,46,82,.18),
+      0 20px 44px rgba(124,46,82,.28);
+    position: relative;
+  }
+  .client-hero__logo { max-width: 280px; width: 72vw; height: auto; display: block; border-radius: 18px; }
+
+  @media (max-width: 520px) {
+    .cat-banner { aspect-ratio: 16 / 9; }
+    .cat-banner__txt h2 { font-size: 19px; }
+  }
+
+  /* ============ CHAT PANTALLA COMPLETA (cliente) ============ */
+  .chat-fullscreen { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; }
+  .chat-fullscreen__header { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--glass-border); }
+  /* Salida a un humano siempre visible mientras el chat esta abierto -- no
+     depende de que el usuario lo pida en texto libre ni de que el modelo
+     se acuerde de ofrecerlo. Requisito legal (transparencia + derecho a
+     atencion humana), no solo cortesia. */
+  .chat-human-link {
+    margin-left: auto; flex-shrink: 0;
+    font-size: 12px; font-weight: 700; color: var(--primary);
+    border: 1.5px solid var(--primary); border-radius: 999px;
+    padding: 7px 12px; text-decoration: none; white-space: nowrap;
+  }
+  .chat-human-link:hover { background: var(--primary-tint); }
+  @media (max-width: 480px) { .chat-human-link { font-size: 11px; padding: 6px 10px; } }
+  /* Mascota del asistente: el doctor pidió que se identifique con el
+     conejo blanco que aparece en el arte de la marca (logo, brochure). No
+     tenemos un recorte propio del conejo todavía -- placeholder de emoji
+     hasta que llegue el arte real, luego se reemplaza aquí y en la
+     burbuja flotante sin tocar nada más. */
+  .chat-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary-tint), var(--accent-tint));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .chat-fullscreen__messages {
+    flex: 1; min-height: 110px; overflow-y: auto; padding: 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    max-width: 640px; margin: 0 auto; width: 100%;
+    /* Fondo tipo WhatsApp: un patron sutil, no la superficie plana de los
+       modales -- ayuda a distinguir "esto es un chat" del resto de la app. */
+    background-image: radial-gradient(var(--line) .6px, transparent .6px);
+    background-size: 16px 16px;
+    border-radius: var(--r-lg);
+  }
+  /* Scroll fino y prolijo -- sin esto, Windows/Chrome dibuja el scrollbar
+     grueso con flechitas de toda la vida, que se ve fuera de lugar en un
+     panel de chat "premium". Aplica a mensajes y respuestas rapidas. */
+  .chat-fullscreen__messages, .chat-fullscreen__quickreplies { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .chat-fullscreen__messages::-webkit-scrollbar, .chat-fullscreen__quickreplies::-webkit-scrollbar { width: 6px; }
+  .chat-fullscreen__messages::-webkit-scrollbar-track, .chat-fullscreen__quickreplies::-webkit-scrollbar-track { background: transparent; }
+  .chat-fullscreen__messages::-webkit-scrollbar-thumb, .chat-fullscreen__quickreplies::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+  /* Cada mensaje es una fila: avatar de quien habla + su burbuja, uno
+     frente al otro como en WhatsApp -- no solo burbujas sueltas alineadas
+     a un lado, sino con la cara de quien te esta escribiendo. */
+  .chat-row { display: flex; align-items: flex-end; gap: 8px; max-width: 92%; }
+  .chat-row--bot { align-self: flex-start; }
+  .chat-row--user { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-row__avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; box-shadow: var(--shadow-sm);
+  }
+  .chat-row--bot .chat-row__avatar { background: linear-gradient(135deg, var(--primary-tint), var(--accent-tint)); }
+  .chat-row--user .chat-row__avatar { background: linear-gradient(135deg, var(--primary), var(--coral)); color: #fff; }
+  .chat-msg { max-width: 100%; padding: 10px 14px; border-radius: var(--r-md); font-size: 14.5px; line-height: 1.55; animation: line-in .15s ease; }
+  .chat-msg--bot { background: var(--surface); box-shadow: var(--shadow-sm); border-bottom-left-radius: 4px; }
+  .chat-msg--user { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+  .chat-msg .stepper, .chat-msg .unlimited-pill, .chat-msg .btn-add { margin-top: 4px; }
+  .chat-msg--typing { padding: 12px 16px; }
+  /* max-height + scroll: sin esto, una categor&#237;a con muchos productos empuja
+     los &#250;ltimos botones fuera del panel fijo y quedan inalcanzables. */
+  .chat-fullscreen__quickreplies { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; padding: 12px 18px; max-width: 640px; margin: 0 auto; width: 100%; flex: 0 1 auto; max-height: 34vh; overflow-y: auto; border-top: 1px solid var(--glass-border); }
+  .chat-price { font-weight: 800; color: var(--primary); font-size: 15px; margin: 8px 0 2px; font-variant-numeric: tabular-nums; }
+  .qr-btn { border: 1.5px solid var(--primary); background: var(--surface); color: var(--primary); font-size: 12.5px; font-weight: 700; padding: 8px 13px; border-radius: 999px; white-space: nowrap; }
+  .qr-btn:hover { background: var(--primary); color: #fff; }
+  @media (max-height: 620px) {
+    .chat-fullscreen__quickreplies { max-height: 28vh; padding: 8px 14px; gap: 6px; }
+    .chat-fullscreen__privacy { padding: 0 18px 6px; }
+  }
+
+  /* ---- Campo de texto libre del asistente (habla con Gemini via /api/chat) ---- */
+  .chat-fullscreen__inputrow {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 18px; max-width: 640px; margin: 0 auto; width: 100%;
+    border-top: 1px solid var(--glass-border);
+  }
+  .chat-fullscreen__inputrow input {
+    flex: 1; border: 1.5px solid var(--line); border-radius: 999px;
+    padding: 11px 16px; font-size: 14px; background: var(--surface); color: var(--ink);
+    font-family: inherit;
+  }
+  .chat-fullscreen__inputrow input:focus { outline: none; border-color: var(--primary); }
+  .chat-fullscreen__privacy {
+    font-size: 10.5px; color: var(--ink-faint); text-align: center;
+    padding: 0 18px 12px; max-width: 640px; margin: 0 auto;
+  }
+  .chat-fullscreen__privacy a { color: var(--primary); text-decoration: underline; }
+  .chat-fullscreen__send {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; border: none;
+    background: linear-gradient(135deg, var(--primary), var(--coral)); color: #fff;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .chat-fullscreen__send:disabled { opacity: .5; cursor: default; }
+  .chat-msg--typing { display: flex; gap: 4px; padding: 14px 16px; }
+  .chat-msg--typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); animation: chat-typing 1.1s infinite ease-in-out; }
+  .chat-msg--typing span:nth-child(2) { animation-delay: .15s; }
+  .chat-msg--typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes chat-typing { 0%, 60%, 100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+
+  /* ============ TOGGLE DE TEMA ============
+     Vive dentro de la barra, al lado de las pestanas. Antes flotaba fijo en
+     una esquina, que es donde nadie lo busca. */
+  .theme-btn {
+    width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%;
+    border: 1.5px solid var(--line); background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); transition: color .15s ease, border-color .15s ease;
+  }
+  .theme-btn:hover { color: var(--primary); border-color: var(--primary); }
+  .theme-btn svg { width: 20px; height: 20px; }
+  .topbar__end { display: flex; align-items: center; gap: 10px; }
+
+  /* ============ UTIL ============ */
+  [hidden] { display: none !important; }
+</style>
+
+<div class="bg-decor" aria-hidden="true">
+  <span class="blob blob--1"></span>
+  <span class="blob blob--2"></span>
+  <span class="blob blob--3"></span>
+  <span class="blob blob--4"></span>
+  <span class="blob blob--5"></span>
+</div>
+
+<div class="proto-switch-wrap">
+  <div class="proto-switch" role="tablist" aria-label="Cambiar de vista (solo para revisar el prototipo)">
+    <button data-stage="internal" aria-pressed="true">Panel interno</button>
+    <button data-stage="client" aria-pressed="false">Link del cliente</button>
+  </div>
+  <p class="proto-note">Solo para revisar el prototipo: en el producto real, el cliente abre un link directo, sin login ni esta barra.</p>
+</div>
+
+<!-- ============ PANEL INTERNO ============ -->
+<div class="stage" id="stage-internal">
+  <header class="topbar glass">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20 L9 6 L12 12 L15 4 L20 20 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg></span>
+      <div><p class="brand__name">Magic Box</p><p class="brand__tag">Panel de cotizaciones</p></div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab" role="tab" aria-selected="true" data-view="catalog">Cat&#225;logo</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="history">Historial</button>
+    </nav>
+    <div class="topbar__end"><button class="theme-btn js-theme" type="button" aria-label="Cambiar tema"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button></div>
+  </header>
+
+  <main class="main">
+    <div>
+      <section id="view-catalog">
+        <div class="view-head" id="catalogHead"><h1>&#191;Qu&#233; necesita el cliente?</h1><p>Toca una categor&#237;a y arma la cotizaci&#243;n mientras conversas por WhatsApp &#8212; o comparte el link del cliente para que &#233;l mismo lo arme.</p></div>
+        <div class="search-box">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="catalogSearch" placeholder="🔍 Buscar servicio (ej. algodón, pancho, show, local)..." aria-label="Buscar en el catálogo">
+          <button type="button" id="clearSearch" hidden>&times;</button>
+        </div>
+        <div class="category-grid" id="categoryGrid"></div>
+        <div id="itemView" hidden>
+          <button class="back-link" id="backBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Volver a categor&#237;as</button>
+          <h2 class="items-title" id="itemViewTitle"></h2>
+          <div class="item-list" id="itemList"></div>
+        </div>
+      </section>
+      <section id="view-history" hidden>
+        <div class="view-head"><h1>Historial de pedidos</h1><p>Se guardan en la nube: se ven igual desde el celular, la tablet o la laptop.</p></div>
+        <div class="history-list" id="historyList"></div>
+      </section>
+    </div>
+
+    <aside class="order-panel glass-strong" id="orderPanel">
+      <div class="order-panel__scallop" aria-hidden="true"></div>
+      <div class="order-panel__inner">
+        <h2>Pedido actual</h2>
+        <div class="field"><label for="clientName">Nombre del cliente</label><input id="clientName" type="text" placeholder="Ej. Rosa G&#243;mez"></div>
+        <div class="field"><label for="clientPhone">WhatsApp del cliente</label><input id="clientPhone" type="text" placeholder="Ej. 987 654 321"></div>
+        <div class="field"><label for="eventDate">Fecha del evento</label><input id="eventDate" type="date"></div>
+        <button type="button" class="btn btn--secondary" id="btnShareLink" style="width:100%;margin-bottom:14px;">Enviarle el link a este cliente</button>
+        <div class="order-items" id="orderItems"><p class="order-empty" id="orderEmpty">Todav&#237;a no agregaste servicios.<br>Elige una categor&#237;a a la izquierda.</p></div>
+        <div class="order-total"><span>Total</span><strong id="orderTotal">S/ 0.00</strong></div>
+        <div class="deposit-pill" id="depositPill" hidden>
+          <span>🔒 Reserva del 20%:</span> <strong id="depositTotal">S/ 0.00</strong>
+        </div>
+        <div class="order-actions">
+          <button class="btn btn--primary" id="btnProforma">Descargar proforma</button>
+          <button class="btn btn--secondary" id="btnContract">Generar contrato</button>
+          <button class="btn btn--ghost" id="btnSave">Guardar pedido</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <a class="mobile-cart-fab" id="mobileCartFab" href="#orderPanel" hidden>
+    <div class="mobile-cart-fab__info">
+      <span>🛒 Pedido actual:</span>
+      <strong id="mobileCartTotal">S/ 0.00</strong>
+    </div>
+    <span class="mobile-cart-fab__btn">Ver pedido ➔</span>
+  </a>
+</div>
+
+<!-- ============ VISTA CLIENTE (sin login, nombre ya cargado por la due&#241;a) ============ -->
+<div class="stage" id="stage-client" hidden>
+  <div class="client-utilitybar">
+    <span>WhatsApp: <strong>956 206 360</strong></span>
+    <span class="client-utilitybar__sep">&#183;</span>
+    <span>Dom&#8211;jue hasta 9pm &#8226; Vie&#8211;s&#225;b hasta 11pm</span>
+  </div>
+  <header class="topbar glass">
+    <div class="brand">
+      <span class="logo-plate"><img class="client-logo" src="img/cat/logo.jpg" alt="Magic Box"></span>
+      <div><p class="brand__tag">T&#250; imaginas, nosotros lo hacemos realidad</p></div>
+    </div>
+    <div class="topbar__end" style="margin-left:auto;">
+      <a class="topbar-action topbar-action--wa" href="https://wa.me/51956206360" target="_blank" rel="noopener" aria-label="Escr&#237;benos por WhatsApp">
+        <span class="topbar-action__icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23a8.2 8.2 0 0 1 8.24 8.24c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.53.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.09-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.86.84-.86 2.05s.88 2.38 1 2.54c.13.17 1.73 2.64 4.2 3.7.59.26 1.04.41 1.4.52.59.19 1.12.16 1.55.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.29z"/></svg>
+        </span>
+        <span class="topbar-action__label">Cont&#225;ctanos</span>
+      </a>
+      <button type="button" class="topbar-action topbar-action--chat" id="btnClientChat">
+        <span class="topbar-action__icon">&#128048;</span>
+        <span class="topbar-action__label">Te ayudamos a elegir</span>
+      </button>
+      <button class="theme-btn js-theme" type="button" aria-label="Cambiar tema"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div id="clientCatalogView">
+      <div class="client-hero" id="clientHead">
+        <div class="client-hero__bg" aria-hidden="true">
+          <img src="img/cat/shows.jpg" alt="">
+          <img src="img/cat/babyshower.jpg" alt="">
+          <img src="img/cat/torta.jpg" alt="">
+          <img src="img/cat/snacks-dulces.jpg" alt="">
+          <img src="img/cat/local.jpg" alt="">
+          <img src="img/cat/gymkanas.jpg" alt="">
+          <div class="client-hero__veil"></div>
+        </div>
+        <div class="client-hero__content">
+          <span class="client-hero__logo-plate"><img class="client-hero__logo" src="img/cat/logo.jpg" alt="Magic Box"></span>
+          <p class="client-hero__eyebrow">LO TENEMOS TODO PARA TU EVENTO</p>
+          <p class="client-namebar">Hola <strong id="clientNameTag">Rosa G&#243;mez</strong> &#8212; arma lo que quieras para tu fiesta</p>
+          <h1>&#191;Qu&#233; quieres para tu fiesta?</h1>
+          <p>Elige lo que te gustar&#237;a abajo, o toca el globo rosado de la esquina para que te preguntemos paso a paso.</p>
+        </div>
+      </div>
+      <div class="client-trust">
+        <span class="client-trust__pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z"/></svg>
+          Seguridad y confianza
+        </span>
+        <span class="client-trust__pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5-8.8 10.4-8.8 10.4S3.2 13.6 3.2 8.6a4.8 4.8 0 0 1 8.8-2.6 4.8 4.8 0 0 1 8.8 2.6z"/></svg>
+          Atenci&#243;n personalizada
+        </span>
+        <span class="client-trust__pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6-9 6-9-6z"/><path d="M3 9v7l9 6 9-6V9"/></svg>
+          Todo en un solo lugar
+        </span>
+        <span class="client-trust__pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9-6.3 3.9 1.7-7-5.4-4.7 7.1-.6z"/></svg>
+          Experiencias inolvidables
+        </span>
+      </div>
+      <div class="showcase-grid" id="showcaseGrid"></div>
+
+      <div id="clientItemView" hidden>
+        <button class="back-link" id="clientBackBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Volver al cat&#225;logo</button>
+        <h2 class="items-title" id="clientItemTitle"></h2>
+        <div class="item-list" id="clientItemList"></div>
+      </div>
+
+      <footer class="cfoot" id="clientFooter">
+        <div class="cfoot__cta">
+          <p class="cfoot__kicker">RESERVA YA, NO TE QUEDES SIN FECHA</p>
+          <h3>Cu&#233;ntanos qu&#233; fiesta imaginas</h3>
+          <p>Te confirmamos la disponibilidad de tu fecha el mismo d&#237;a.</p>
+          <a class="cfoot__wa" href="https://wa.me/51956206360" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23a8.2 8.2 0 0 1 8.24 8.24c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.53.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.09-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.86.84-.86 2.05s.88 2.38 1 2.54c.13.17 1.73 2.64 4.2 3.7.59.26 1.04.41 1.4.52.59.19 1.12.16 1.55.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.29z"/></svg>
+            <span>Escribir por WhatsApp<b>956 206 360</b></span>
+          </a>
+        </div>
+
+        <div class="cfoot__facts">
+          <div class="fact"><span class="fact__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span><div>
+            <h4>D&#243;nde estamos</h4>
+            <p>Av. de los Insurgentes 425, La Perla &#8212; l&#237;mite con San Miguel, altura de la cuadra 36 de La Marina.</p>
+          </div></div>
+          <div class="fact"><span class="fact__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><div>
+            <h4>Horario</h4>
+            <p>Domingo a jueves hasta las 9:00 pm<br>Viernes y s&#225;bado hasta las 11:00 pm</p>
+          </div></div>
+          <div class="fact"><span class="fact__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19M6 14.5h4"/></svg></span><div>
+            <h4>Para reservar</h4>
+            <p>Separa tu fecha con el 20% del total, por Yape o transferencia BCP.</p>
+          </div></div>
+        </div>
+
+        <details class="cfoot__fine">
+          <summary>Condiciones y letra peque&#241;a</summary>
+          <div class="cfoot__fine-body">
+            <p><strong>Alquiler del local.</strong> Garant&#237;a de S/150 que se devuelve si no hay da&#241;os &#183; hora extra S/120 &#183; limpieza obligatoria S/50 &#183; si el evento es en 2do o 3er piso sin ascensor hay un recargo por la carga de equipos.</p>
+            <p><strong>Movilidad.</strong> No incluida en shows, gymkanas, baby shower, plataforma 360&#176; ni carritos de snacks. En pintura de alcanc&#237;as est&#225; incluida solo en algunos distritos. En caritas pintadas s&#237; est&#225; incluida.</p>
+            <p><strong>Precios.</strong> Los carritos de snacks y los combos no incluyen IGV.</p>
+          </div>
+        </details>
+
+        <div class="cfoot__sign">
+          <div class="cfoot__values">
+            <span>Seguridad y confianza</span><span>Atenci&#243;n personalizada</span>
+            <span>Todo en un solo lugar</span><span>Experiencias inolvidables</span>
+          </div>
+          <em>Tu confianza hace m&#225;gico cada evento. &#161;Gracias por elegirnos!</em>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <div class="client-cartbar glass-strong" id="clientCartbar" hidden>
+    <div>
+      <div class="client-cartbar__info" id="clientCartInfo">0 servicios</div>
+      <div class="client-cartbar__total" id="clientCartTotal">S/ 0.00</div>
+    </div>
+    <button class="btn btn--primary" id="btnClientReview">Ver pedido y enviar</button>
+  </div>
+
+  <!-- ASISTENTE DE CHAT A PANTALLA COMPLETA -->
+  <div class="chat-fullscreen glass-strong" id="chatFullscreen" hidden>
+    <header class="chat-fullscreen__header">
+      <button class="icon-btn" id="chatClose" aria-label="Cerrar asistente"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <span class="chat-avatar" aria-hidden="true">&#128048;</span>
+      <div><p class="brand__name">Asistente Magic Box</p><p class="brand__tag">Asistente virtual (IA) &#183; no es una persona</p></div>
+      <a class="chat-human-link" href="https://wa.me/51956206360?text=Hola%2C%20quisiera%20hablar%20con%20un%20asesor" target="_blank" rel="noopener">Hablar con un asesor</a>
+    </header>
+    <div class="chat-fullscreen__messages" id="chatMessages"></div>
+    <div class="chat-fullscreen__quickreplies" id="chatQuickReplies"></div>
+    <form class="chat-fullscreen__inputrow" id="chatInputForm">
+      <input type="text" id="chatInputText" placeholder="Escribe tu pregunta, ej. &quot;qué necesito para un baby shower&quot;..." aria-label="Escribe tu mensaje" autocomplete="off">
+      <button type="submit" class="chat-fullscreen__send" aria-label="Enviar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+    </form>
+    <p class="chat-fullscreen__privacy">Lo que escribas aqu&#237; se procesa con IA (Google Gemini) para responderte &#8212; evita compartir datos sensibles. <a href="#" id="chatPrivacyLink">Pol&#237;tica de privacidad</a></p>
+  </div>
+</div>
+
+<!-- ============ MODALES ============ -->
+<div class="modal-overlay" id="proformaModal" hidden>
+  <div class="sheet glass-strong">
+    <button class="sheet__close" id="proformaClose" aria-label="Cerrar">&times;</button>
+    <div class="sheet__top"><h3>Proforma &#8212; Magic Box</h3><p id="proformaDate"></p></div>
+    <div class="sheet__scallop" aria-hidden="true"></div>
+    <div class="sheet__body">
+      <dl><dt>Cliente</dt><dd id="pfName">&#8212;</dd><dt>WhatsApp</dt><dd id="pfPhone">&#8212;</dd><dt>Evento</dt><dd id="pfDate">&#8212;</dd></dl>
+      <table class="sheet__table"><thead><tr><th>Servicio</th><th></th></tr></thead><tbody id="pfRows"></tbody></table>
+      <div class="sheet__grand"><span>Total</span><strong id="pfTotal">S/ 0.00</strong></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="shareLinkModal" hidden>
+  <div class="sheet glass-strong">
+    <button class="sheet__close" id="shareLinkClose" aria-label="Cerrar">&times;</button>
+    <div class="sheet__top"><h3>Link para el cliente</h3><p>Se abre directo, sin pedirle login</p></div>
+    <div class="sheet__scallop" aria-hidden="true"></div>
+    <div class="sheet__body">
+      <p style="margin-bottom:14px;">Comparte este link por WhatsApp con <strong id="shareLinkName">tu cliente</strong> &#8212; ya sabe qui&#233;n es, solo tiene que elegir lo que quiere.</p>
+      <div class="field"><label>Link</label><input type="text" readonly value="magicbox.pe/pedido/rg-3f8k"></div>
+      <button class="btn btn--primary" id="shareLinkGo" style="width:100%;">Ver c&#243;mo lo ve el cliente</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="privacyModal" hidden>
+  <div class="sheet glass-strong">
+    <button class="sheet__close" id="privacyClose" aria-label="Cerrar">&times;</button>
+    <div class="sheet__top"><h3>Privacidad del asistente</h3><p>C&#243;mo tratamos lo que escribes</p></div>
+    <div class="sheet__scallop" aria-hidden="true"></div>
+    <div class="sheet__body">
+      <p style="margin-bottom:10px;">Este asistente es una inteligencia artificial, no una persona. Lo que escribes en este chat se env&#237;a a la API de <strong>Google Gemini</strong> &#250;nicamente para generar la respuesta &#8212; no lo usamos para nada m&#225;s ni lo compartimos con terceros distintos a ese proveedor.</p>
+      <p style="margin-bottom:10px;">No pidas ni compartas aqu&#237; datos sensibles (contrase&#241;as, n&#250;meros de tarjeta, documentos de identidad). Los pagos y datos de tu reserva se coordinan siempre por WhatsApp con una persona del equipo.</p>
+      <p class="sheet__note">Este es un texto informativo del prototipo, no la pol&#237;tica de privacidad legal final &#8212; Magic Box debe validarla con un abogado antes de publicarla como documento oficial.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="clientReviewModal" hidden>
+  <div class="sheet glass-strong">
+    <button class="sheet__close" id="clientReviewClose" aria-label="Cerrar">&times;</button>
+    <div class="sheet__top"><h3 id="crTitle">Tu pedido</h3><p id="crSubtitle">Revisa y contin&#250;a</p></div>
+    <div class="sheet__scallop" aria-hidden="true"></div>
+
+    <div class="sheet__body" id="clientReviewBody">
+      <table class="sheet__table"><thead><tr><th>Servicio</th><th></th></tr></thead><tbody id="crRows"></tbody></table>
+      <div class="sheet__grand" style="margin-bottom:16px;"><span>Total</span><strong id="crTotal">S/ 0.00</strong></div>
+      <button class="btn btn--primary" id="crGoPay" style="width:100%;">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23a8.2 8.2 0 0 1 8.24 8.24c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.53.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.09-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.86.84-.86 2.05s.88 2.38 1 2.54c.13.17 1.73 2.64 4.2 3.7.59.26 1.04.41 1.4.52.59.19 1.12.16 1.55.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.29z"/></svg>
+        Enviar pedido por WhatsApp
+      </button>
+      <p class="sheet__note" style="margin-top:10px;">Te contactamos por este mismo WhatsApp para confirmar disponibilidad, resolver dudas y coordinar el pago &#8212; nada se cobra desde esta p&#225;gina.</p>
+    </div>
+
+    <div class="sheet__body" id="clientConfirmBody" hidden>
+      <div class="sheet__confirm">
+        <span class="sheet__confirm-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h4 id="ccTitle">&#161;Pedido enviado!</h4>
+        <p id="ccText">Se abri&#243; WhatsApp con el detalle de tu pedido. Escr&#237;benos y te confirmamos todo por ah&#237; &#8212; disponibilidad, forma de pago y cualquier duda que tengas.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="boletaModal" hidden>
+  <div class="sheet glass-strong">
+    <button class="sheet__close" id="boletaClose" aria-label="Cerrar">&times;</button>
+    <div class="sheet__top"><h3>Boleta de venta (simulada)</h3><p id="boletaMeta"></p></div>
+    <div class="sheet__scallop" aria-hidden="true"></div>
+    <div class="sheet__body">
+      <dl><dt>Cliente</dt><dd id="boName">&#8212;</dd><dt>N&#176; Boleta</dt><dd id="boNum">&#8212;</dd></dl>
+      <table class="sheet__table"><thead><tr><th>Servicio</th><th></th></tr></thead><tbody id="boRows"></tbody></table>
+      <div class="sheet__grand"><span>Total pagado</span><strong id="boTotal">S/ 0.00</strong></div>
+      <p class="sheet__note">Documento de referencia del prototipo. Emitir boletas electr&#243;nicas reales en Per&#250; requiere integraci&#243;n con SUNAT (facturaci&#243;n electr&#243;nica) &#8212; no es algo que este prototipo genere de verdad.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var ICONS = {
+    local: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h16M4 20V10l8-6 8 6v10M9 20v-6h6v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    'snacks-dulces': '<svg viewBox="0 0 24 24" fill="none"><path d="M6.5 9.5a5.5 5.5 0 0 1 11 0c0 3.4-2.5 5.5-5.5 5.5s-5.5-2.1-5.5-5.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 15v6M9.5 21h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    'snacks-salados': '<svg viewBox="0 0 24 24" fill="none"><path d="M7 9h10l-1.2 11.6a1 1 0 0 1-1 .9H9.2a1 1 0 0 1-1-.9L7 9z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9a2 2 0 0 1 .7-3.9A2.4 2.4 0 0 1 14.3 5 2 2 0 0 1 15 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11.6 9.2l.8 12" stroke="currentColor" stroke-width="1.2" opacity=".45"/></svg>',
+    combos: '<svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="9" width="17" height="11.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 13.5h17M12 9v11.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 9S9.6 4.8 7.6 5.6 8.9 9 12 9zm0 0s2.4-4.2 4.4-3.4S15.1 9 12 9z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    torta: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3M4 21v-7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v7M4 21h16M4 17h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="3.4" r="1" fill="currentColor"/></svg>',
+    dulces: '<svg viewBox="0 0 24 24" fill="none"><path d="M6 11.5h12l-1.4 8.1a1.8 1.8 0 0 1-1.8 1.4H9.2a1.8 1.8 0 0 1-1.8-1.4L6 11.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.8 11.5a3 3 0 0 1 .8-5.3 3.4 3.4 0 0 1 6.4-1.1 3 3 0 0 1 3.2 6.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    shows: '<svg viewBox="0 0 24 24" fill="none"><path d="M4.5 19.5L15 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 3.5l1 2.2 2.2 1-2.2 1-1 2.2-1-2.2-2.2-1 2.2-1 1-2.2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 4l.6 1.3L9 6l-1.4.7L7 8l-.6-1.3L5 6l1.4-.7L7 4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+    gymkanas: '<svg viewBox="0 0 24 24" fill="none"><path d="M8 4h8v5.5a4 4 0 0 1-8 0V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6H5.6A2.4 2.4 0 0 0 8 10.8M16 6h2.4A2.4 2.4 0 0 1 16 10.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13.5V17M9.6 20.5l.4-3.5h4l.4 3.5h-4.8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    foto360: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7.5" width="18" height="12.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="13.8" r="3.4" stroke="currentColor" stroke-width="1.6"/><path d="M8.6 7.5l1.1-2a1 1 0 0 1 .9-.5h2.8a1 1 0 0 1 .9.5l1.1 2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    alcancias: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.7 1.7-1.5 0-1-.9-1.4-.9-2.4 0-.9.8-1.6 1.7-1.6h1.6a4.9 4.9 0 0 0 4.9-4.9C21 6.8 17 3 12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.6" cy="11.5" r="1.1" fill="currentColor"/><circle cx="9.8" cy="7.6" r="1.1" fill="currentColor"/><circle cx="14.6" cy="7.4" r="1.1" fill="currentColor"/></svg>',
+    caritas: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 7.5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 9.5C10.3 6.2 7.6 4.6 5.6 5.8S4 10.6 6 13c1.4 1.7 3.9 3.1 6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 9.5c1.7-3.3 4.4-4.9 6.4-3.7S20 10.6 18 13c-1.4 1.7-3.9 3.1-6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    babyshower: '<svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="15" r="4.6" stroke="currentColor" stroke-width="1.6"/><path d="M6.4 15h9.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11 10.4V8.2A2.7 2.7 0 0 1 13.7 5.5h.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16.6" cy="5.4" r="2.1" stroke="currentColor" stroke-width="1.6"/></svg>',
+    mozo: '<svg viewBox="0 0 24 24" fill="none"><path d="M10.4 9.6L4.9 7.2a1 1 0 0 0-1.4.9v7.8a1 1 0 0 0 1.4.9l5.5-2.4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.6 9.6l5.5-2.4a1 1 0 0 1 1.4.9v7.8a1 1 0 0 1-1.4.9l-5.5-2.4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><rect x="9.8" y="8.6" width="4.4" height="6.8" rx="1.4" stroke="currentColor" stroke-width="1.6"/></svg>',
+    mobiliario: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5V9.5a2.5 2.5 0 0 1 2.5-2.5h9A2.5 2.5 0 0 1 19 9.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 12.5a2.5 2.5 0 0 0-2.5 2.5V18h19v-3a2.5 2.5 0 0 0-5 0v.8H7.5V15A2.5 2.5 0 0 0 5 12.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 18v2M19 18v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  };
+  var CAT_COLORS = {
+    local: ['#3E7C74', '#DCEBE8'],
+    'snacks-dulces': ['#D9628F', '#FADDE8'],
+    'snacks-salados': ['#E2982F', '#FBE7C4'],
+    combos: ['#C1613A', '#F5E0D3'],
+    torta: ['#B5843A', '#F3E7CE'],
+    dulces: ['#7C2E52', '#F1DCE6'],
+    shows: ['#7B4DB8', '#E8DEF5'],
+    gymkanas: ['#4C5B8C', '#E1E4F0'],
+    foto360: ['#2F7FA8', '#D8E9F2'],
+    alcancias: ['#5F8C3E', '#E4EFD8'],
+    caritas: ['#E15D5D', '#FADFDF'],
+    babyshower: ['#C77DAE', '#F5E2EE'],
+    mozo: ['#5A6B7C', '#E2E6EA'],
+    mobiliario: ['#8A6A4F', '#EDE4DA']
+  };
+  var CAT_GRAD2 = {
+    local: '#5AA396', 'snacks-dulces': '#E88FB0', 'snacks-salados': '#EFB65E', combos: '#DB8A5F',
+    torta: '#D2A55E', dulces: '#A85179', shows: '#9E77D4', gymkanas: '#7385B5',
+    foto360: '#59A6CB', alcancias: '#84B061', caritas: '#EE8C8C', babyshower: '#DBA3C8',
+    mozo: '#7F91A2', mobiliario: '#AD8C6E'
+  };
+
+  /* Fotos reales recortadas del catalogo impreso del negocio (img/cat/). */
+  var CAT_PHOTO = {};
+  ['local','snacks-dulces','snacks-salados','combos','torta','dulces','shows',
+   'gymkanas','foto360','alcancias','caritas','babyshower','mozo','mobiliario']
+    .forEach(function (id) { CAT_PHOTO[id] = 'img/cat/' + id + '.jpg'; });
+  var LOGO_SRC = 'img/cat/logo.jpg';
+
+  /* Foto propia por producto (recortada de las tablas del catalogo impreso).
+     Los que no tienen foto muestran solo texto, sin hueco vacio. */
+  var PROD_PHOTO = {};
+  ['popcorn','pancho','panhotdog','hamburguesa','choripan','salchipapas',
+   'salchinuggets','tequenos','algodon-maquina','algodon-domo','manzana',
+   'frutibar','churros-manjar','churros-chocolate','jugos',
+   'combo-1','combo-2','combo-3','combo-4','combo-5','combo-6',
+   'torta-maqueta','torta-cajita','torta-promo',
+   'bocaditos-16','bocaditos-24','bocaditos-30','bocaditos-42',
+   'show-1','show-2','show-3','show-4','show-5','show-6',
+   'silla-plastico','silla-lazo','silla-chiavari','mesa-8','mesa-10','lounge',
+   'alcancia-paquete',
+   'local-happy','local-full','local-premium','local-hora-extra',
+   'gymkana-estandar','gymkana-gold',
+   'alcancia-adicional','babyshower-1','babyshower-2']
+    .forEach(function (id) { PROD_PHOTO[id] = 'img/prod/' + id + '.jpg'; });
+
+  /* Si la categoria tiene un solo producto, la foto de categoria sirve como
+     foto del producto: no hay repeticion posible. Con varios productos se
+     deja sin foto antes que repetir la misma imagen en todas las filas. */
+  function prodThumb(item, cat) {
+    var src = PROD_PHOTO[item.id];
+    if (!src && cat && cat.items.length === 1) src = CAT_PHOTO[cat.id];
+    if (!src) return '';
+    return '<span class="prod-thumb"><img src="' + src + '" alt="" loading="lazy"></span>';
+  }
+  function photoOf(item, cat) {
+    return PROD_PHOTO[item.id] || (cat && cat.items.length === 1 ? CAT_PHOTO[cat.id] : null);
+  }
+
+  /* Busca en el CATALOG real que servicios menciona el texto del asistente,
+     para mostrar sus fotos reales debajo de la respuesta. Es solo un
+     "grep" de nombres contra texto ya generado -- el asistente nunca elige
+     ni inventa una imagen, solo se le adjunta la foto de lo que ya
+     recomendo por su cuenta. Maximo 4 para no saturar el chat. */
+  function matchCatalogItemsInText(text) {
+    var norm = normalizeText(text);
+    var matches = [];
+    CATALOG.forEach(function (cat) {
+      cat.items.forEach(function (item) {
+        var photo = photoOf(item, cat);
+        if (!photo) return;
+        var itemNorm = normalizeText(item.name);
+        if (itemNorm.length >= 4 && norm.indexOf(itemNorm) !== -1) {
+          matches.push({ item: item, cat: cat, photo: photo });
+        }
+      });
+    });
+    return matches.slice(0, 4);
+  }
+  function chatPhotoGallery(matches) {
+    if (!matches.length) return '';
+    return '<div class="chat-photo-gallery">' + matches.map(function (m, i) {
+      return '<button type="button" class="chat-photo-card" data-gallery-index="' + i + '">' +
+        '<span class="chat-photo-card__img"><img src="' + m.photo + '" alt="" loading="lazy"></span>' +
+        '<span class="chat-photo-card__name">' + m.item.name + '</span></button>';
+    }).join('') + '</div>';
+  }
+  function wireChatPhotoGallery(bubble, matches) {
+    if (!matches.length) return;
+    bubble.querySelectorAll('.chat-photo-card').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var m = matches[+btn.dataset.galleryIndex];
+        chatPush('user', m.item.name);
+        chatAskQty(m.item);
+      });
+    });
+  }
+
+  /* Productos con varias cantidades usan `sizes`: [etiqueta, precio].
+     As\u00ed un producto ocupa una sola tarjeta con selector, en vez de 3 filas casi id\u00e9nticas. */
+  var CATALOG = [
+    { id: 'local', name: 'Alquiler de Local', items: [
+      { id: 'local-happy', name: 'Paquete Happy', desc: 'Local 5h, aforo 100p, cocina, estacionamiento, atril de bienvenida', price: 800, unit: 'evento', inc: ['Alquiler del local por 5 horas', 'Aforo m\u00e1ximo 100 personas', 'Cocina con microondas y refrigeradora', '\u00c1rea de estacionamiento', 'Atril de bienvenida (no incluye foam)'] },
+      { id: 'local-full', name: 'Paquete Full', desc: 'Local 5h, decoraci\u00f3n 3 paneles de 3.5m, sonido USB/BT/mic, 70 sillas', price: 1250, unit: 'evento', inc: ['Alquiler del local por 5 horas', 'Aforo m\u00e1ximo 100 personas', 'Amplia cocina con microondas y refrigeradora', '\u00c1rea de estacionamiento', '3 paneles tem\u00e1ticos de 3.5 m a elegir', 'Mesitas para bocaditos y torta, porta regalo y escalera', 'Hasta 2 fondos personalizados', 'Sonido con USB, Bluetooth y micr\u00f3fono', '70 sillas blancas'] },
+      { id: 'local-premium', name: 'Paquete Premium', desc: 'Local 6h, decoraci\u00f3n 3-4 paneles de 5m, entrada con globos, sonido, 70 sillas', price: 1500, unit: 'evento', inc: ['Alquiler del local por 6 horas', 'Aforo m\u00e1ximo 100 personas', 'Amplia cocina con microondas y refrigeradora', '\u00c1rea de estacionamiento', '3 o 4 paneles tem\u00e1ticos de 5 m con estructura', 'Mesitas para bocaditos y torta, porta regalos y escalera', 'Hasta 4 fondos personalizados, flores y detalles especiales', 'Decoraci\u00f3n de entrada con globos y cartel de bienvenida', 'Sonido con USB, Bluetooth y micr\u00f3fono', '70 sillas blancas'] },
+      { id: 'local-hora-extra', name: 'Hora adicional de local', desc: 'Extensi\u00f3n del horario base', price: 120, unit: 'hora' }
+    ]},
+    { id: 'snacks-dulces', name: 'Snacks Dulces', items: [
+      { id: 'algodon-maquina', name: 'Algod\u00f3n dulce (m\u00e1quina)', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 180], ['75u', 225], ['100u', 280]] },
+      { id: 'algodon-domo', name: 'Algod\u00f3n dulce (en domo)', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 160], ['75u', 215], ['100u', 260]] },
+      { id: 'manzana', name: 'Manzana acaramelada', desc: 'Presentada en escalera, servicio 3h', unit: 'paquete', sizes: [['50u', 190], ['75u', 260], ['100u', 290]] },
+      { id: 'frutibar', name: 'Frutibar', desc: 'Frutas, snacks, 3 complementos y 3 salsas', unit: 'paquete', sizes: [['50u', 410], ['75u', 525], ['100u', 680]] },
+      { id: 'churros-manjar', name: 'Churros rellenos de manjar', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 160], ['75u', 225], ['100u', 280]] },
+      { id: 'churros-chocolate', name: 'Churros rellenos de chocolate', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 180], ['75u', 247], ['100u', 300]] },
+      { id: 'jugos', name: 'Dispensador de jugos', desc: 'Chicha morada y maracuy\u00e1 caseros, mitad y mitad', unit: 'paquete', sizes: [['14 L', 180], ['30 L', 320]] }
+    ]},
+    { id: 'snacks-salados', name: 'Snacks Salados', items: [
+      { id: 'popcorn', name: 'Popcorn en cajita', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 180], ['75u', 225], ['100u', 280]] },
+      { id: 'pancho', name: 'Pancho', desc: 'Frankfurter en brocheta y cremas', unit: 'paquete', sizes: [['50u', 240], ['75u', 315], ['100u', 380]] },
+      { id: 'panhotdog', name: 'Pan con hot dog', desc: 'Frankfurter, papitas al hilo y cremas', unit: 'paquete', sizes: [['50u', 320], ['75u', 457], ['100u', 580]] },
+      { id: 'hamburguesa', name: 'Hamburguesas artesanales', desc: 'Lechuga, tomate, queso cheddar y cremas', unit: 'paquete', sizes: [['50u', 350], ['75u', 442], ['100u', 640]] },
+      { id: 'choripan', name: 'Chorip\u00e1n', desc: 'Papas al hilo y cremas', unit: 'paquete', sizes: [['50u', 420], ['75u', 607], ['100u', 790]] },
+      { id: 'salchipapas', name: 'Salchipapas', desc: 'Frankfurter y papas al momento', unit: 'paquete', sizes: [['50u', 370], ['75u', 525], ['100u', 660]] },
+      { id: 'salchinuggets', name: 'Salchi nuggets', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 400], ['75u', 570], ['100u', 690]] },
+      { id: 'tequenos', name: 'Teque\u00f1os con queso', desc: '4 unidades por porci\u00f3n, con salsa guacamole', unit: 'paquete', sizes: [['50u', 260], ['75u', 340], ['100u', 400]] }
+    ]},
+    { id: 'combos', name: 'Combos de Snacks', items: [
+      { id: 'combo-1', name: 'Combo 1', desc: 'Algod\u00f3n dulce + popcorn ilimitado', price: 380, unit: 'evento', allowUnlimited: true },
+      { id: 'combo-2', name: 'Combo 2', desc: '50 popcorn + 50 algodones + 50 panchos', price: 460, unit: 'evento' },
+      { id: 'combo-3', name: 'Combo 3', desc: '50 panchos + 50 salchipapas + algod\u00f3n o popcorn ilimitado', price: 700, unit: 'evento' },
+      { id: 'combo-4', name: 'Combo 4', desc: '50 salchipapas + 50 hamburguesas + popcorn o algod\u00f3n ilimitado', price: 790, unit: 'evento' },
+      { id: 'combo-5', name: 'Combo 5', desc: '50 churros + 50 salchipapas + algod\u00f3n o popcorn ilimitado', price: 630, unit: 'evento' },
+      { id: 'combo-6', name: 'Combo 6', desc: '50 salchipapas + 50 manzanas acarameladas + popcorn o algod\u00f3n ilimitado', price: 740, unit: 'evento' }
+    ]},
+    { id: 'torta', name: 'Torta en Maqueta', items: [
+      { id: 'torta-promo', name: 'Maqueta + tortas en cajita', desc: 'Maqueta de 3 pisos + tortas en cajita personalizada', unit: 'paquete', sizes: [['50u', 475], ['75u', 620], ['100u', 760]] },
+      { id: 'torta-maqueta', name: 'Solo alquiler de maqueta', desc: 'Maqueta de 3 pisos. Tambi\u00e9n se cotiza en 1 o 2 pisos', price: 200, unit: 'evento' },
+      { id: 'torta-cajita', name: 'Torta en cajita tem\u00e1tica', desc: 'Queque de vainilla con chispas, relleno de manjar o fudge, buttercream', price: 6, unit: 'unidad' }
+    ]},
+    { id: 'dulces', name: 'Dulces Tem\u00e1ticos', items: [
+      { id: 'bocaditos-16', name: '16 bocaditos tem\u00e1ticos', desc: '4 cupcakes, 4 cake pops, 4 manzanas y 4 alfajores', price: 140, unit: 'paquete' },
+      { id: 'bocaditos-24', name: '24 bocaditos tem\u00e1ticos', desc: '6 cupcakes, 6 cake pops, 6 manzanas y 6 alfajores', price: 190, unit: 'paquete' },
+      { id: 'bocaditos-30', name: '30 bocaditos tem\u00e1ticos', desc: '6 cupcakes, 6 galletas decoradas, 6 alfajores grandes, 6 paletas y 6 cake pops', price: 260, unit: 'paquete' },
+      { id: 'bocaditos-42', name: '42 bocaditos tem\u00e1ticos', desc: 'Lo anterior m\u00e1s 6 manzanas decoradas y 6 brownies en paleta', price: 320, unit: 'paquete' }
+    ]},
+    { id: 'shows', name: 'Show Infantil', items: [
+      { id: 'show-1', name: 'Animadora tem\u00e1tica', desc: '90 min: sonido, micr\u00f3fonos, juegos, mini hora loca, pi\u00f1ata y happy birthday', price: 320, unit: 'evento' },
+      { id: 'show-2', name: 'Animadora + bailarina', desc: 'Doble energ\u00eda, con coreograf\u00edas', price: 410, unit: 'evento' },
+      { id: 'show-3', name: 'Animadora + personaje', desc: 'Un show lleno de alegr\u00eda y fantas\u00eda', price: 460, unit: 'evento' },
+      { id: 'show-4', name: 'Animadora + bailarina + personaje', desc: 'La combinaci\u00f3n de ritmo y magia', price: 540, unit: 'evento' },
+      { id: 'show-5', name: 'Animadora + bailarina + 2 personajes', desc: 'M\u00e1s personajes, m\u00e1s diversi\u00f3n', price: 640, unit: 'evento' },
+      { id: 'show-6', name: 'Animadora + bailarina + 4 personajes', desc: 'El show m\u00e1s completo y espectacular', price: 850, unit: 'evento' }
+    ]},
+    { id: 'gymkanas', name: 'Show de Gymkanas', items: [
+      { id: 'gymkana-estandar', name: 'Paquete Est\u00e1ndar', desc: '60 min: animadora, sonido, mic inal\u00e1mbrico, luces LED. Eliges 5 juegos', price: 480, unit: 'evento', inc: ['60 minutos de show', 'Animadora', 'Asistente de producci\u00f3n', 'Equipo de sonido y micr\u00f3fono inal\u00e1mbrico', 'Luces LED', 'Mini hora loca', 'Globos pencil', 'Romper la pi\u00f1ata', 'Cantar Happy Birthday', 'Eliges 5 juegos'] },
+      { id: 'gymkana-gold', name: 'Paquete Gold', desc: '90 min: suma monitor motivador y chalecos para los ni\u00f1os. Eliges 8 juegos', price: 580, unit: 'evento', inc: ['90 minutos de show', 'Animadora', 'Monitor motivador', 'Asistente y asistente de producci\u00f3n', 'Equipo de sonido y micr\u00f3fono inal\u00e1mbrico', 'Luces LED', 'Mini hora loca', 'Globos pencil', 'Chalecos para los ni\u00f1os participantes', 'Romper la pi\u00f1ata', 'Cantar Happy Birthday', 'Eliges 8 juegos'] }
+    ]},
+    { id: 'foto360', name: 'Plataforma 360\u00b0', items: [
+      { id: 'foto360', name: 'Plataforma de fotos 360\u00b0', desc: 'Videos ilimitados, accesorios, alfombra, luces LED y operador t\u00e9cnico', unit: 'evento', inc: ['Videos ilimitados', 'Accesorios para los videos', 'Alfombra', 'Iluminaci\u00f3n LED', 'Operador t\u00e9cnico', 'Entrega al instante por QR o WhatsApp'], sizes: [['2 horas', 600], ['3 horas', 750], ['4 horas', 950]] }
+    ]},
+    { id: 'alcancias', name: 'Pintura de Alcanc\u00edas', items: [
+      { id: 'alcancia-paquete', name: 'Paquete completo (20 alcanc\u00edas)', desc: '2h, mesa con 20 sillas, mandiles, pinturas acr\u00edlicas y presentaci\u00f3n con lazo', price: 330, unit: 'evento', inc: ['2 horas de actividad', 'Mesa amplia con 20 sillas', '20 alcanc\u00edas de 16 cm con dise\u00f1os variados', 'Mandiles protectores', 'Pinturas acr\u00edlicas y pinceles', 'Personal de asistencia', 'Presentaci\u00f3n en bolsita de celof\u00e1n con lazo'] },
+      { id: 'alcancia-adicional', name: 'Alcanc\u00eda adicional', desc: 'Para cada ni\u00f1o que pase de los 20 del paquete', price: 10, unit: 'unidad' }
+    ]},
+    { id: 'caritas', name: 'Caritas Pintadas', items: [
+      { id: 'caritas', name: 'Caritas pintadas', desc: 'Glitter, pinturas antial\u00e9rgicas, pedrer\u00eda y \u00e1lbum de dise\u00f1os. Movilidad incluida', unit: 'evento', inc: ['Glitter m\u00e1gico', 'Pinturas antial\u00e9rgicas', 'Pedrer\u00eda', 'Espejo de tocador', 'Pinturas arco\u00edris y ne\u00f3n', '\u00c1lbum de dise\u00f1os para escoger', 'Movilidad incluida'], sizes: [['1 hora', 120], ['1h 30', 165], ['2 horas', 190]] }
+    ]},
+    { id: 'babyshower', name: 'Baby Shower', items: [
+      { id: 'babyshower-1', name: 'Paquete 1', desc: '1 clown, 6 juegos y 2 din\u00e1micas, 2h de show, mini hora loca y video reel', price: 360, unit: 'evento', inc: ['1 clown', 'Coordinador de producci\u00f3n', 'Parlante grande y micr\u00f3fono inal\u00e1mbrico', '6 juegos + 2 din\u00e1micas', 'Entrega y apertura de regalos', '2 horas de show', 'Mini hora loca con 25 globos pencil', 'Video tipo reel'] },
+      { id: 'babyshower-2', name: 'Paquete 2', desc: '2 clowns (embarazada y doctor), lo mismo m\u00e1s globos pencil y silbatos', price: 460, unit: 'evento', inc: ['2 clowns: embarazada y doctor', 'Coordinador de producci\u00f3n', 'Parlante grande y micr\u00f3fono inal\u00e1mbrico', '6 juegos + 2 din\u00e1micas', 'Entrega y apertura de regalos', '2 horas de show', 'Mini hora loca, globos pencil y silbatos', 'Video tipo reel'] }
+    ]},
+    { id: 'mozo', name: 'Servicio de Mozo', items: [
+      { id: 'mozo-5h', name: 'Mozo por 5 horas', desc: 'Personal joven, uniformado, con experiencia y atenci\u00f3n profesional', price: 150, unit: 'evento' }
+    ]},
+    { id: 'mobiliario', name: 'Mobiliario', items: [
+      { id: 'lounge', name: 'Salita lounge', desc: 'Para 8 personas, con respaldar. C\u00f3moda y elegante', unit: 'evento', sizes: [['1 juego', 120], ['2 juegos', 230], ['3 juegos', 340]] },
+      { id: 'silla-plastico', name: 'Silla blanca de pl\u00e1stico', desc: 'Precio por unidad', price: 1.5, unit: 'unidad' },
+      { id: 'silla-lazo', name: 'Silla vestida con lazo', desc: 'Precio por unidad', price: 3, unit: 'unidad' },
+      { id: 'silla-chiavari', name: 'Silla de metal dorada', desc: 'Modelo Chiavari. Precio por unidad', price: 5.5, unit: 'unidad' },
+      { id: 'mesa-8', name: 'Mesa redonda vestida (8p)', desc: 'Precio por unidad', price: 30, unit: 'unidad' },
+      { id: 'mesa-10', name: 'Mesa redonda vestida (10p)', desc: 'Precio por unidad', price: 40, unit: 'unidad' }
+    ]}
+  ];
+
+  var HISTORY = [
+    { id: 'h1', clientName: 'Rosa G\u00f3mez', eventDate: '2026-08-22', total: 1050, status: 'guardado' },
+    { id: 'h2', clientName: 'Marco Terrones', eventDate: '2026-09-01', total: 680, status: 'guardado' }
+  ];
+
+  function money(n) { return 'S/ ' + (n || 0).toFixed(2); }
+
+  /* ---- Helpers de tama\u00f1o: un producto puede tener varias cantidades ---- */
+  function priceOf(item, si) { return item.sizes ? item.sizes[si || 0][1] : item.price; }
+  function fullName(item, si) { return item.sizes ? item.name + ' \u00b7 ' + item.sizes[si || 0][0] : item.name; }
+  function sizeMarkup(item) {
+    if (!item.sizes) return '';
+    return '<div class="size-select" data-role="sizes" role="group" aria-label="Elige la cantidad">' +
+      item.sizes.map(function (s, i) {
+        return '<button type="button" data-size="' + i + '" aria-pressed="' + (i === 0) + '">' + s[0] + '</button>';
+      }).join('') + '</div>';
+  }
+  /* Solo los items que de verdad se piden "por unidad" (sillas, mesas,
+     mozo, hora extra, torta en cajita, alcancia adicional) muestran el
+     selector +/-. Todo lo demas es un paquete/combo/evento cerrado -- se
+     elige una vez, con "Agregar", o con el selector de tamaño si lo
+     tiene (item.sizes). Pedido explicito del cliente: el +/- ahi confunde
+     y no aplica (no vas a "pedir 3" un alquiler de local). */
+  var QTY_STEPPER_IDS = ['silla-plastico', 'silla-lazo', 'silla-chiavari', 'mesa-8', 'mesa-10', 'torta-cajita', 'alcancia-adicional', 'mozo-5h', 'local-hora-extra'];
+  function hasQtyStepper(item) { return QTY_STEPPER_IDS.indexOf(item.id) !== -1; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  /* "1 paquete" / "3 paquetes", y el caso irregular "1 unidad" / "3 unidades". */
+  function qtyUnit(qty, unit) {
+    if (qty === 1) return '1 ' + unit;
+    return qty + ' ' + (/dad$/.test(unit) ? unit.replace(/dad$/, 'dades') : unit + 's');
+  }
+  /* Repinta el precio respetando el formato del contenedor: pastilla dorada
+     en la vista del cliente, texto plano en el panel interno. */
+  function paintPrice(priceEl, item, si) {
+    var amount = money(priceOf(item, si));
+    if (priceEl.querySelector('.price-pill')) {
+      priceEl.innerHTML = '<span class="price-pill">' + amount +
+        '<span class="price-pill__unit">/ ' + item.unit + '</span></span>';
+    } else {
+      priceEl.textContent = amount + ' / ' + item.unit;
+    }
+  }
+  /* Cablea el selector de tama\u00f1o para que el precio siga a la cantidad elegida. */
+  function wireSizes(card, item, draft, itemId, priceEl) {
+    var btns = card.querySelectorAll('[data-role="sizes"] button');
+    if (!btns.length) return;
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        draft[itemId] = +b.dataset.size;
+        btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        paintPrice(priceEl, item, draft[itemId]);
+      });
+    });
+  }
+  function findCategory(id) { return CATALOG.find(function (c) { return c.id === id; }); }
+  function findItem(id) {
+    for (var i = 0; i < CATALOG.length; i++) {
+      var it = CATALOG[i].items.find(function (x) { return x.id === id; });
+      if (it) return { item: it, category: CATALOG[i] };
+    }
+    return null;
+  }
+
+  /* =================== PROTOTYPE STAGE SWITCHER =================== */
+  function goStage(name) {
+    document.querySelectorAll('.proto-switch button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.stage === name)); });
+    ['internal', 'client'].forEach(function (s) { document.getElementById('stage-' + s).hidden = (s !== name); });
+  }
+  document.querySelectorAll('.proto-switch button').forEach(function (btn) {
+    btn.addEventListener('click', function () { goStage(btn.dataset.stage); });
+  });
+
+  /* =================== PANEL INTERNO =================== */
+  var order = { clientName: '', clientPhone: '', eventDate: '', items: [] };
+  var qtyDraft = {};
+  var sizeDraft = {};
+
+  function renderCategories() {
+    var grid = document.getElementById('categoryGrid');
+    grid.innerHTML = CATALOG.map(function (cat) {
+      var c = CAT_COLORS[cat.id];
+      /* Foto real en vez de icono: una se&#241;ora mayor reconoce una torta al
+         instante; un icono de linea fina, no. */
+      return '<button class="category-card glass" style="--cat-color:' + c[0] + ';--cat-tint:' + c[1] + '" data-cat="' + cat.id + '">' +
+        '<span class="category-card__photo"><img src="' + CAT_PHOTO[cat.id] + '" alt="" loading="lazy"></span>' +
+        '<span class="category-card__name">' + cat.name + '</span>' +
+        '<span class="category-card__count">' + plural(cat.items.length, 'opci\u00f3n', 'opciones') + '</span></button>';
+    }).join('');
+    grid.querySelectorAll('.category-card').forEach(function (btn) {
+      btn.addEventListener('click', function () { openCategory(btn.dataset.cat); });
+    });
+  }
+
+  function stockNote(item) {
+    if (item.stock == null) return '';
+    return ' <span style="color:var(--accent);font-weight:700;">' + String.fromCharCode(183) + ' quedan ' + item.stock + '</span>';
+  }
+
+  function openCategory(catId) {
+    var cat = findCategory(catId); if (!cat) return;
+    var c = CAT_COLORS[catId];
+    document.getElementById('catalogHead').hidden = true;
+    document.getElementById('categoryGrid').hidden = true;
+    document.getElementById('itemView').hidden = false;
+    document.getElementById('itemViewTitle').innerHTML = '<span class="cat-icon" style="--cat-color:' + c[0] + ';--cat-tint:' + c[1] + '">' + ICONS[catId] + '</span>' + cat.name;
+
+    var list = document.getElementById('itemList');
+    list.innerHTML = cat.items.map(function (item) {
+      qtyDraft[item.id] = qtyDraft[item.id] || 1;
+      sizeDraft[item.id] = sizeDraft[item.id] || 0;
+      return '<div class="item-card glass" data-item="' + item.id + '">' +
+        prodThumb(item, cat) +
+        '<div><p class="item-card__name">' + item.name + '</p>' +
+        '<p class="item-card__desc">' + item.desc + '</p>' +
+        sizeMarkup(item) +
+        '<p class="item-card__price" data-role="price">' + money(priceOf(item, sizeDraft[item.id])) + ' / ' + item.unit + '</p></div>' +
+        '<div class="item-card__controls">' +
+        (item.allowUnlimited ? '<button type="button" class="unlimited-pill" data-role="unlimited" aria-pressed="false">Ilimitado</button>' : '') +
+        (hasQtyStepper(item) ? '<div class="stepper" data-role="stepper"><button type="button" data-role="minus" aria-label="Quitar uno">' + String.fromCharCode(8722) + '</button><span data-role="qty">' + qtyDraft[item.id] + '</span><button type="button" data-role="plus" aria-label="Agregar uno">+</button></div>' : '') +
+        '<button type="button" class="btn-add" data-role="add">Agregar</button></div></div>';
+    }).join('');
+
+    list.querySelectorAll('.item-card').forEach(function (card) {
+      var itemId = card.dataset.item;
+      var item = findItem(itemId).item;
+      var qtyEl = card.querySelector('[data-role="qty"]');
+      var priceEl = card.querySelector('[data-role="price"]');
+      var stepperEl = card.querySelector('[data-role="stepper"]');
+      var unlimitedBtn = card.querySelector('[data-role="unlimited"]');
+      var addBtn = card.querySelector('[data-role="add"]');
+      var minusBtn = card.querySelector('[data-role="minus"]');
+      var plusBtn = card.querySelector('[data-role="plus"]');
+      wireSizes(card, item, sizeDraft, itemId, priceEl);
+      if (minusBtn) minusBtn.addEventListener('click', function () { qtyDraft[itemId] = Math.max(1, qtyDraft[itemId] - 1); qtyEl.textContent = qtyDraft[itemId]; });
+      if (plusBtn) plusBtn.addEventListener('click', function () { qtyDraft[itemId] = qtyDraft[itemId] + 1; qtyEl.textContent = qtyDraft[itemId]; });
+      if (unlimitedBtn) unlimitedBtn.addEventListener('click', function () {
+        var pressed = unlimitedBtn.getAttribute('aria-pressed') === 'true';
+        unlimitedBtn.setAttribute('aria-pressed', String(!pressed));
+        if (stepperEl) stepperEl.setAttribute('data-off', String(!pressed));
+      });
+      addBtn.addEventListener('click', function () {
+        var unlimited = unlimitedBtn && unlimitedBtn.getAttribute('aria-pressed') === 'true';
+        addItemToOrder(itemId, qtyDraft[itemId], unlimited, sizeDraft[itemId]);
+        addBtn.textContent = String.fromCharCode(10003) + ' Agregado'; addBtn.dataset.added = 'true';
+        setTimeout(function () { addBtn.textContent = 'Agregar'; addBtn.dataset.added = 'false'; }, 900);
+      });
+    });
+  }
+
+  document.getElementById('backBtn').addEventListener('click', function () {
+    document.getElementById('itemView').hidden = true;
+    document.getElementById('catalogHead').hidden = false;
+    document.getElementById('categoryGrid').hidden = false;
+  });
+
+  function addItemToOrder(itemId, qty, unlimited, si) {
+    var found = findItem(itemId); if (!found) return;
+    var item = found.item;
+    var unitPrice = priceOf(item, si);
+    var label = fullName(item, si);
+    var finalQty = unlimited ? 1 : Math.max(1, qty || 1);
+    // Si ya est\u00e1 en la cotizaci\u00f3n, suma la cantidad en vez de duplicar la l\u00ednea.
+    var existing = order.items.filter(function (l) { return l.name === label && l.unlimited === !!unlimited; })[0];
+    if (existing) {
+      if (unlimited) return;
+      existing.qty += finalQty;
+      existing.subtotal = unitPrice * existing.qty;
+    } else {
+      order.items.push({ lineId: 'l' + Date.now() + Math.random().toString(16).slice(2), name: label, unit: item.unit, qty: finalQty, unlimited: !!unlimited, subtotal: unlimited ? unitPrice : unitPrice * finalQty });
+    }
+    renderOrder();
+  }
+  function removeLine(lineId) { order.items = order.items.filter(function (l) { return l.lineId !== lineId; }); renderOrder(); }
+  function computeTotal() { return order.items.reduce(function (s, l) { return s + l.subtotal; }, 0); }
+
+  function renderOrder() {
+    var container = document.getElementById('orderItems');
+    var total = computeTotal();
+    var totalStr = money(total);
+    var depositStr = money(total * 0.20);
+    var depPill = document.getElementById('depositPill');
+
+    if (order.items.length === 0) {
+      container.innerHTML = '<p class="order-empty">Todav\u00eda no agregaste servicios.<br>Elige una categor\u00eda a la izquierda.</p>';
+      if (depPill) depPill.hidden = true;
+    } else {
+      container.innerHTML = order.items.map(function (l) {
+        return '<div class="order-line" data-line="' + l.lineId + '"><div><p class="order-line__name">' + l.name + '</p><p class="order-line__meta">' + (l.unlimited ? 'Ilimitado' : qtyUnit(l.qty, l.unit)) + '</p></div><span class="order-line__price">' + money(l.subtotal) + '</span><button class="order-line__remove" aria-label="Quitar">&times;</button></div>';
+      }).join('');
+      container.querySelectorAll('.order-line__remove').forEach(function (btn) {
+        btn.addEventListener('click', function (e) { removeLine(e.target.closest('.order-line').dataset.line); });
+      });
+      if (depPill) {
+        depPill.hidden = false;
+        document.getElementById('depositTotal').textContent = depositStr;
+      }
+    }
+    document.getElementById('orderTotal').textContent = totalStr;
+    var fab = document.getElementById('mobileCartFab');
+    if (fab) {
+      document.getElementById('mobileCartTotal').textContent = totalStr;
+      fab.hidden = (order.items.length === 0);
+    }
+  }
+
+  /* ---- Buscador inteligente en tiempo real ----
+     Basado en similitud, no en coincidencia exacta: una persona mayor que
+     escribe de memoria/costumbre puede omitir tildes, dejar una letra de
+     menos o de más ("algodon" en vez de "algodón", "chorpan" en vez de
+     "choripan"), y el buscador igual debe encontrarlo. */
+  function normalizeText(str) {
+    return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  }
+
+  function levenshtein(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    var prev = [];
+    for (var j = 0; j <= b.length; j++) prev[j] = j;
+    for (var i = 1; i <= a.length; i++) {
+      var curr = [i];
+      for (var k = 1; k <= b.length; k++) {
+        curr[k] = a[i - 1] === b[k - 1]
+          ? prev[k - 1]
+          : 1 + Math.min(prev[k - 1], prev[k], curr[k - 1]);
+      }
+      prev = curr;
+    }
+    return prev[b.length];
+  }
+
+  function wordSimilarity(a, b) {
+    if (!a.length || !b.length) return 0;
+    if (a === b) return 1;
+    // Solo cuenta como coincidencia por prefijo/plural si ambas palabras son
+    // suficientemente largas — evita que palabras cortas sueltas ("al", "y",
+    // "de") disparen falsos positivos con cualquier palabra que las contenga.
+    var minLen = Math.min(a.length, b.length);
+    if (minLen >= 3 && (b.indexOf(a) !== -1 || a.indexOf(b) !== -1)) {
+      return 0.75 + 0.15 * (minLen / Math.max(a.length, b.length));
+    }
+    var dist = levenshtein(a, b);
+    return 1 - dist / Math.max(a.length, b.length);
+  }
+
+  function fieldScore(queryNorm, textNorm) {
+    if (!textNorm) return 0;
+    if (textNorm.indexOf(queryNorm) !== -1) return 1;
+    var textWords = textNorm.split(/\s+/);
+    var queryWords = queryNorm.split(/\s+/);
+    var total = 0;
+    queryWords.forEach(function (qw) {
+      var best = 0;
+      textWords.forEach(function (tw) {
+        var sim = wordSimilarity(qw, tw);
+        if (sim > best) best = sim;
+      });
+      total += best;
+    });
+    return total / queryWords.length;
+  }
+
+  /* ---- Buscador inteligente en tiempo real ---- */
+  var searchInput = document.getElementById('catalogSearch');
+  var clearSearchBtn = document.getElementById('clearSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      var qRaw = searchInput.value.trim();
+      var q = normalizeText(qRaw);
+      if (clearSearchBtn) clearSearchBtn.hidden = (q === '');
+      if (q === '') {
+        document.getElementById('itemView').hidden = true;
+        document.getElementById('catalogHead').hidden = false;
+        document.getElementById('categoryGrid').hidden = false;
+        return;
+      }
+
+      var SIMILARITY_THRESHOLD = 0.6;
+      var scored = [];
+      CATALOG.forEach(function (cat) {
+        cat.items.forEach(function (item) {
+          var score = Math.max(
+            fieldScore(q, normalizeText(item.name)),
+            fieldScore(q, normalizeText(item.desc)) * 0.7,
+            fieldScore(q, normalizeText(cat.name)) * 0.5
+          );
+          if (score >= SIMILARITY_THRESHOLD) scored.push({ item: item, cat: cat, score: score });
+        });
+      });
+      scored.sort(function (a, b) { return b.score - a.score; });
+      var matches = scored.map(function (s) { return { item: s.item, cat: s.cat }; });
+
+      document.getElementById('catalogHead').hidden = true;
+      document.getElementById('categoryGrid').hidden = true;
+      document.getElementById('itemView').hidden = false;
+      document.getElementById('itemViewTitle').innerHTML = '🔍 Resultados de búsqueda (' + matches.length + ')';
+
+      var list = document.getElementById('itemList');
+      if (matches.length === 0) {
+        list.innerHTML = '<p style="padding:24px;text-align:center;color:var(--ink-soft);">No encontramos servicios que coincidan con "' + q + '". Intenta otra palabra clave.</p>';
+        return;
+      }
+
+      list.innerHTML = matches.map(function (m) {
+        var item = m.item;
+        var cat = m.cat;
+        qtyDraft[item.id] = qtyDraft[item.id] || 1;
+        sizeDraft[item.id] = sizeDraft[item.id] || 0;
+        return '<div class="item-card glass" data-item="' + item.id + '">' +
+          prodThumb(item, cat) +
+          '<div><p class="item-card__name">' + item.name + ' <span style="font-size:12px;opacity:.7;font-weight:normal;">(' + cat.name + ')</span></p>' +
+          '<p class="item-card__desc">' + item.desc + '</p>' +
+          sizeMarkup(item) +
+          '<p class="item-card__price" data-role="price">' + money(priceOf(item, sizeDraft[item.id])) + ' / ' + item.unit + '</p></div>' +
+          '<div class="item-card__controls">' +
+          (item.allowUnlimited ? '<button type="button" class="unlimited-pill" data-role="unlimited" aria-pressed="false">Ilimitado</button>' : '') +
+          (hasQtyStepper(item) ? '<div class="stepper" data-role="stepper"><button type="button" data-role="minus" aria-label="Quitar uno">' + String.fromCharCode(8722) + '</button><span data-role="qty">' + qtyDraft[item.id] + '</span><button type="button" data-role="plus" aria-label="Agregar uno">+</button></div>' : '') +
+          '<button type="button" class="btn-add" data-role="add">Agregar</button></div></div>';
+      }).join('');
+
+      list.querySelectorAll('.item-card').forEach(function (card) {
+        var itemId = card.dataset.item;
+        var item = findItem(itemId).item;
+        var qtyEl = card.querySelector('[data-role="qty"]');
+        var priceEl = card.querySelector('[data-role="price"]');
+        var stepperEl = card.querySelector('[data-role="stepper"]');
+        var unlimitedBtn = card.querySelector('[data-role="unlimited"]');
+        var addBtn = card.querySelector('[data-role="add"]');
+        var minusBtn = card.querySelector('[data-role="minus"]');
+        var plusBtn = card.querySelector('[data-role="plus"]');
+        wireSizes(card, item, sizeDraft, itemId, priceEl);
+        if (minusBtn) minusBtn.addEventListener('click', function () { qtyDraft[itemId] = Math.max(1, qtyDraft[itemId] - 1); qtyEl.textContent = qtyDraft[itemId]; });
+        if (plusBtn) plusBtn.addEventListener('click', function () { qtyDraft[itemId] = qtyDraft[itemId] + 1; qtyEl.textContent = qtyDraft[itemId]; });
+        if (unlimitedBtn) unlimitedBtn.addEventListener('click', function () {
+          var pressed = unlimitedBtn.getAttribute('aria-pressed') === 'true';
+          unlimitedBtn.setAttribute('aria-pressed', String(!pressed));
+          if (stepperEl) stepperEl.setAttribute('data-off', String(!pressed));
+        });
+        addBtn.addEventListener('click', function () {
+          var unlimited = unlimitedBtn && unlimitedBtn.getAttribute('aria-pressed') === 'true';
+          addItemToOrder(itemId, qtyDraft[itemId], unlimited, sizeDraft[itemId]);
+          addBtn.textContent = String.fromCharCode(10003) + ' Agregado'; addBtn.dataset.added = 'true';
+          setTimeout(function () { addBtn.textContent = 'Agregar'; addBtn.dataset.added = 'false'; }, 900);
+        });
+      });
+    });
+
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener('click', function () {
+        searchInput.value = '';
+        clearSearchBtn.hidden = true;
+        document.getElementById('itemView').hidden = true;
+        document.getElementById('catalogHead').hidden = false;
+        document.getElementById('categoryGrid').hidden = false;
+      });
+    }
+  }
+
+  function renderHistory() {
+    document.getElementById('historyList').innerHTML = HISTORY.map(function (r) {
+      var d = new Date(r.eventDate + 'T00:00:00');
+      var evStr = d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+      var badge = '';
+      var btn = '';
+      if (r.status === 'solicitud_enviada') {
+        badge = '<span class="status-badge status-badge--pending">Pedido enviado</span>';
+        btn = '<button type="button" class="history-row__btn" data-confirm="' + r.id + '">Confirmar pago y generar boleta</button>';
+      } else if (r.status === 'confirmado') {
+        badge = '<span class="status-badge status-badge--done">Boleta emitida</span>';
+        btn = '<button type="button" class="history-row__btn" data-boleta="' + r.id + '">Ver boleta</button>';
+      }
+      return '<div class="history-row glass"><div><p class="history-row__who">' + r.clientName + '</p><p class="history-row__meta">Evento: ' + evStr + '</p></div>' +
+        '<div class="history-row__right"><span class="history-row__total">' + money(r.total) + '</span>' + badge + btn + '</div></div>';
+    }).join('');
+
+    document.querySelectorAll('[data-confirm]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var rec = HISTORY.find(function (r) { return r.id === btn.dataset.confirm; });
+        if (!rec) return;
+        rec.status = 'confirmado';
+        rec.boletaNum = 'B001-' + Math.floor(1000 + Math.random() * 8999);
+        renderHistory();
+        openBoleta(rec);
+      });
+    });
+    document.querySelectorAll('[data-boleta]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var rec = HISTORY.find(function (r) { return r.id === btn.dataset.boleta; });
+        if (rec) openBoleta(rec);
+      });
+    });
+  }
+
+  function openBoleta(rec) {
+    document.getElementById('boletaMeta').textContent = 'Emitida el ' + new Date().toLocaleDateString('es-PE');
+    document.getElementById('boName').textContent = rec.clientName;
+    document.getElementById('boNum').textContent = rec.boletaNum || '\u2014';
+    var rows = (rec.items && rec.items.length) ? rec.items : [{ name: 'Servicios contratados', unit: 'evento', qty: 1, subtotal: rec.total }];
+    document.getElementById('boRows').innerHTML = rows.map(function (l) {
+      return '<tr><td>' + l.name + ' <span style="color:var(--ink-faint)">(' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ')</span></td><td>' + money(l.subtotal) + '</td></tr>';
+    }).join('');
+    document.getElementById('boTotal').textContent = money(rec.total);
+    document.getElementById('boletaModal').hidden = false;
+  }
+  document.getElementById('boletaClose').addEventListener('click', function () { document.getElementById('boletaModal').hidden = true; });
+  document.getElementById('boletaModal').addEventListener('click', function (e) { if (e.target.id === 'boletaModal') document.getElementById('boletaModal').hidden = true; });
+
+  document.querySelectorAll('#stage-internal .tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('#stage-internal .tab').forEach(function (t) { t.setAttribute('aria-selected', 'false'); });
+      tab.setAttribute('aria-selected', 'true');
+      var view = tab.dataset.view;
+      document.getElementById('view-catalog').hidden = view !== 'catalog';
+      document.getElementById('view-history').hidden = view !== 'history';
+    });
+  });
+
+  document.getElementById('clientName').addEventListener('input', function (e) { order.clientName = e.target.value; });
+  document.getElementById('clientPhone').addEventListener('input', function (e) { order.clientPhone = e.target.value; });
+  document.getElementById('eventDate').addEventListener('input', function (e) { order.eventDate = e.target.value; });
+
+  /* El campo arranca en la fecha de hoy: la due&#241;a solo cambia el d&#237;a y el mes,
+     nunca escribe el a&#241;o, y el a&#241;o se actualiza solo cada vez que abre el
+     panel (en 2027 dir&#225; 2027 sin tocar nada). Tampoco deja elegir una fecha
+     que ya pas&#243;, que para reservas siempre es un error. */
+  (function initEventDate() {
+    var el = document.getElementById('eventDate');
+    var hoy = new Date();
+    var iso = new Date(hoy.getTime() - hoy.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    el.min = iso;
+    el.value = iso;
+    order.eventDate = iso;
+  })();
+
+  /* Un documento sin nombre ni WhatsApp no sirve: el seguimiento se hace por ahi.
+     Marca el campo que falta y enfoca el primero en vez de generar un papel vacio. */
+  function requireClientData(what) {
+    var missing = [];
+    if (!order.clientName.trim()) missing.push('clientName');
+    if (!order.clientPhone.trim()) missing.push('clientPhone');
+    ['clientName', 'clientPhone'].forEach(function (id) {
+      document.getElementById(id).classList.toggle('field-error', missing.indexOf(id) > -1);
+    });
+    if (missing.length) {
+      document.getElementById(missing[0]).focus();
+      alert('Falta el nombre y/o el WhatsApp del cliente para ' + what + '.');
+      return false;
+    }
+    return true;
+  }
+
+  document.getElementById('btnProforma').addEventListener('click', function () {
+    if (order.items.length === 0) { alert('Agrega al menos un servicio antes de generar la proforma.'); return; }
+    if (!requireClientData('generar la proforma')) return;
+    document.getElementById('proformaDate').textContent = 'Emitida el ' + new Date().toLocaleDateString('es-PE');
+    document.getElementById('pfName').textContent = order.clientName || '\u2014';
+    document.getElementById('pfPhone').textContent = order.clientPhone || '\u2014';
+    document.getElementById('pfDate').textContent = order.eventDate || '\u2014';
+    document.getElementById('pfRows').innerHTML = order.items.map(function (l) {
+      return '<tr><td>' + l.name + ' <span style="color:var(--ink-faint)">(' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ')</span></td><td>' + money(l.subtotal) + '</td></tr>';
+    }).join('');
+    document.getElementById('pfTotal').textContent = money(computeTotal());
+    document.getElementById('proformaModal').hidden = false;
+  });
+  document.getElementById('proformaClose').addEventListener('click', function () { document.getElementById('proformaModal').hidden = true; });
+  document.getElementById('proformaModal').addEventListener('click', function (e) { if (e.target.id === 'proformaModal') document.getElementById('proformaModal').hidden = true; });
+  document.getElementById('btnContract').addEventListener('click', function () {
+    if (order.items.length === 0) { alert('Agrega al menos un servicio antes de generar el contrato.'); return; }
+    if (!requireClientData('generar el contrato')) return;
+    alert('Contrato generado con los datos del pedido (vista de ejemplo del prototipo).');
+  });
+  document.getElementById('btnSave').addEventListener('click', function () {
+    if (order.items.length === 0) { alert('Agrega al menos un servicio antes de guardar el pedido.'); return; }
+    if (!requireClientData('guardar el pedido')) return;
+    HISTORY.unshift({ id: 'h' + Date.now(), clientName: order.clientName, eventDate: order.eventDate || new Date().toISOString().slice(0, 10), total: computeTotal(), status: 'guardado', items: JSON.parse(JSON.stringify(order.items)) });
+    renderHistory();
+    alert('Pedido guardado en el historial.');
+  });
+
+  document.getElementById('btnShareLink').addEventListener('click', function () {
+    document.getElementById('shareLinkName').textContent = order.clientName || 'tu cliente';
+    document.getElementById('clientNameTag').textContent = order.clientName || 'tu cliente';
+    document.getElementById('shareLinkModal').hidden = false;
+  });
+  document.getElementById('shareLinkClose').addEventListener('click', function () { document.getElementById('shareLinkModal').hidden = true; });
+  document.getElementById('shareLinkGo').addEventListener('click', function () {
+    document.getElementById('shareLinkModal').hidden = true;
+    goStage('client');
+  });
+
+  renderCategories(); renderOrder(); renderHistory();
+
+  /* =================== VISTA CLIENTE =================== */
+  var clientCart = [];
+  var clientQtyDraft = {};
+  var clientSizeDraft = {};
+
+  function renderShowcase() {
+    var grid = document.getElementById('showcaseGrid');
+    grid.innerHTML = CATALOG.map(function (cat) {
+      var c = CAT_COLORS[cat.id];
+      return '<button class="showcase-card glass" style="--art:' + c[0] + ';--art2:' + CAT_GRAD2[cat.id] + '" data-cat="' + cat.id + '">' +
+        '<span class="showcase-card__art"><img class="showcase-card__photo" src="' + CAT_PHOTO[cat.id] + '" alt="' + cat.name + '" loading="lazy"></span>' +
+        '<span class="showcase-card__body"><span class="showcase-card__name">' + cat.name + '</span><br><span class="showcase-card__count">' + plural(cat.items.length, 'opci\u00f3n', 'opciones') + '</span></span></button>';
+    }).join('');
+    grid.querySelectorAll('.showcase-card').forEach(function (btn) {
+      btn.addEventListener('click', function () { openClientCategory(btn.dataset.cat); });
+    });
+  }
+
+  function openClientCategory(catId) {
+    var cat = findCategory(catId); if (!cat) return;
+    var c = CAT_COLORS[catId];
+    document.getElementById('clientHead').hidden = true;
+    document.getElementById('showcaseGrid').hidden = true;
+    document.getElementById('clientItemView').hidden = false;
+    /* Banner con la foto real de la categoria: da contexto sin repetir la
+       misma imagen en cada fila de producto. */
+    document.getElementById('clientItemTitle').innerHTML =
+      '<span class="cat-banner"><img src="' + CAT_PHOTO[catId] + '" alt="' + cat.name + '">' +
+      '<span class="cat-banner__veil"></span><span class="cat-banner__txt">' +
+      '<h2>' + cat.name + '</h2><p>' + plural(cat.items.length, 'opci\u00f3n para elegir', 'opciones para elegir') + '</p>' +
+      '</span></span>';
+
+    var list = document.getElementById('clientItemList');
+    list.innerHTML = cat.items.map(function (item) {
+      clientQtyDraft[item.id] = clientQtyDraft[item.id] || 1;
+      clientSizeDraft[item.id] = clientSizeDraft[item.id] || 0;
+      var inc = item.inc ? '<ul class="inc-list">' + item.inc.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' : '';
+      return '<div class="item-card glass" data-item="' + item.id + '">' +
+        prodThumb(item, cat) +
+        '<div class="item-card__row"><div><p class="item-card__name">' + item.name + '</p><p class="item-card__desc">' + item.desc + '</p>' +
+        inc + sizeMarkup(item) +
+        '<p class="item-card__price" data-role="price"><span class="price-pill">' + money(priceOf(item, clientSizeDraft[item.id])) + '<span class="price-pill__unit">/ ' + item.unit + '</span></span></p></div>' +
+        '<div class="item-card__controls">' +
+        (item.allowUnlimited ? '<button type="button" class="unlimited-pill" data-role="unlimited" aria-pressed="false">Ilimitado</button>' : '') +
+        (hasQtyStepper(item) ? '<div class="stepper" data-role="stepper"><button type="button" data-role="minus">' + String.fromCharCode(8722) + '</button><span data-role="qty">' + clientQtyDraft[item.id] + '</span><button type="button" data-role="plus">+</button></div>' : '') +
+        '<button type="button" class="btn-add" data-role="add">Agregar</button></div></div></div>';
+    }).join('');
+
+    list.querySelectorAll('.item-card').forEach(function (card) {
+      var itemId = card.dataset.item;
+      var item = findItem(itemId).item;
+      var qtyEl = card.querySelector('[data-role="qty"]');
+      var priceEl = card.querySelector('[data-role="price"]');
+      var stepperEl = card.querySelector('[data-role="stepper"]');
+      var unlimitedBtn = card.querySelector('[data-role="unlimited"]');
+      var addBtn = card.querySelector('[data-role="add"]');
+      var minusBtn = card.querySelector('[data-role="minus"]');
+      var plusBtn = card.querySelector('[data-role="plus"]');
+      wireSizes(card, item, clientSizeDraft, itemId, priceEl);
+      if (minusBtn) minusBtn.addEventListener('click', function () { clientQtyDraft[itemId] = Math.max(1, clientQtyDraft[itemId] - 1); qtyEl.textContent = clientQtyDraft[itemId]; });
+      if (plusBtn) plusBtn.addEventListener('click', function () { clientQtyDraft[itemId] = clientQtyDraft[itemId] + 1; qtyEl.textContent = clientQtyDraft[itemId]; });
+      if (unlimitedBtn) unlimitedBtn.addEventListener('click', function () {
+        var pressed = unlimitedBtn.getAttribute('aria-pressed') === 'true';
+        unlimitedBtn.setAttribute('aria-pressed', String(!pressed));
+        if (stepperEl) stepperEl.setAttribute('data-off', String(!pressed));
+      });
+      addBtn.addEventListener('click', function () {
+        var unlimited = unlimitedBtn && unlimitedBtn.getAttribute('aria-pressed') === 'true';
+        addToClientCart(itemId, clientQtyDraft[itemId], unlimited, clientSizeDraft[itemId]);
+        addBtn.textContent = String.fromCharCode(10003) + ' Agregado'; addBtn.dataset.added = 'true';
+        setTimeout(function () { addBtn.textContent = 'Agregar'; addBtn.dataset.added = 'false'; }, 900);
+      });
+    });
+  }
+
+  document.getElementById('clientBackBtn').addEventListener('click', function () {
+    document.getElementById('clientItemView').hidden = true;
+    document.getElementById('clientHead').hidden = false;
+    document.getElementById('showcaseGrid').hidden = false;
+  });
+
+  function addToClientCart(itemId, qty, unlimited, si) {
+    var found = findItem(itemId); if (!found) return null;
+    var item = found.item;
+    var unitPrice = priceOf(item, si);
+    var label = fullName(item, si);
+    var finalQty = unlimited ? 1 : Math.max(1, qty || 1);
+    var existing = clientCart.filter(function (l) { return l.name === label && l.unlimited === !!unlimited; })[0];
+    if (existing) {
+      if (!unlimited) { existing.qty += finalQty; existing.subtotal = unitPrice * existing.qty; }
+      renderClientCartbar();
+      return existing;
+    }
+    var line = { name: label, unit: item.unit, qty: finalQty, unlimited: !!unlimited, subtotal: unlimited ? unitPrice : unitPrice * finalQty };
+    clientCart.push(line);
+    renderClientCartbar();
+    return line;
+  }
+  function clientTotal() { return clientCart.reduce(function (s, l) { return s + l.subtotal; }, 0); }
+  function renderClientCartbar() {
+    var bar = document.getElementById('clientCartbar');
+    bar.hidden = clientCart.length === 0;
+    document.getElementById('clientCartInfo').textContent = clientCart.length + (clientCart.length === 1 ? ' servicio' : ' servicios');
+    document.getElementById('clientCartTotal').textContent = money(clientTotal());
+  }
+
+  function openClientReview() {
+    document.getElementById('crTitle').textContent = 'Tu pedido';
+    document.getElementById('crSubtitle').textContent = 'Revisa y contin\u00faa';
+    document.getElementById('crRows').innerHTML = clientCart.map(function (l) {
+      return '<tr><td>' + l.name + ' <span style="color:var(--ink-faint)">(' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ')</span></td><td>' + money(l.subtotal) + '</td></tr>';
+    }).join('');
+    document.getElementById('crTotal').textContent = money(clientTotal());
+    document.getElementById('clientReviewBody').hidden = false;
+    document.getElementById('clientConfirmBody').hidden = true;
+    document.getElementById('clientReviewModal').hidden = false;
+  }
+  document.getElementById('btnClientReview').addEventListener('click', openClientReview);
+  document.getElementById('chatPrivacyLink').addEventListener('click', function (e) {
+    e.preventDefault();
+    document.getElementById('privacyModal').hidden = false;
+  });
+  document.getElementById('privacyClose').addEventListener('click', function () {
+    document.getElementById('privacyModal').hidden = true;
+  });
+  document.getElementById('privacyModal').addEventListener('click', function (e) {
+    if (e.target.id === 'privacyModal') document.getElementById('privacyModal').hidden = true;
+  });
+  document.getElementById('clientReviewClose').addEventListener('click', function () {
+    document.getElementById('clientReviewModal').hidden = true;
+  });
+  document.getElementById('clientReviewModal').addEventListener('click', function (e) {
+    if (e.target.id === 'clientReviewModal') document.getElementById('clientReviewModal').hidden = true;
+  });
+
+  /* Pedido del cliente (Magic Box, ago 2026): nada de pago ni cuenta/QR
+     dentro de la web -- las mam\u00e1s y abuelas que arman el pedido igual
+     quieren cerrar hablando con una persona. El cierre es siempre un
+     mensaje de WhatsApp con el detalle, nunca un cobro dentro de la app. */
+  document.getElementById('crGoPay').addEventListener('click', function () {
+    if (clientCart.length === 0) return;
+    var clientName = order.clientName || document.getElementById('clientNameTag').textContent;
+    var lines = clientCart.map(function (l) {
+      return '\u2022 ' + l.name + ' (' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ') \u2014 ' + money(l.subtotal);
+    }).join('\n');
+    var msg = 'Hola! Soy ' + clientName + ', arm\u00e9 este pedido en la web de Magic Box:\n\n' + lines + '\n\nTotal: ' + money(clientTotal()) + '\n\n\u00bfMe ayudan a confirmar disponibilidad?';
+    HISTORY.unshift({
+      id: 'h' + Date.now(),
+      clientName: clientName,
+      eventDate: new Date().toISOString().slice(0, 10),
+      total: clientTotal(),
+      status: 'solicitud_enviada',
+      items: JSON.parse(JSON.stringify(clientCart))
+    });
+    renderHistory();
+    window.open('https://wa.me/51956206360?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    document.getElementById('clientReviewBody').hidden = true;
+    document.getElementById('clientConfirmBody').hidden = false;
+  });
+
+  /* =================== ASISTENTE DE CHAT (pantalla completa, cliente) =================== */
+  function chatPush(sender, html) {
+    var box = document.getElementById('chatMessages');
+    var row = document.createElement('div');
+    row.className = 'chat-row chat-row--' + sender;
+    row.innerHTML = '<span class="chat-row__avatar" aria-hidden="true">' + (sender === 'bot' ? '🐰' : '👤') + '</span>' +
+      '<div class="chat-msg chat-msg--' + sender + '"></div>';
+    var bubble = row.querySelector('.chat-msg');
+    bubble.innerHTML = html;
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+    return bubble;
+  }
+  function chatQuickReplies(options) {
+    var wrap = document.getElementById('chatQuickReplies');
+    wrap.innerHTML = '';
+    options.forEach(function (o) {
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'qr-btn'; btn.textContent = o.label;
+      btn.addEventListener('click', o.onClick);
+      wrap.appendChild(btn);
+    });
+  }
+  function chatShowCategories() {
+    chatQuickReplies(CATALOG.map(function (cat) {
+      return { label: cat.name, onClick: function () { chatPush('user', cat.name); chatShowItems(cat.id); } };
+    }));
+  }
+  function chatShowItems(catId) {
+    var cat = findCategory(catId);
+    chatPush('bot', 'Esto tenemos en <strong>' + cat.name + '</strong>. \u00bfCu\u00e1l te gustar\u00eda?');
+    chatQuickReplies(cat.items.map(function (item) {
+      var from = item.sizes ? 'desde ' + money(priceOf(item, 0)) : money(item.price);
+      return { label: item.name + ' \u2014 ' + from, onClick: function () { chatPush('user', item.name); chatAskQty(item); } };
+    }).concat([{ label: String.fromCharCode(8592) + ' Otras categor\u00edas', onClick: function () { chatPush('user', 'Ver otras categor\u00edas'); chatShowCategories(); } }]));
+  }
+  function chatAskQty(item) {
+    var si = 0;
+    var html = '<p>' + (item.sizes ? 'Elige la cantidad de <strong>' + item.name + '</strong>:' : '\u00bfCu\u00e1ntos/as necesitas de <strong>' + item.name + '</strong>?') + '</p>' +
+      sizeMarkup(item) +
+      '<p class="chat-price" data-role="cprice">' + money(priceOf(item, 0)) + ' / ' + item.unit + '</p>' +
+      (item.allowUnlimited ? '<button type="button" class="unlimited-pill" data-role="cunlimited" aria-pressed="false">Ilimitado</button>' : '') +
+      (hasQtyStepper(item) ? '<div class="stepper" data-role="cstepper"><button type="button" data-role="cminus">' + String.fromCharCode(8722) + '</button><span data-role="cqty">1</span><button type="button" data-role="cplus">+</button></div>' : '') +
+      '<br><button type="button" class="btn-add" data-role="cadd">Agregar</button>';
+    var bubble = chatPush('bot', html);
+    var qty = 1, unlimited = false;
+    var qtyEl = bubble.querySelector('[data-role="cqty"]');
+    var priceEl = bubble.querySelector('[data-role="cprice"]');
+    var stepperEl = bubble.querySelector('[data-role="cstepper"]');
+    var sizeBtns = bubble.querySelectorAll('[data-role="sizes"] button');
+    sizeBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        si = +b.dataset.size;
+        sizeBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        priceEl.textContent = money(priceOf(item, si)) + ' / ' + item.unit;
+      });
+    });
+    var cMinusBtn = bubble.querySelector('[data-role="cminus"]');
+    var cPlusBtn = bubble.querySelector('[data-role="cplus"]');
+    if (cMinusBtn) cMinusBtn.addEventListener('click', function () { qty = Math.max(1, qty - 1); qtyEl.textContent = qty; });
+    if (cPlusBtn) cPlusBtn.addEventListener('click', function () { qty = qty + 1; qtyEl.textContent = qty; });
+    var unlBtn = bubble.querySelector('[data-role="cunlimited"]');
+    if (unlBtn) unlBtn.addEventListener('click', function () {
+      var pressed = unlBtn.getAttribute('aria-pressed') === 'true';
+      unlBtn.setAttribute('aria-pressed', String(!pressed));
+      unlimited = !pressed;
+      if (stepperEl) stepperEl.setAttribute('data-off', String(unlimited));
+    });
+    chatQuickReplies([]);
+    bubble.querySelector('[data-role="cadd"]').addEventListener('click', function () {
+      addToClientCart(item.id, qty, unlimited, si);
+      bubble.querySelector('[data-role="cadd"]').outerHTML = '<p style="color:var(--success);font-weight:700;margin-top:6px;">' + String.fromCharCode(10003) + ' Agregado</p>';
+      chatConfirmAndAskMore();
+    });
+  }
+  function chatConfirmAndAskMore() {
+    chatPush('bot', 'Perfecto. Llevas <strong>' + money(clientTotal()) + '</strong> hasta ahora. \u00bfQuieres algo m\u00e1s?');
+    chatQuickReplies([
+      { label: 'Agregar otra cosa', onClick: function () { chatPush('user', 'Agregar otra cosa'); chatShowCategories(); } },
+      { label: 'Ya termin\u00e9, continuar', onClick: function () { chatPush('user', 'Ya termin\u00e9'); chatFinish(); } }
+    ]);
+  }
+  function chatFinish() {
+    if (clientCart.length === 0) { chatPush('bot', 'Todav\u00eda no agregaste nada. Elige una categor\u00eda primero.'); chatShowCategories(); return; }
+    chatPush('bot', 'Genial, esto es lo que llevas. Vamos a enviar tu pedido.');
+    chatQuickReplies([{ label: 'Ver resumen y enviar', onClick: function () { closeChat(); openClientReview(); } }]);
+  }
+  var chatAiHistory = [];
+  function openChat() {
+    document.getElementById('chatFullscreen').hidden = false;
+    document.getElementById('chatMessages').innerHTML = '';
+    chatAiHistory = [];
+    var name = document.getElementById('clientNameTag').textContent;
+    chatPush('bot', '\u00a1Hola, <strong>' + name + '</strong>! \u00a1Qu\u00e9 emoci\u00f3n, vamos a planear tu fiesta! \ud83c\udf89 Soy un asistente virtual (con IA) \u2014 pero me conozco Magic Box al detalle. Cu\u00e9ntame qu\u00e9 est\u00e1s celebrando y te ayudo a armar todo, o toca una categor\u00eda abajo si ya sabes por d\u00f3nde empezar.');
+    chatShowCategories();
+  }
+  function closeChat() { document.getElementById('chatFullscreen').hidden = true; }
+  document.getElementById('btnClientChat').addEventListener('click', openChat);
+  document.getElementById('chatClose').addEventListener('click', closeChat);
+
+  /* ---- Preguntas en lenguaje libre: van a /api/chat (Gemini del lado del
+     servidor, la key nunca toca el navegador). Es consultivo -- recomienda
+     y explica precios reales del catalogo, pero quien agrega al pedido
+     sigue siendo la persona con los botones de siempre. */
+  function chatShowTyping() {
+    var box = document.getElementById('chatMessages');
+    var row = document.createElement('div');
+    row.className = 'chat-row chat-row--bot';
+    row.id = 'chatTypingIndicator';
+    row.innerHTML = '<span class="chat-row__avatar" aria-hidden="true">🐰</span>' +
+      '<div class="chat-msg chat-msg--bot chat-msg--typing"><span></span><span></span><span></span></div>';
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+  function chatHideTyping() {
+    var el = document.getElementById('chatTypingIndicator');
+    if (el) el.remove();
+  }
+  var chatInputForm = document.getElementById('chatInputForm');
+  var chatInputText = document.getElementById('chatInputText');
+  chatInputForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = chatInputText.value.trim();
+    if (!text) return;
+    chatInputText.value = '';
+    chatInputText.disabled = true;
+    chatPush('user', text.replace(/</g, '&lt;'));
+    chatAiHistory.push({ role: 'user', text: text });
+    chatShowTyping();
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: chatAiHistory.slice(0, -1) })
+    }).then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (res) {
+        chatHideTyping();
+        if (!res.ok || !res.data || !res.data.reply) {
+          chatPush('bot', res.data && res.data.error ? res.data.error : 'No pude responder justo ahora. Intenta de nuevo o escr\u00edbenos por WhatsApp.');
+          return;
+        }
+        chatAiHistory.push({ role: 'model', text: res.data.reply });
+        var matches = matchCatalogItemsInText(res.data.reply);
+        var bubble = chatPush('bot', res.data.reply.replace(/</g, '&lt;').replace(/\n/g, '<br>') + chatPhotoGallery(matches));
+        wireChatPhotoGallery(bubble, matches);
+      })
+      .catch(function () {
+        chatHideTyping();
+        chatPush('bot', 'No pude conectarme. Revisa tu internet o escr\u00edbenos por WhatsApp.');
+      })
+      .then(function () { chatInputText.disabled = false; chatInputText.focus(); });
+  });
+
+  renderShowcase();
+
+  /* =================== TOGGLE DE TEMA =================
+     Oscuro por defecto -- pedido explicito del cliente en la reunion del
+     13-ago-2026: "oscuro se ve mas profesional... blanco es como
+     cualquiera que hace una pagina". Ya no sigue al sistema operativo por
+     defecto; si la persona toca el boton, su eleccion manda y se recuerda. */
+  var sysDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function isDarkNow() {
+    var forced = document.documentElement.getAttribute('data-theme');
+    if (forced === 'dark') return true;
+    if (forced === 'light') return false;
+    return sysDark.matches;
+  }
+  function paintThemeIcon() {
+    var dark = isDarkNow();
+    document.querySelectorAll('.js-theme').forEach(function (btn) {
+      btn.querySelector('.ico-sun').hidden = !dark;
+      btn.querySelector('.ico-moon').hidden = dark;
+      btn.setAttribute('aria-label', dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+      btn.setAttribute('aria-pressed', String(dark));
+    });
+  }
+
+  var savedTheme = localStorage.getItem('ff_proto_theme');
+  document.documentElement.setAttribute('data-theme', (savedTheme === 'light') ? 'light' : 'dark');
+  paintThemeIcon();
+
+  document.querySelectorAll('.js-theme').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var next = isDarkNow() ? 'light' : 'dark';
+      /* Si la eleccion coincide con lo que ya hace el sistema, se borra la
+         preferencia en vez de fijarla: asi vuelve a seguir al sistema. */
+      if ((next === 'dark') === sysDark.matches) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.removeItem('ff_proto_theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('ff_proto_theme', next);
+      }
+      paintThemeIcon();
+    });
+  });
+
+  if (sysDark.addEventListener) sysDark.addEventListener('change', paintThemeIcon);
+})();
+</script>

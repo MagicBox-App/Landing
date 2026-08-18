@@ -1,0 +1,9 @@
+{
+  "name": "magic-box",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Panel de cotizaciones Magic Box — sitio estatico (HTML/CSS/JS, sin build step).",
+  "devDependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

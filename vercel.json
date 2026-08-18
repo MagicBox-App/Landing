@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "src": "^/$", "dest": "/_preview_prototipo.html" },
+    { "handle": "filesystem" }
+  ]
+}

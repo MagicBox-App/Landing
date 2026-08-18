@@ -1,0 +1,7 @@
+.vercel
+transcription (3).txt
+config.js
+node_modules/
+.env
+.env.local
+.env.*.local
