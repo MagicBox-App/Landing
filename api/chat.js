@@ -117,7 +117,7 @@ function getKeyPool() {
    quede con la que sí respondió. */
 async function attemptKey(key, label, contents) {
   const controller = new AbortController();
-  const timeout = setTimeout(function () { controller.abort(); }, 8000);
+  const timeout = setTimeout(function () { controller.abort(); }, 12000);
   try {
     const upstream = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' + encodeURIComponent(key),
@@ -128,7 +128,7 @@ async function attemptKey(key, label, contents) {
         body: JSON.stringify({
           contents: contents,
           systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
         })
       }
     );

@@ -2401,23 +2401,8 @@
   }
   function chatFinish() {
     if (clientCart.length === 0) { chatPush('bot', 'Todav\u00eda no agregaste nada. Elige una categor\u00eda primero.'); chatShowCategories(); return; }
-    chatPush('bot', 'Genial, esto es lo que llevas. \u00bfC\u00f3mo quieres continuar?');
-    chatQuickReplies([
-      { label: 'Ver resumen y enviar', onClick: function () { closeChat(); openClientReview(); } },
-      { label: '\ud83d\udcc4 Descargar mi lista', onClick: function () {
-        chatPush('user', 'Descargar mi lista');
-        downloadClientOrderText();
-        chatPush('bot', 'Listo, descargu\u00e9 tu lista. Puedes enviarla por WhatsApp cuando quieras.');
-      } },
-      { label: '\ud83d\udccb Copiar para WhatsApp', onClick: function () {
-        chatPush('user', 'Copiar para WhatsApp');
-        copyClientOrderText().then(function () {
-          chatPush('bot', '\u00a1Copiado! P\u00e9galo en tu WhatsApp y m\u00e1ndanoslo \u2014 <a href="https://wa.me/51956206360" target="_blank" rel="noopener">abrir WhatsApp</a>.');
-        }).catch(function () {
-          chatPush('bot', 'No pude copiarlo autom\u00e1ticamente en este navegador. Mejor usa "Ver resumen y enviar".');
-        });
-      } }
-    ]);
+    if (!chatContactName || !chatContactPhone) { chatAskContactInfo(); return; }
+    chatShowFinishOptions();
   }
   var chatAiHistory = [];
   function openChat() {
@@ -2450,16 +2435,77 @@
     var el = document.getElementById('chatTypingIndicator');
     if (el) el.remove();
   }
+  /* Convierte **negrita** de markdown (asi responde Gemini) a <strong> --
+     antes solo se escapaba "<" y se cambiaba salto de linea por <br>,
+     dejando los asteriscos literales sueltos en pantalla. */
+  function renderBotText(raw) {
+    return raw.replace(/</g, '&lt;').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  }
+
+  /* Nombre y WhatsApp del cliente, capturados al final del chat (no antes,
+     para no interrumpir mientras arma su pedido) -- se usan para
+     personalizar el saludo y para que el lead que llega al Excel tenga
+     con quien contactar, no solo "Cliente". */
+  var chatAwaitingContact = null; // null | 'name' | 'phone'
+  var chatContactName = null;
+  var chatContactPhone = null;
+  function chatAskContactInfo() {
+    chatAwaitingContact = 'name';
+    chatQuickReplies([]);
+    chatPush('bot', 'Antes de darte el resumen, \u00bfcu\u00e1l es tu nombre?');
+  }
+  function chatShowFinishOptions() {
+    chatPush('bot', 'Genial, esto es lo que llevas. \u00bfC\u00f3mo quieres continuar?');
+    chatQuickReplies([
+      { label: 'Ver resumen y enviar', onClick: function () { closeChat(); openClientReview(); } },
+      { label: '\ud83d\udcc4 Descargar mi lista', onClick: function () {
+        chatPush('user', 'Descargar mi lista');
+        downloadClientOrderText();
+        chatPush('bot', 'Listo, descargu\u00e9 tu lista. Puedes enviarla por WhatsApp cuando quieras.');
+      } },
+      { label: '\ud83d\udccb Copiar para WhatsApp', onClick: function () {
+        chatPush('user', 'Copiar para WhatsApp');
+        copyClientOrderText().then(function () {
+          chatPush('bot', '\u00a1Copiado! P\u00e9galo en tu WhatsApp y m\u00e1ndanoslo \u2014 <a href="https://wa.me/51956206360" target="_blank" rel="noopener">abrir WhatsApp</a>.');
+        }).catch(function () {
+          chatPush('bot', 'No pude copiarlo autom\u00e1ticamente en este navegador. Mejor usa "Ver resumen y enviar".');
+        });
+      } }
+    ]);
+  }
+
   var chatInputForm = document.getElementById('chatInputForm');
   var chatInputText = document.getElementById('chatInputText');
+  var chatSending = false;
   chatInputForm.addEventListener('submit', function (e) {
     e.preventDefault();
     var text = chatInputText.value.trim();
-    if (!text) return;
+    if (!text || chatSending) return;
     chatInputText.value = '';
-    chatInputText.disabled = true;
     chatPush('user', text.replace(/</g, '&lt;'));
+
+    if (chatAwaitingContact === 'name') {
+      chatContactName = text;
+      document.getElementById('clientNameTag').textContent = text;
+      chatAwaitingContact = 'phone';
+      chatPush('bot', 'Gracias, <strong>' + text + '</strong>. \u00bfY tu WhatsApp, para coordinar?');
+      return;
+    }
+    if (chatAwaitingContact === 'phone') {
+      chatContactPhone = text;
+      chatAwaitingContact = null;
+      sendLeadToGoogleForm({
+        nombre: chatContactName,
+        telefono: chatContactPhone,
+        categoria: clientCart.map(function (l) { return l.name; }).join(', '),
+        mensaje: 'Pedido armado con el asistente de chat (IA).'
+      });
+      chatShowFinishOptions();
+      return;
+    }
+
     chatAiHistory.push({ role: 'user', text: text });
+    chatSending = true;
     chatShowTyping();
     fetch('/api/chat', {
       method: 'POST',
@@ -2474,14 +2520,14 @@
         }
         chatAiHistory.push({ role: 'model', text: res.data.reply });
         var matches = matchCatalogItemsInText(res.data.reply);
-        var bubble = chatPush('bot', res.data.reply.replace(/</g, '&lt;').replace(/\n/g, '<br>') + chatPhotoGallery(matches));
+        var bubble = chatPush('bot', renderBotText(res.data.reply) + chatPhotoGallery(matches));
         wireChatPhotoGallery(bubble, matches);
       })
       .catch(function () {
         chatHideTyping();
         chatPush('bot', 'No pude conectarme. Revisa tu internet o escr\u00edbenos por WhatsApp.');
       })
-      .then(function () { chatInputText.disabled = false; chatInputText.focus(); });
+      .then(function () { chatSending = false; chatInputText.focus(); });
   });
 
   renderShowcase();
