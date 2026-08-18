@@ -428,7 +428,7 @@
     .showcase-card__name { font-size: 13.5px; line-height: 1.25; }
     .showcase-card__count { font-size: 11px; }
 
-    /* Tarjetas de productos en movil */
+    /* Tarjetas de productos en movil (panel interno: fila compacta) */
     .item-card { padding: 12px; gap: 10px; flex-direction: column; align-items: stretch; }
     .item-card__row { flex-direction: row; align-items: center; gap: 10px; width: 100%; }
     .item-card__controls { width: 100%; justify-content: space-between; gap: 8px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 10px; }
@@ -823,7 +823,28 @@
   .inc-toggle--open .inc-toggle__arrow { transform: rotate(180deg); }
   #clientItemList .size-select { justify-content: center; }
   #clientItemList .item-card__controls { justify-content: center; width: 100%; margin-top: 4px; }
-  @media (max-width: 520px) { #clientItemList .prod-thumb { height: 180px; } }
+
+  /* Vista cliente: 2 columnas en movil, igual que ya funciona bien en la
+     grilla de categorias -- una sola tarjeta grande por fila se sentia
+     enorme y desperdiciaba espacio horizontal en pantallas angostas.
+     Este bloque va DESPUES de las reglas base de #clientItemList a
+     proposito: misma especificidad, y en un empate el ultimo en el
+     archivo gana -- si fuera antes, la regla base lo pisaria. */
+  @media (max-width: 640px) {
+    #clientItemList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    #clientItemList .item-card { padding: 10px; gap: 6px; }
+    #clientItemList .prod-thumb { height: 110px; }
+    #clientItemList .item-card__name { font-size: 13px; line-height: 1.25; }
+    #clientItemList .item-card__desc {
+      font-size: 11px; line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    #clientItemList .inc-toggle { font-size: 11px; }
+    #clientItemList .price-pill { font-size: 13px; padding: 4px 11px; }
+    #clientItemList .price-pill__unit { font-size: 10px; }
+    #clientItemList .btn-add { font-size: 12.5px; padding: 8px 14px; }
+    #clientItemList .item-card__controls { margin-top: 2px; }
+  }
 
   /* Foto real de cada categoria en la vitrina. */
   .showcase-card__photo { display: block; width: 100%; height: 100%; object-fit: cover; }
