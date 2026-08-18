@@ -11,7 +11,8 @@ const ROOT = __dirname;
 const MIME = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon'
+  '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
+  '.mp4': 'video/mp4', '.webm': 'video/webm'
 };
 
 const chatHandler = require('./api/chat.js');
