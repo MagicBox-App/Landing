@@ -783,7 +783,11 @@
      grande arriba (a diferencia del panel interno, que sigue siendo lista
      horizontal compacta para catalogar rapido) y todo el contenido
      centrado debajo, como una tarjeta de tienda online. */
-  #clientItemList .item-card { flex-direction: column; align-items: center; text-align: center; }
+  /* justify-content:flex-start (no space-between, que hereda de la regla
+     base pensada para fila horizontal) -- en columna, space-between
+     empujaba la imagen/texto arriba y "Agregar" al fondo, dejando un
+     hueco enorme en medio de la tarjeta. */
+  #clientItemList .item-card { flex-direction: column; align-items: center; text-align: center; justify-content: flex-start; gap: 10px; }
   #clientItemList .prod-thumb { width: 100%; height: 200px; flex: none; border-radius: var(--r-md); }
   /* Fondo: la misma foto, agrandada y desenfocada -- llena el marco sin
      que se note que es de baja resolucion (el blur disimula el pixelado).
@@ -800,7 +804,7 @@
     object-fit: contain; padding: 14px; box-sizing: border-box;
     filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
   }
-  #clientItemList .item-card__row { flex-direction: column; align-items: center; width: 100%; }
+  #clientItemList .item-card__row { flex-direction: column; align-items: center; width: 100%; justify-content: flex-start; gap: 8px; }
   #clientItemList .item-card__row > div:first-child { display: flex; flex-direction: column; align-items: center; }
   #clientItemList .inc-list { text-align: left; display: inline-block; margin-left: auto; margin-right: auto; }
   /* Boton "Ver que incluye": la tarjeta arranca limpia (nombre, precio,
@@ -2056,6 +2060,7 @@
       categoria: order.items.map(function (l) { return l.name; }).join(', '),
       fecha: order.eventDate,
       presupuesto: money(computeTotal()),
+      fuente: 'Panel interno',
       mensaje: 'Pedido guardado desde el panel interno.'
     });
     alert('Pedido guardado en el historial.');
@@ -2372,6 +2377,7 @@
       sendLeadToGoogleForm({
         nombre: document.getElementById('clientNameTag').textContent,
         categoria: item.name,
+        fuente: 'Chat Web (IA)',
         mensaje: 'Agregado desde el asistente de chat (IA).'
       });
     });
@@ -2449,6 +2455,7 @@
   var chatAwaitingContact = null; // null | 'name' | 'phone'
   var chatContactName = null;
   var chatContactPhone = null;
+  var chatContactFecha = null;
   function chatAskContactInfo() {
     chatAwaitingContact = 'name';
     chatQuickReplies([]);
@@ -2493,11 +2500,20 @@
     }
     if (chatAwaitingContact === 'phone') {
       chatContactPhone = text;
+      chatAwaitingContact = 'fecha';
+      chatPush('bot', '¡Última pregunta! ¿Para qué fecha sería el evento?');
+      return;
+    }
+    if (chatAwaitingContact === 'fecha') {
+      chatContactFecha = text;
       chatAwaitingContact = null;
       sendLeadToGoogleForm({
         nombre: chatContactName,
         telefono: chatContactPhone,
         categoria: clientCart.map(function (l) { return l.name; }).join(', '),
+        fecha: chatContactFecha,
+        presupuesto: money(clientTotal()),
+        fuente: 'Chat Web (IA)',
         mensaje: 'Pedido armado con el asistente de chat (IA).'
       });
       chatShowFinishOptions();
