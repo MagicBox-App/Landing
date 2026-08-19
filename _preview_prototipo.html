@@ -1,4 +1,5 @@
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>Magic Box</title>
 <!-- SheetJS: genera el .xlsx real 100% en el navegador (sin backend). -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -891,6 +892,13 @@
   /* ============ CHAT PANTALLA COMPLETA (cliente) ============ */
   .chat-fullscreen { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; }
   .chat-fullscreen__header { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--glass-border); }
+  /* Sin min-width:0 este div no se encoge (default flexbox: min-width
+     auto = nunca mas chico que su contenido), empujando "Hablar con un
+     asesor" fuera de pantalla en celulares angostos -- el ellipsis de
+     brand__name/brand__tag nunca llegaba a activarse porque el
+     contenedor nunca se comprimia. */
+  .chat-fullscreen__brand { min-width: 0; overflow: hidden; }
+  @media (max-width: 400px) { .chat-fullscreen__brand .brand__tag { display: none; } }
   /* Salida a un humano siempre visible mientras el chat esta abierto -- no
      depende de que el usuario lo pida en texto libre ni de que el modelo
      se acuerde de ofrecerlo. Requisito legal (transparencia + derecho a
@@ -1261,7 +1269,7 @@
     <header class="chat-fullscreen__header">
       <button class="icon-btn" id="chatClose" aria-label="Cerrar asistente"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <span class="chat-avatar" aria-hidden="true">&#128048;</span>
-      <div><p class="brand__name">Asistente Magic Box</p><p class="brand__tag">Asistente virtual (IA) &#183; no es una persona</p></div>
+      <div class="chat-fullscreen__brand"><p class="brand__name">Asistente Magic Box</p><p class="brand__tag">Asistente virtual (IA) &#183; no es una persona</p></div>
       <a class="chat-human-link" href="https://wa.me/51956206360?text=Hola%2C%20quisiera%20hablar%20con%20un%20asesor" target="_blank" rel="noopener">Hablar con un asesor</a>
     </header>
     <div class="chat-fullscreen__messages" id="chatMessages"></div>
