@@ -180,8 +180,8 @@ llega 30 min antes.
   chalecos para los niños, romper piñata, cantar happy birthday, elige
   8 juegos.
 - Juegos para elegir: liga, soga, canta y gana, torre de vasos, preguntas
-  revienta globo, preguntas con manoplas, pizarra tuti fruti, encostalados,
-  hisopos gladiadores, yenga gigante.
+  con manoplas, pizarra tuti fruti, encostalados, manos gigantes,
+  hisopos gladiadores, yenga gigante (S/50 adicional).
 - No incluye movilidad.
 
 ## Fotos plataforma 360°
@@ -252,6 +252,24 @@ moderno, materiales de calidad y ambiente acogedor.
 
 Mensajes de marca: *"Calidad, elegancia y los mejores precios"* ·
 *"¡Tu evento, nuestro compromiso!"*
+
+## Sonido y Hora Loca
+Descripción: equipo de sonido y DJ para amenizar el evento, más el show de
+hora loca con personajes opcionales.
+
+| Detalle | Precio |
+|---|---|
+| Equipo de sonido con USB y Bluetooth | S/70 |
+| DJ por 5 horas con parlante | S/400 |
+| 4 tachitos LED + 2 cabezas móviles de luces LED | S/200 |
+
+Show hora loca con juegos y bailes (50 minutos), incluye globos Pencil.
+Personajes opcionales para el show:
+- Cada arlequín: S/180
+- Personaje cabezón: S/320
+- Robot LED: S/270
+- Robot LED láser: S/300
+- Robot LED CO2: S/350
 
 ## Cómo reservar
 - Se reserva la fecha separando el servicio con el **20% del total**; ese

@@ -116,32 +116,44 @@
     border: 1px solid var(--glass-border);
   }
 
-  /* ============ SWITCHER DE PROTOTIPO (no es parte del producto) ============ */
-  .proto-switch-wrap { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .proto-switch {
-    display: flex; gap: 3px; padding: 4px;
-    border-radius: 999px; border: 1px dashed var(--ink-faint);
-    background: var(--glass-bg-strong); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  /* ============ ACCESO ADMINISTRADOR (botón discreto) ============ */
+  .admin-access-btn {
+    position: fixed; bottom: 14px; left: 14px; z-index: 500;
+    width: 34px; height: 34px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--glass-bg-strong); color: var(--ink-faint);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    opacity: 0.45; transition: opacity .15s ease, color .15s ease;
   }
-  .proto-switch button {
-    border: none; background: transparent; padding: 7px 14px; border-radius: 999px;
-    font-size: 12px; font-weight: 700; color: var(--ink-soft);
-  }
-  .proto-switch button[aria-pressed="true"] { background: var(--primary); color: #fff; }
-  .proto-note {
-    font-size: 10.5px; font-weight: 600; color: var(--ink-faint); text-align: center;
-    background: var(--glass-bg-strong); padding: 3px 10px; border-radius: 999px; max-width: 300px;
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  }
+  .admin-access-btn:hover, .admin-access-btn:focus-visible { opacity: 1; color: var(--ink-soft); }
+  /* No debe flotar encima del chat a pantalla completa ni de ningun modal --
+     se ve intrusivo y se puede tocar por accidente mientras se conversa. */
+  body:has(#chatFullscreen:not([hidden])) .admin-access-btn,
+  body:has(.modal-overlay:not([hidden])) .admin-access-btn { display: none; }
 
   .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; text-align: left; }
   .field label { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
-  .field input {
+  .field input, .field textarea {
     padding: 13px 14px; border: 1.5px solid var(--line); border-radius: var(--r-sm);
-    font-size: 15.5px; color: var(--ink); background: var(--surface-2);
+    font-size: 15.5px; color: var(--ink); background: var(--surface-2); font-family: inherit; resize: vertical;
   }
-  .field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-tint); }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-tint); }
   .field input.field-error { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(225,93,93,.18); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-row .field { margin-bottom: 12px; }
+  /* Antes el calendario nativo (type=date) era la UNICA forma de poner la
+     fecha -- clic obligatorio, nada de escribir. Ahora el campo es texto
+     libre (dd/mm/aaaa, se puede tipear entero) y el calendario queda como
+     atajo opcional con su propio boton -- las dos formas funcionan. */
+  .date-field-row { display: flex; gap: 8px; align-items: stretch; }
+  .date-field-row input#crEventDate { flex: 1; min-width: 0; }
+  .date-field-row__pick {
+    flex-shrink: 0; width: 46px; border: 1.5px solid var(--line); border-radius: var(--r-sm);
+    background: var(--surface-2); color: var(--ink-soft); cursor: pointer;
+  }
+  .date-field-row__pick:hover { color: var(--primary); border-color: var(--primary); }
+  .date-field-row__pick svg { width: 20px; height: 20px; }
+  #crEventDateNative { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
   /* ============ TOPBAR ============ */
   /* flex-wrap + min-width:0 evitan que en pantallas angostas el bot&#243;n de la
@@ -154,6 +166,15 @@
   .brand__mark svg { width: 22px; height: 22px; }
   .brand__name { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
   .brand__tag { font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
+  /* Solo en el header principal (no en el disclaimer del chat, que
+     comparte la misma clase pero es texto legal -- ese se queda simple
+     y legible). Degradado dorado-a-vino en italica: le da un toque de
+     firma/lema en vez de texto secundario gris genérico. */
+  .topbar .brand__tag {
+    font-size: 13.5px; font-weight: 700; font-style: italic; letter-spacing: .01em;
+    background: linear-gradient(90deg, var(--accent), var(--primary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
   .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 999px; }
   .tab { border: none; background: transparent; padding: 9px 18px; border-radius: 999px; font-size: 14px; font-weight: 700; color: var(--ink-soft); }
   .tab[aria-selected="true"] { background: var(--primary); color: #fff; }
@@ -177,6 +198,32 @@
   .category-card__icon svg { width: 26px; height: 26px; }
   .category-card__name { font-size: 16.5px; font-weight: 700; }
   .category-card__count { font-size: 13px; color: var(--ink-soft); margin-top: -8px; }
+
+  /* El simulador de presupuesto pasa al margen izquierdo en pantallas
+     anchas -- ya no ocupa
+     un bloque entero arriba del catalogo empujando todo hacia abajo. En
+     pantallas mas chicas sigue arriba, en su lugar de siempre. */
+  @media (min-width: 1280px) {
+    #budgetSim { position: absolute; left: 60px; top: 750px; width: 220px; margin-bottom: 0; }
+    /* Angosto (240px): el nombre del producto no entra al lado del boton
+       -- se corta a "C." feisimo. En vertical (foto arriba, texto y
+       boton abajo, a todo el ancho) el nombre tiene espacio real. */
+    #budgetSim .budget-chip { flex-direction: column; align-items: stretch; text-align: center; }
+    #budgetSim .budget-chip__thumb { width: 100%; height: 90px; border-radius: var(--r-sm); }
+    #budgetSim .budget-chip__name { white-space: normal; overflow: visible; text-overflow: clip; }
+    #budgetSim .budget-chip button { width: 100%; }
+    /* Solo la GRILLA de tarjetas de categoria se agranda y se corre para
+       usar el hueco vacio a la derecha -- el hero, titulo y texto de
+       arriba se quedan centrados como siempre, sin moverse. */
+    #showcaseGrid {
+      margin-left: calc(300px - (100vw - 760px) / 2) !important;
+      width: calc(100vw - 350px) !important;
+      max-width: none !important;
+    }
+  }
+  @media (min-width: 1600px) {
+    #budgetSim { width: 300px; left: 40px; }
+  }
 
   /* ============ SHOWCASE GRID (cliente, mas colorido con gradiente) ============ */
   .showcase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
@@ -357,8 +404,6 @@
   #stage-internal .tab { font-size: 15.5px; padding: 11px 20px; min-height: 46px; }
   #stage-internal .back-link { font-size: 16px; padding: 10px 4px; min-height: 46px; }
 
-  /* La barra del prototipo estaba fija encima de la cabecera y la tapaba. */
-  .proto-switch-wrap { position: static; transform: none; margin: 14px auto 4px; }
 
   /* FAB flotante de pedido para movil */
   .mobile-cart-fab { display: none; }
@@ -391,11 +436,6 @@
   @media (max-width: 640px) {
     body { font-size: 15px; }
 
-    /* Switcher prototipo mas compacto */
-    .proto-switch-wrap { margin: 8px auto 4px; padding: 0 8px; width: 100%; max-width: 360px; }
-    .proto-switch { width: 100%; justify-content: center; }
-    .proto-switch button { padding: 6px 10px; font-size: 11.5px; flex: 1; text-align: center; }
-    .proto-note { font-size: 10px; padding: 3px 8px; max-width: 100%; }
 
     /* Topbar responsive */
     .topbar { padding: 10px 12px; margin: 6px 8px 0; border-radius: var(--r-md); gap: 8px 12px; }
@@ -477,6 +517,361 @@
   .status-badge--done { background: var(--success-tint); color: var(--success); }
   .history-row__btn { border: none; background: var(--primary); color: #fff; font-size: 11.5px; font-weight: 700; padding: 7px 12px; border-radius: 999px; }
 
+  /* ============ CALENDARIO ============ */
+  .cal-nav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 14px; }
+  /* Las flechas de mes/semana usaban .btn--ghost generico -- borde fino
+     casi invisible sobre el fondo con blobs de color, en claro y oscuro.
+     Se pintan con el color de marca para que se note que son botones
+     clickeables, no solo texto suelto. */
+  .cal-nav .btn--ghost {
+    background: var(--primary-tint); border-color: var(--primary); color: var(--primary);
+    width: 40px; height: 40px; border-radius: 999px; font-size: 16px; font-weight: 700;
+  }
+  .cal-nav .btn--ghost:hover { background: var(--primary); color: #fff; }
+  .cal-nav h3 { font-size: 18px; font-weight: 800; text-transform: capitalize; min-width: 180px; text-align: center; }
+  .cal-nav .btn { padding: 8px 14px; min-height: 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 18px; }
+  .cal-cell { border-radius: var(--r-sm); }
+  .cal-cell--head { text-align: center; font-size: 12px; font-weight: 700; color: var(--ink-faint); padding: 4px 0; }
+  .cal-cell--empty { background: transparent; }
+  .cal-cell--day {
+    border: none; background: var(--glass-bg-strong); aspect-ratio: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px; font-size: 14px; font-weight: 700; color: var(--ink);
+    cursor: pointer;
+  }
+  .cal-cell--day:hover { background: var(--primary-tint); }
+  .cal-cell--today { box-shadow: inset 0 0 0 2px var(--primary); }
+  .cal-cell--selected { background: var(--primary); color: #fff; }
+  .cal-cell--busy .cal-cell__num { color: var(--coral); }
+  .cal-cell--selected.cal-cell--busy .cal-cell__num { color: #fff; }
+  .cal-cell__dots { display: flex; gap: 3px; }
+  .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--coral); }
+  .cal-cell--selected .cal-dot { background: #fff; }
+  .cal-day-detail { padding: 18px; border-radius: var(--r-md); }
+  .cal-day-detail h4 { font-size: 15.5px; font-weight: 800; margin-bottom: 12px; text-transform: capitalize; }
+  .cal-event { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm); margin-bottom: 8px; }
+  .cal-event__who { font-weight: 700; font-size: 14.5px; }
+  .cal-event__hours { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .cal-event__total { font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+
+  /* ============ CALENDARIO: VISTA SEMANAL POR HORAS ============ */
+  .cal-mode-toggle { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .cal-mode-btn {
+    border: 1.5px solid var(--primary); background: transparent; color: var(--primary);
+    font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 999px;
+  }
+  .cal-mode-btn[aria-pressed="true"] { background: var(--primary); color: #fff; }
+  .cal-week-legend { display: flex; gap: 18px; justify-content: center; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 14px; }
+  .cal-week-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .cal-week-dot--confirmado { background: var(--primary); }
+  .cal-week-dot--pendiente { background: var(--coral); opacity: .75; }
+  .cal-week-scroll { overflow-x: auto; }
+  .cal-week-grid {
+    display: grid; grid-template-columns: 56px repeat(7, minmax(96px, 1fr));
+    grid-auto-rows: 34px; min-width: 760px; position: relative;
+    /* Sin fondo propio, los blobs decorativos de la pagina (position:fixed,
+       blur 70px, detras de todo) se filtraban a traves de la grilla y se
+       veian como una mancha borrosa encima de las horas -- feo y
+       confunde con un evento real. Fondo solido para que la grilla sea
+       una superficie de datos limpia, no transparente. */
+    background: var(--surface); border-radius: var(--r-md);
+  }
+  .cal-week-grid.is-refreshing { animation: line-in .22s ease; }
+  .cal-week-cell { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .cal-week-hour {
+    font-size: 11px; color: var(--ink-faint); text-align: right; padding-right: 8px;
+    border-bottom: 1px solid var(--line); transform: translateY(-6px);
+  }
+  .cal-week-daylabel {
+    text-align: center; font-size: 12.5px; font-weight: 800; padding: 8px 4px;
+    border-bottom: 2px solid var(--line); position: sticky; top: 0; background: var(--surface);
+    text-transform: capitalize;
+  }
+  .cal-week-daylabel--today { color: var(--primary); }
+  .cal-week-col { position: relative; border-right: 1px solid var(--line); }
+  .cal-week-event {
+    position: absolute; left: 3px; right: 3px; border-radius: 6px; padding: 3px 6px;
+    font-size: 11px; font-weight: 700; color: #fff; overflow: hidden; line-height: 1.25;
+    box-shadow: var(--shadow-sm); cursor: default;
+  }
+  .cal-week-event--confirmado { background: var(--primary); }
+  .cal-week-event--pendiente { background: var(--coral); }
+  .cal-week-event__hours { font-weight: 600; opacity: .85; font-size: 10px; }
+  @media (max-width: 640px) {
+    .cal-week-grid { grid-template-columns: 44px repeat(7, minmax(78px, 1fr)); }
+  }
+
+  /* ============ RESERVA: FECHA / QR / HORARIO ============ */
+  .sheet__warning {
+    font-size: 13px; font-weight: 700; color: #a4382d; background: rgba(225,93,93,.14);
+    border: 1px solid rgba(225,93,93,.35); border-radius: var(--r-sm); padding: 10px 12px; margin: 4px 0 12px;
+  }
+  .sheet__hours-note {
+    font-size: 12.5px; font-weight: 600; color: var(--ink-soft); background: var(--glass-bg-strong);
+    border-radius: var(--r-sm); padding: 9px 12px; margin: 4px 0 12px;
+  }
+  .deposit-step h4 { font-size: 16px; font-weight: 800; margin-bottom: 10px; text-align: center; }
+  .qr-tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+  .qr-tab {
+    border: 1.5px solid var(--primary); background: transparent; color: var(--primary);
+    font-size: 13px; font-weight: 700; padding: 7px 18px; border-radius: 999px;
+  }
+  .qr-tab[aria-pressed="true"] { background: var(--primary); color: #fff; }
+  .qr-box {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px; width: 220px; height: 220px; border-radius: var(--r-md);
+    overflow: hidden; background: #fff; padding: 14px; box-shadow: var(--shadow-sm);
+  }
+  .qr-fake {
+    width: 100%; height: 100%; border-radius: 6px;
+    background-image: repeating-conic-gradient(var(--qr-mod, #111) 0% 25%, #fff 0% 50%);
+    background-size: 11% 11%;
+    background-color: #fff;
+    outline: 10px solid #fff;
+    transition: background-image .3s ease;
+    animation: qrShimmer 2.6s ease-in-out infinite;
+  }
+  @keyframes qrShimmer { 0%, 100% { opacity: 1; } 50% { opacity: .8; } }
+  .qr-box[data-method="yape"] { --qr-mod: #7e2ac2; border: 2px solid #7e2ac2; }
+  .qr-box[data-method="plin"] { --qr-mod: #0ac2d6; border: 2px solid #0ac2d6; }
+  .qr-box[data-method="yape"] .qr-fake__badge { background: #7e2ac2; }
+  .qr-box[data-method="plin"] .qr-fake__badge { background: #0ac2d6; }
+  .qr-fake__scan {
+    position: absolute; left: 14px; right: 14px; height: 3px; border-radius: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    animation: qrScan 2.2s ease-in-out infinite;
+  }
+  @keyframes qrScan { 0% { top: 14px; } 50% { top: calc(100% - 17px); } 100% { top: 14px; } }
+  .qr-fake__badge {
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,.72); color: #fff; font-size: 10.5px; font-weight: 800;
+    letter-spacing: .04em; padding: 3px 10px; border-radius: 999px;
+  }
+  .qr-box__note { font-size: 11.5px; text-align: center; color: var(--ink-faint); margin: 0 0 14px; }
+  .deposit-step__amount { text-align: center; font-size: 15px; margin-bottom: 14px; }
+  .deposit-step__amount strong { color: var(--primary); font-size: 18px; }
+
+  /* ============ BURBUJA DE AVISO DEL CONEJO (IA) ============ */
+  .chat-bubble-anchor { position: relative; display: inline-flex; }
+  .chat-hint {
+    position: absolute; top: calc(100% + 12px); right: -6px; z-index: 60;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: var(--primary); color: #fff; font-size: 13px; font-weight: 700;
+    padding: 10px 16px; border-radius: 999px; box-shadow: 0 10px 24px rgba(0,0,0,.25);
+    animation: chatHintPop .45s cubic-bezier(.34,1.56,.64,1) both, chatHintOut .5s ease 4.5s forwards;
+  }
+  .chat-hint__arrow {
+    position: absolute; top: -6px; right: 22px; width: 12px; height: 12px;
+    background: var(--primary); transform: rotate(45deg); border-radius: 2px;
+  }
+  @keyframes chatHintPop { from { opacity: 0; transform: translateY(-6px) scale(.85); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes chatHintOut { to { opacity: 0; transform: translateY(-6px) scale(.9); } }
+  @media (max-width: 640px) {
+    /* El boton del conejo vive pegado al borde derecho del header -- si la
+       burbuja se centra sobre el (left:50%), la mitad se dispara afuera
+       de la pantalla (se veia cortada). Ahora queda anclada a la derecha
+       del boton, creciendo hacia la izquierda, siempre dentro del
+       viewport sin importar cuan angosta sea la pantalla. */
+    .chat-hint { display: block; right: -6px; left: auto; top: calc(100% + 56px); transform: none; white-space: normal; width: 190px; max-width: calc(100vw - 24px); text-align: center; }
+    .chat-hint__arrow { left: auto; right: 22px; transform: rotate(45deg); }
+  }
+
+  /* ============ FRANJA DE FOTOS EN MOVIMIENTO (borde superior) ============ */
+  /* Full-bleed como .client-hero: se sale del ancho angosto del contenido
+     para pegarse a los bordes reales de la pantalla. Reutiliza las fotos
+     de categoria que ya existen (CAT_PHOTO) -- ni una imagen nueva, solo
+     las mismas mostradas como cinta continua para dar vida al borde. */
+  .photo-marquee {
+    width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+    overflow: hidden; height: 74px;
+  }
+  .photo-marquee__track { display: flex; gap: 10px; width: max-content; animation: marqueeScroll 38s linear infinite; }
+  .photo-marquee__track img { width: 100px; height: 74px; object-fit: cover; flex: none; opacity: .92; }
+  @keyframes marqueeScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .photo-marquee__track { animation: none; } }
+  @media (max-width: 520px) { .photo-marquee { height: 56px; } .photo-marquee__track img { width: 76px; height: 56px; } }
+
+  /* ============ FILTROS POR TEMA/EDAD (cliente) ============ */
+  .theme-filters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 4px 0 18px; }
+  .theme-chip {
+    border: 1.5px solid var(--primary); background: transparent; color: var(--primary);
+    font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 999px;
+  }
+  .theme-chip[aria-pressed="true"] { background: var(--primary); color: #fff; }
+
+  /* ============ PAQUETE RECOMENDADO POR TEMA ============ */
+  .recommend-card { padding: 16px 18px; border-radius: var(--r-md); margin-bottom: 16px; }
+  .recommend-card__badge { display: inline-block; font-size: 11.5px; font-weight: 800; color: var(--primary); background: var(--primary-tint); padding: 4px 10px; border-radius: 999px; margin-bottom: 8px; }
+  .recommend-card__note { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 10px; }
+  .recommend-card__row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .recommend-card__name { font-weight: 800; font-size: 15px; }
+  .recommend-card__price { font-weight: 800; color: var(--primary); margin-right: auto; }
+
+  /* ============ SIMULADOR DE PRESUPUESTO ============ */
+  .budget-sim { padding: 18px; border-radius: var(--r-md); margin-bottom: 22px; text-align: center; }
+  .budget-sim label { font-weight: 700; font-size: 14.5px; display: block; margin-bottom: 10px; }
+  .budget-sim input[type="range"] { width: 100%; accent-color: var(--primary); }
+  .budget-sim__value { font-size: 14px; margin: 8px 0 14px; }
+  .budget-sim__value strong { color: var(--primary); font-size: 17px; }
+  /* El monto ahora se puede escribir directo, no solo arrastrar el
+     slider -- el input se ve como el numero suelto que era antes (sin
+     bordes de campo tipicos) para no romper el diseño de la frase. */
+  #budgetValueInput {
+    width: 4.5em; border: none; border-bottom: 2px solid var(--primary);
+    background: transparent; color: var(--primary); font-size: 17px; font-weight: 800;
+    font-family: inherit; text-align: center; -moz-appearance: textfield;
+  }
+  #budgetValueInput::-webkit-outer-spin-button, #budgetValueInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #budgetValueInput:focus { outline: none; border-bottom-color: var(--accent); }
+  .budget-sim__suggestions { display: flex; flex-direction: column; gap: 10px; }
+  /* Antes era una pildora chica solo texto -- con precio y sin foto se
+     sentia poco confiable (¿que es lo que estoy comprando?). Ahora es una
+     fila con la foto real del producto, mas parecido a una tarjeta de
+     producto que a una etiqueta de precio suelta. */
+  .budget-chip { display: flex; align-items: center; gap: 12px; background: var(--glass-bg-strong); border-radius: var(--r-md); padding: 8px 10px; text-align: left; }
+  .budget-chip__thumb { width: 52px; height: 52px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .budget-chip__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .budget-chip__body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .budget-chip__name { font-size: 13.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .budget-chip__price { color: var(--primary); font-size: 13px; font-weight: 700; }
+  .budget-chip button { border: none; background: var(--primary); color: #fff; font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 999px; flex-shrink: 0; }
+
+  /* ============ GALERIA DE EVENTOS REALES (bordes difuminados, crossfade) ============ */
+  .gallery-section { margin: 40px 0; }
+  .gallery-section h2 { font-size: 21px; font-weight: 800; }
+  .gallery-section__sub { font-size: 13.5px; color: var(--ink-soft); margin: 4px 0 18px; }
+  .gallery-frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; }
+  .gallery-frame {
+    position: relative; aspect-ratio: 1; overflow: hidden;
+    -webkit-mask-image: radial-gradient(closest-side, #000 62%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 62%, transparent 100%);
+  }
+  .gallery-frame img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity 1.4s ease;
+    filter: saturate(1.05);
+  }
+  .gallery-frame img.is-active { opacity: 1; }
+  @media (max-width: 640px) { .gallery-frames { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); } }
+
+  /* En pantallas anchas sobra muchisimo espacio a los costados del
+     contenido (que va centrado, max 760px) -- ahi es donde de verdad
+     van las fotos "al borde": franjas fijas que acompañan todo el
+     scroll, no solo una seccion mas. La grilla de arriba pasa a ser
+     el fallback para pantallas angostas, que no tienen ese espacio. */
+  /* absolute (no fixed) a proposito: asi el recuadro de fotos scrollea
+     junto con la pagina y se "corta" solo, en vez de perseguir la
+     pantalla para siempre -- el alto exacto (hasta donde empieza
+     "Miralos en accion") lo calcula JS en positionGalleryRails(). */
+  .gallery-rail {
+    position: absolute; top: 110px; width: 128px; z-index: 5;
+    display: none; flex-direction: column; gap: 16px; overflow: hidden;
+    pointer-events: none;
+  }
+  .gallery-rail--left { left: 40px; }
+  .gallery-rail--right { right: 40px; }
+  /* Mascara distinta a la de la grilla: un blob radial se ve raro en un
+     rectangulo alto y angosto -- aca se desvanece arriba/abajo y mantiene
+     las esquinas redondeadas, para que la franja se sienta continua. */
+  .gallery-rail .gallery-frame {
+    flex: 1; border-radius: 22px; aspect-ratio: auto;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  }
+  @media (min-width: 1280px) {
+    .gallery-rail { display: flex; }
+    .gallery-section { display: none; }
+  }
+  /* Apagada hasta que haya fotos reales de eventos otra vez: las de
+     categoria (fallback temporal de mas arriba) son horizontales y en
+     el marco angosto de la franja se ven con un recorte feo (zoom a
+     un ojo, a un tronco, etc.), peor que no mostrar nada. */
+  .gallery-rail, .gallery-section { display: none !important; }
+
+  /* ============ VIDEOS ============ */
+  /* Full-bleed como .client-hero: se sale del ancho angosto del contenido
+     (760px) para llegar de verdad a los bordes reales de la pantalla --
+     asi el carrusel se siente grande, no encajonado con aire a los lados. */
+  .videos-section {
+    width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+    margin-top: 40px; margin-bottom: 40px; padding: 0 20px;
+  }
+  .videos-section h2 { font-size: 21px; font-weight: 800; }
+  .videos-section__sub { font-size: 13.5px; color: var(--ink-soft); margin: 4px 0 18px; }
+  .videos-track {
+    display: flex; gap: 14px; overflow-x: auto;
+    padding: 4px 4px 10px; scrollbar-width: none;
+  }
+  .videos-track::-webkit-scrollbar { display: none; }
+  .video-embed { flex: 0 0 210px; }
+  @media (min-width: 900px) { .video-embed { flex-basis: calc(20% - 12px); } }
+  .video-embed__frame { position: relative; width: 100%; aspect-ratio: 9/16; max-height: 480px; border-radius: var(--r-md); overflow: hidden; background: #000; }
+  .video-embed__frame iframe, .video-embed__frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+  .video-embed__sound {
+    position: absolute; bottom: 10px; right: 10px; z-index: 2; width: 34px; height: 34px;
+    border-radius: 50%; border: none; background: rgba(0,0,0,.55); color: #fff; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .video-embed__caption { font-size: 12.5px; color: var(--ink-soft); text-align: center; margin-top: 8px; }
+
+  /* ============ COMPARADOR DE COMBOS ============ */
+  .compare-bar {
+    position: sticky; bottom: 12px; z-index: 40; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; background: var(--glass-bg-strong); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-radius: 999px; padding: 10px 10px 10px 18px; box-shadow: var(--shadow-sm); font-size: 13.5px; font-weight: 700; margin-top: 16px;
+  }
+  .sheet--wide { max-width: 720px; }
+  .compare-table { display: grid; gap: 12px; overflow-x: auto; }
+  .compare-table__row { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(150px, 1fr)); gap: 10px; }
+  .compare-table__cell { background: var(--glass-bg-strong); border-radius: var(--r-sm); padding: 12px; font-size: 13px; }
+  .compare-table__cell--head { font-weight: 800; text-align: center; background: var(--primary-tint); color: var(--primary); }
+  .compare-table__price { font-weight: 800; color: var(--primary); font-size: 15px; }
+  .compare-check { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-top: 6px; cursor: pointer; }
+
+
+  /* ============ MODAL: DEJAR RESEÑA ============ */
+  .star-picker { display: flex; gap: 4px; }
+  .star-picker button { border: none; background: transparent; font-size: 26px; color: var(--ink-faint); line-height: 1; padding: 2px; }
+  .star-picker button.is-active { color: #f0b429; }
+  .review-photo-picker {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; border: 1.5px dashed var(--ink-faint); border-radius: var(--r-md);
+    padding: 18px; cursor: pointer; text-align: center; background: var(--glass-bg-strong);
+  }
+  .review-photo-picker__hint { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
+  #revPhotoPreview { max-width: 100%; max-height: 160px; border-radius: var(--r-sm); }
+
+  /* ============ REDES SOCIALES (cliente) ============ */
+  .social-bar { display: flex; gap: 8px; }
+  .social-bar a {
+    width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: var(--glass-bg-strong); color: var(--ink-soft);
+  }
+  .social-bar a:hover { color: var(--primary); }
+  /* Centrado en el header real (no solo "empujado" por flex): el topbar
+     ya es position:sticky, asi que sirve de referencia para centrar esto
+     de forma absoluta sin importar cuanto ocupen el logo o los botones. */
+  .social-bar--center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  /* Antes el umbral era 560px, pensado solo para celular -- pero el
+     centrado absoluto tambien choca con los botones de la derecha en
+     ventanas de escritorio angostas (~900px), no solo en celular. Subido
+     para cubrir ese rango medio tambien. */
+  @media (max-width: 1000px) {
+    .social-bar--center { position: static; transform: none; order: 5; width: 100%; justify-content: center; margin-top: 2px; }
+  }
+
+  /* ============ ANALITICA ============ */
+  .an-funnel { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 26px; }
+  .an-stage { flex: 1; min-width: 140px; background: var(--glass-bg-strong); border-radius: var(--r-md); padding: 16px; text-align: center; }
+  .an-stage__num { font-size: 26px; font-weight: 800; color: var(--primary); }
+  .an-stage__label { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+  .an-stage__pct { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+  .an-subtitle { font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+  .an-hours { display: flex; align-items: flex-end; gap: 3px; height: 120px; }
+  .an-hour-bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; }
+  .an-hour-bar__fill { width: 100%; background: var(--primary); border-radius: 3px 3px 0 0; min-height: 2px; }
+  .an-hour-bar__label { font-size: 9px; color: var(--ink-faint); }
+
   /* ============ MODAL ============ */
   .modal-overlay { position: fixed; inset: 0; background: rgba(30,16,26,.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; }
   .modal-overlay[hidden] { display: none; }
@@ -493,7 +888,16 @@
   .sheet__table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
   .sheet__table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
   .sheet__table td { padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
-  .sheet__table td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sheet__table td:nth-child(2) { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  /* Antes no se podia sacar un servicio agregado por error -- el pedido
+     solo crecia. Boton chico y discreto (no compite visualmente con el
+     precio) para quitar la fila. */
+  .sheet__table td:last-child { text-align: right; width: 32px; padding-left: 8px; }
+  .cr-row-remove {
+    border: none; background: transparent; color: var(--ink-faint); font-size: 14px;
+    width: 26px; height: 26px; border-radius: 999px; cursor: pointer; line-height: 1;
+  }
+  .cr-row-remove:hover { background: var(--danger); color: #fff; }
   .sheet__grand { display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; }
   .sheet__grand strong { font-size: 22px; color: var(--primary); font-variant-numeric: tabular-nums; }
   .sheet__confirm { text-align: center; padding: 12px 4px 6px; }
@@ -571,28 +975,6 @@
   }
   .client-hero__eyebrow { color: var(--primary); font-weight: 800; font-size: 12px; letter-spacing: .06em; margin-top: 0 !important; }
 
-  /* ---- Franja de confianza (arriba del catalogo) ----
-     Retoma los mismos cuatro valores que ya estaban escondidos al final,
-     en el footer -- una persona nueva casi nunca llega hasta ahi. Puestos
-     aqui, generan confianza antes de que empiece a elegir servicios. */
-  .client-trust {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
-    margin: 18px 0 26px;
-  }
-  .client-trust__pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: var(--surface); color: var(--ink-soft);
-    padding: 9px 15px; border-radius: 999px;
-    font-size: 12.5px; font-weight: 700;
-    box-shadow: var(--shadow-sm);
-    box-shadow: 0 0 0 1px var(--line), var(--shadow-sm);
-  }
-  .client-trust__pill svg { width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; }
-  @media (max-width: 520px) {
-    .client-trust { gap: 8px; margin: 14px 0 22px; }
-    .client-trust__pill { padding: 8px 12px; font-size: 11.5px; }
-  }
-
   /* ============ CIERRE DE LA VISTA CLIENTE ============
      El anterior era un volcado: seis bloques del mismo peso, la letra chica
      compitiendo con el telefono. Aqui hay tres niveles claros:
@@ -650,7 +1032,8 @@
     width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
     padding: 30px 0 26px; margin-top: 30px;
   }
-  .cfoot__reviews h3 { text-align: center; font-size: 20px; font-weight: 800; margin-bottom: 18px; padding: 0 20px; }
+  .cfoot__reviews-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px; margin-bottom: 18px; padding: 0 20px; }
+  .cfoot__reviews h3 { text-align: center; font-size: 20px; font-weight: 800; }
   /* Auto-scroll continuo e infinito por JS (ver script mas abajo, busca
      "CARRUSEL DE OPINIONES") -- sin scroll-snap porque interfiere con el
      scrollLeft programatico continuo, se ve entrecortado. */
@@ -665,7 +1048,12 @@
     padding: 20px; box-shadow: var(--shadow-sm);
   }
   .review-card__stars { color: var(--gold); font-size: 15px; letter-spacing: 2px; margin-bottom: 8px; }
-  .review-card__text { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin-bottom: 10px; }
+  .review-card__text { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin-bottom: 12px; }
+  /* La foto de la reseña es solo una prueba de "hubo una persona real" --
+     el texto es lo que de verdad importa, por eso va chica, como avatar,
+     no como protagonista de la tarjeta. */
+  .review-card__who { display: flex; align-items: center; gap: 8px; }
+  .review-card__photo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
   .review-card__name { font-size: 13.5px; font-weight: 800; color: var(--ink); }
   @media (max-width: 520px) { .review-card { flex-basis: 220px; } }
 
@@ -788,6 +1176,10 @@
      base pensada para fila horizontal) -- en columna, space-between
      empujaba la imagen/texto arriba y "Agregar" al fondo, dejando un
      hueco enorme en medio de la tarjeta. */
+  /* Grilla adaptativa: en vez de una sola columna angosta que desperdicia
+     el ancho en tablet/desktop, las tarjetas se acomodan solas segun el
+     espacio disponible (minimo 240px, tantas por fila como quepan). */
+  #clientItemList { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
   #clientItemList .item-card { flex-direction: column; align-items: center; text-align: center; justify-content: flex-start; gap: 10px; }
   #clientItemList .prod-thumb { width: 100%; height: 200px; flex: none; border-radius: var(--r-md); }
   /* Fondo: la misma foto, agrandada y desenfocada -- llena el marco sin
@@ -870,7 +1262,7 @@
     display: inline-flex; padding: 6px; border-radius: 14px;
     background: var(--surface); box-shadow: var(--shadow-sm);
   }
-  .client-logo { height: 40px; width: auto; display: block; border-radius: 9px; }
+  .client-logo { height: 56px; width: auto; display: block; border-radius: 9px; }
 
   .client-hero__logo-plate {
     display: inline-block; padding: 16px 20px; border-radius: 28px; margin: 0 auto 18px;
@@ -891,6 +1283,39 @@
 
   /* ============ CHAT PANTALLA COMPLETA (cliente) ============ */
   .chat-fullscreen { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; }
+  /* Desktop ancho: en vez de tapar toda la pantalla, el chat se acopla
+     como panel al lado derecho -- el catalogo queda visible y usable a la
+     izquierda, para que el cliente vea fotos/precios mientras el bot le
+     explica. En pantallas angostas (celular, la mayoria de las visitas)
+     no hay espacio para dividir, asi que ahi se queda igual que siempre:
+     pantalla completa. */
+  @media (min-width: 1080px) {
+    .chat-fullscreen {
+      left: auto; width: 440px; max-width: 42vw;
+      border-left: 1px solid var(--glass-border);
+      box-shadow: -12px 0 34px rgba(0,0,0,.28);
+    }
+    /* El resto de la pagina se corre (no se tapa) para hacerle espacio
+       real al chat -- sin esto, el catalogo centrado con max-width se
+       quedaba quieto y el panel del chat le tapaba un pedazo por encima. */
+    #stage-client { transition: margin-right .28s ease; }
+    #stage-client.chat-split-open { margin-right: 440px; }
+    /* Con el chat abierto el header queda mucho mas angosto (le resta
+       440px), pero eso no activaba el modo "sin overlap" de los iconos
+       sociales (pensado solo para celular, <560px) -- por eso chocaban
+       con "Contactanos" aunque la pantalla fuera ancha. Se activa el
+       mismo modo seguro apenas el chat esta abierto, sin importar el
+       ancho real. */
+    #stage-client.chat-split-open .social-bar--center {
+      position: static; transform: none; order: 5; width: 100%; justify-content: center; margin-top: 2px;
+    }
+    /* La grilla ensanchada (calc con 100vw) no sabe que el chat le resto
+       440px de ancho real a la pagina -- con el chat abierto vuelve a su
+       tamano normal, centrada, para no meterse debajo del panel. */
+    #stage-client.chat-split-open #showcaseGrid {
+      margin-left: 0 !important; width: auto !important; max-width: none !important;
+    }
+  }
   .chat-fullscreen__header { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--glass-border); }
   /* Sin min-width:0 este div no se encoge (default flexbox: min-width
      auto = nunca mas chico que su contenido), empujando "Hablar con un
@@ -1022,16 +1447,12 @@
   <span class="blob blob--5"></span>
 </div>
 
-<div class="proto-switch-wrap">
-  <div class="proto-switch" role="tablist" aria-label="Cambiar de vista (solo para revisar el prototipo)">
-    <button data-stage="internal" aria-pressed="true">Panel interno</button>
-    <button data-stage="client" aria-pressed="false">Link del cliente</button>
-  </div>
-  <p class="proto-note">Solo para revisar el prototipo: en el producto real, el cliente abre un link directo, sin login ni esta barra.</p>
-</div>
+<button type="button" id="adminAccessBtn" aria-label="Acceso administrador" title="Acceso administrador" class="admin-access-btn">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+</button>
 
 <!-- ============ PANEL INTERNO ============ -->
-<div class="stage" id="stage-internal">
+<div class="stage" id="stage-internal" hidden>
   <header class="topbar glass">
     <div class="brand">
       <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20 L9 6 L12 12 L15 4 L20 20 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg></span>
@@ -1039,7 +1460,9 @@
     </div>
     <nav class="tabs" role="tablist" aria-label="Secciones">
       <button class="tab" role="tab" aria-selected="true" data-view="catalog">Cat&#225;logo</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="calendar">Calendario</button>
       <button class="tab" role="tab" aria-selected="false" data-view="history">Historial</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="analytics">Anal&#237;tica</button>
     </nav>
     <div class="topbar__end"><button class="theme-btn js-theme" type="button" aria-label="Cambiar tema"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button></div>
   </header>
@@ -1060,10 +1483,51 @@
           <div class="item-list" id="itemList"></div>
         </div>
       </section>
+      <section id="view-calendar" hidden>
+        <div class="view-head"><h1>Calendario de eventos</h1><p>As&#237; ves de un vistazo qu&#233; d&#237;as y horas ya est&#225;n alquilados, para no cruzar dos fiestas en el mismo horario.</p></div>
+        <div class="cal-mode-toggle">
+          <button type="button" class="cal-mode-btn" data-calmode="month" aria-pressed="true">Mes</button>
+          <button type="button" class="cal-mode-btn" data-calmode="week" aria-pressed="false">Semana (por horas)</button>
+        </div>
+
+        <div id="calMonthView">
+          <div class="cal-nav">
+            <button type="button" class="btn btn--ghost" id="calPrev">&#8592;</button>
+            <h3 id="calMonthLabel"></h3>
+            <button type="button" class="btn btn--ghost" id="calNext">&#8594;</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-day-detail glass" id="calDayDetail" hidden>
+            <h4 id="calDayDetailTitle"></h4>
+            <div id="calDayDetailList"></div>
+          </div>
+        </div>
+
+        <div id="calWeekView" hidden>
+          <div class="cal-nav">
+            <button type="button" class="btn btn--ghost" id="calWeekPrev">&#8592;</button>
+            <h3 id="calWeekLabel"></h3>
+            <button type="button" class="btn btn--ghost" id="calWeekNext">&#8594;</button>
+          </div>
+          <div class="cal-week-legend">
+            <span><i class="cal-week-dot cal-week-dot--confirmado"></i> Confirmada</span>
+            <span><i class="cal-week-dot cal-week-dot--pendiente"></i> Pendiente de pago</span>
+          </div>
+          <div class="cal-week-scroll">
+            <div class="cal-week-grid" id="calWeekGrid"></div>
+          </div>
+        </div>
+      </section>
       <section id="view-history" hidden>
         <div class="view-head"><h1>Historial de pedidos</h1><p>Se guardan en la nube: se ven igual desde el celular, la tablet o la laptop.</p></div>
         <button type="button" class="btn btn--secondary" id="btnDownloadLeadsExcel" style="margin-bottom:16px;">&#128190; Descargar Excel de clientes (WhatsApp)</button>
         <div class="history-list" id="historyList"></div>
+      </section>
+      <section id="view-analytics" hidden>
+        <div class="view-head"><h1>Anal&#237;tica de la conversaci&#243;n</h1><p>Qu&#233; tanto avanzan los clientes en el sitio y en qu&#233; horas escriben m&#225;s, para saber d&#243;nde se pierden.</p></div>
+        <div class="an-funnel" id="anFunnel"></div>
+        <h3 class="an-subtitle">Visitas por hora del d&#237;a</h3>
+        <div class="an-hours" id="anHours"></div>
       </section>
     </div>
 
@@ -1074,6 +1538,10 @@
         <div class="field"><label for="clientName">Nombre del cliente</label><input id="clientName" type="text" placeholder="Ej. Rosa G&#243;mez"></div>
         <div class="field"><label for="clientPhone">WhatsApp del cliente</label><input id="clientPhone" type="text" placeholder="Ej. 987 654 321"></div>
         <div class="field"><label for="eventDate">Fecha del evento</label><input id="eventDate" type="date"></div>
+        <div class="field-row">
+          <div class="field"><label for="eventStart">Hora de inicio</label><input id="eventStart" type="time"></div>
+          <div class="field"><label for="eventEnd">Hora de fin</label><input id="eventEnd" type="time"></div>
+        </div>
         <button type="button" class="btn btn--secondary" id="btnShareLink" style="width:100%;margin-bottom:14px;">Enviarle el link a este cliente</button>
         <div class="order-items" id="orderItems"><p class="order-empty" id="orderEmpty">Todav&#237;a no agregaste servicios.<br>Elige una categor&#237;a a la izquierda.</p></div>
         <div class="order-total"><span>Total</span><strong id="orderTotal">S/ 0.00</strong></div>
@@ -1099,7 +1567,9 @@
 </div>
 
 <!-- ============ VISTA CLIENTE (sin login, nombre ya cargado por la due&#241;a) ============ -->
-<div class="stage" id="stage-client" hidden>
+<div class="stage" id="stage-client">
+  <div class="gallery-rail gallery-rail--left" id="galleryRailLeft" aria-hidden="true"></div>
+  <div class="gallery-rail gallery-rail--right" id="galleryRailRight" aria-hidden="true"></div>
   <div class="client-utilitybar">
     <span>WhatsApp: <strong>956 206 360</strong></span>
     <span class="client-utilitybar__sep">&#183;</span>
@@ -1110,6 +1580,11 @@
       <span class="logo-plate"><img class="client-logo" src="img/cat/logo.jpg" alt="Magic Box"></span>
       <div><p class="brand__tag">T&#250; imaginas, nosotros lo hacemos realidad</p></div>
     </div>
+    <span class="social-bar social-bar--center">
+      <a href="https://www.facebook.com/MagicBoxEventosInfantiles/?locale=es_LA" target="_blank" rel="noopener" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.15 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.91h-2.34V22c4.78-.79 8.44-4.94 8.44-9.94z"/></svg></a>
+      <a href="https://www.instagram.com/magicboxeventos/" target="_blank" rel="noopener" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+      <a href="https://www.tiktok.com/@magicboxeventos" target="_blank" rel="noopener" aria-label="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 2h-3.2v13.4a2.8 2.8 0 1 1-2.4-2.77V9.4A6 6 0 1 0 16.6 15.3V8.9a7.2 7.2 0 0 0 4.2 1.35V7.1a4 4 0 0 1-4.2-3.9V2z"/></svg></a>
+    </span>
     <div class="topbar__end" style="margin-left:auto;">
       <a class="topbar-action topbar-action--wa" href="https://wa.me/51956206360" target="_blank" rel="noopener" aria-label="Escr&#237;benos por WhatsApp">
         <span class="topbar-action__icon">
@@ -1117,13 +1592,20 @@
         </span>
         <span class="topbar-action__label">Cont&#225;ctanos</span>
       </a>
-      <button type="button" class="topbar-action topbar-action--chat" id="btnClientChat">
-        <span class="topbar-action__icon">&#128048;</span>
-        <span class="topbar-action__label">Te ayudamos con IA</span>
-      </button>
+      <span class="chat-bubble-anchor">
+        <button type="button" class="topbar-action topbar-action--chat" id="btnClientChat">
+          <span class="topbar-action__icon">&#128048;</span>
+          <span class="topbar-action__label">Te ayudamos con IA</span>
+        </button>
+        <span class="chat-hint" id="chatHint" hidden>&#128048; &#161;Hola! Te ayudo a armar tu pedido con IA &#10024;<span class="chat-hint__arrow"></span></span>
+      </span>
       <button class="theme-btn js-theme" type="button" aria-label="Cambiar tema"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
     </div>
   </header>
+
+  <div class="photo-marquee" aria-hidden="true">
+    <div class="photo-marquee__track" id="photoMarqueeTrack"></div>
+  </div>
 
   <main class="main">
     <div id="clientCatalogView">
@@ -1148,31 +1630,52 @@
           <p>Elige lo que te gustar&#237;a abajo, o toca el conejo de la esquina para que te preguntemos paso a paso.</p>
         </div>
       </div>
-      <div class="client-trust">
-        <span class="client-trust__pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z"/></svg>
-          Seguridad y confianza
-        </span>
-        <span class="client-trust__pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5-8.8 10.4-8.8 10.4S3.2 13.6 3.2 8.6a4.8 4.8 0 0 1 8.8-2.6 4.8 4.8 0 0 1 8.8 2.6z"/></svg>
-          Atenci&#243;n personalizada
-        </span>
-        <span class="client-trust__pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6-9 6-9-6z"/><path d="M3 9v7l9 6 9-6V9"/></svg>
-          Todo en un solo lugar
-        </span>
-        <span class="client-trust__pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9-6.3 3.9 1.7-7-5.4-4.7 7.1-.6z"/></svg>
-          Experiencias inolvidables
-        </span>
+      <div class="theme-filters" id="themeFilters">
+        <button type="button" class="theme-chip" data-theme="todos" aria-pressed="true">Todos</button>
+        <button type="button" class="theme-chip" data-theme="cumple" aria-pressed="false">&#127874; Cumplea&#241;os infantil</button>
+        <button type="button" class="theme-chip" data-theme="babyshower" aria-pressed="false">&#127868; Baby Shower</button>
+        <button type="button" class="theme-chip" data-theme="snacks" aria-pressed="false">&#127825; Solo snacks y postres</button>
       </div>
+      <div class="recommend-card glass" id="recommendCard" hidden>
+        <span class="recommend-card__badge">&#10024; Recomendado para ti</span>
+        <p class="recommend-card__note" id="recommendNote"></p>
+        <div class="recommend-card__row">
+          <span class="recommend-card__name" id="recommendName"></span>
+          <span class="recommend-card__price" id="recommendPrice"></span>
+          <button type="button" class="btn btn--primary" id="recommendAdd">Agregar al pedido</button>
+        </div>
+      </div>
+
+      <div class="budget-sim glass" id="budgetSim">
+        <label for="budgetRange">&#128176; &#191;Cu&#225;nto quieres gastar aproximadamente?</label>
+        <input type="range" id="budgetRange" min="300" max="5000" step="10" value="700">
+        <p class="budget-sim__value">Tu presupuesto: <strong>S/ <input type="number" id="budgetValueInput" min="300" step="10" value="700" inputmode="numeric"> <span id="budgetValueSuffix"></span></strong></p>
+        <div class="budget-sim__suggestions" id="budgetSuggestions"></div>
+      </div>
+
       <div class="showcase-grid" id="showcaseGrid"></div>
 
       <div id="clientItemView" hidden>
         <button class="back-link" id="clientBackBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Volver al cat&#225;logo</button>
         <h2 class="items-title" id="clientItemTitle"></h2>
         <div class="item-list" id="clientItemList"></div>
+        <div class="compare-bar" id="compareBar" hidden>
+          <span id="compareBarLabel">Comparando 0/3</span>
+          <button type="button" class="btn btn--primary" id="compareBarBtn" disabled>Ver comparaci&#243;n</button>
+        </div>
       </div>
+
+      <section class="gallery-section" id="gallerySection">
+        <h2>Recuerdos de fiestas reales</h2>
+        <p class="gallery-section__sub">Fotos de eventos que ya hicimos &#8212; nada de renders, todo pas&#243; de verdad.</p>
+        <div class="gallery-frames" id="galleryFrames"></div>
+      </section>
+
+      <section class="videos-section" id="videosSection">
+        <h2>M&#237;ralos en acci&#243;n</h2>
+        <p class="videos-section__sub">As&#237; se viven nuestras fiestas &#8212; anim&#225;doras, personajes y m&#225;s.</p>
+        <div class="videos-track" id="videosTrack"></div>
+      </section>
 
       <footer class="cfoot" id="clientFooter">
         <div class="cfoot__cta">
@@ -1219,39 +1722,11 @@
       </footer>
 
       <div class="cfoot__reviews">
-        <h3>Lo que dicen nuestros clientes</h3>
-        <div class="reviews-track">
-          <div class="review-card">
-            <div class="review-card__stars" aria-label="5 estrellas">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="review-card__text">&#8220;Me gust&#243; mucho el servicio, sobre todo los snacks dulces, todos repitieron.&#8221;</p>
-            <p class="review-card__name">Jos&#233;</p>
-          </div>
-          <div class="review-card">
-            <div class="review-card__stars" aria-label="4 estrellas">&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="review-card__text">&#8220;Mi hijo kedo muy contento con su carita pintada, no se la keria kitar.&#8221;</p>
-            <p class="review-card__name">Alicia</p>
-          </div>
-          <div class="review-card">
-            <div class="review-card__stars" aria-label="5 estrellas">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="review-card__text">&#8220;El local estaba precioso, la decoracion supero lo que imagine.&#8221;</p>
-            <p class="review-card__name">Rosa</p>
-          </div>
-          <div class="review-card">
-            <div class="review-card__stars" aria-label="3 estrellas">&#9733;&#9733;&#9733;</div>
-            <p class="review-card__text">&#8220;La animadora bien pero el sonido se corto un rato, aun asi los ni&#241;os se rieron mucho.&#8221;</p>
-            <p class="review-card__name">Marco</p>
-          </div>
-          <div class="review-card">
-            <div class="review-card__stars" aria-label="5 estrellas">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="review-card__text">&#8220;Llegaron puntuales y todo salio tal cual lo coordinamos por wsp.&#8221;</p>
-            <p class="review-card__name">Carla</p>
-          </div>
-          <div class="review-card">
-            <div class="review-card__stars" aria-label="4 estrellas">&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="review-card__text">&#8220;El combo de snacks rindio para todos, ni falto ni sobro, todo bien.&#8221;</p>
-            <p class="review-card__name">Diego</p>
-          </div>
+        <div class="cfoot__reviews-head">
+          <h3>Lo que dicen nuestros clientes</h3>
+          <button type="button" class="btn btn--primary" id="btnAddReview">&#11088; Dejar mi rese&#241;a</button>
         </div>
+        <div class="reviews-track" id="reviewsTrack"></div>
       </div>
     </div>
   </main>
@@ -1329,13 +1804,46 @@
     <div class="sheet__scallop" aria-hidden="true"></div>
 
     <div class="sheet__body" id="clientReviewBody">
-      <table class="sheet__table"><thead><tr><th>Servicio</th><th></th></tr></thead><tbody id="crRows"></tbody></table>
+      <table class="sheet__table"><thead><tr><th>Servicio</th><th></th><th></th></tr></thead><tbody id="crRows"></tbody></table>
       <div class="sheet__grand" style="margin-bottom:16px;"><span>Total</span><strong id="crTotal">S/ 0.00</strong></div>
+      <div class="field" style="text-align:left;">
+        <label for="crEventDate">Fecha de tu evento</label>
+        <div class="date-field-row">
+          <input id="crEventDate" type="text" inputmode="numeric" placeholder="dd/mm/aaaa" maxlength="10" autocomplete="off">
+          <button type="button" id="crEventDatePickerBtn" class="date-field-row__pick" aria-label="Elegir fecha con calendario" title="Elegir con calendario">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+          </button>
+          <input id="crEventDateNative" type="date" tabindex="-1" aria-hidden="true">
+        </div>
+      </div>
+      <p class="sheet__warning" id="crDateWarning" hidden></p>
+      <p class="sheet__hours-note" id="crHoursNote" hidden>&#128337; Estamos fuera de horario de atenci&#243;n ahora mismo. Tu pedido y pago quedan registrados igual; te confirmamos disponibilidad apenas abramos.</p>
       <button class="btn btn--primary" id="crGoPay" style="width:100%;">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23a8.2 8.2 0 0 1 8.24 8.24c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.53.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.09-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.86.84-.86 2.05s.88 2.38 1 2.54c.13.17 1.73 2.64 4.2 3.7.59.26 1.04.41 1.4.52.59.19 1.12.16 1.55.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.29z"/></svg>
-        Enviar pedido por WhatsApp
+        Continuar y reservar la fecha
       </button>
-      <p class="sheet__note" style="margin-top:10px;">Te contactamos por este mismo WhatsApp para confirmar disponibilidad, resolver dudas y coordinar el pago &#8212; nada se cobra desde esta p&#225;gina.</p>
+      <p class="sheet__note" style="margin-top:10px;">Primero apartas la fecha con un pago de reserva (20%). Luego coordinamos el resto por WhatsApp.</p>
+    </div>
+
+    <div class="sheet__body" id="clientDepositBody" hidden>
+      <div class="deposit-step">
+        <h4>Paga tu reserva del 20% para apartar la fecha</h4>
+        <p class="sheet__hours-note" id="depHoursNote" hidden>&#128337; Estamos fuera de horario de atenci&#243;n ahora mismo. Igual puedes pagar tu reserva; validamos tu comprobante apenas abramos.</p>
+        <div class="qr-tabs" role="tablist">
+          <button type="button" class="qr-tab" data-qr="yape" aria-pressed="true">Yape</button>
+          <button type="button" class="qr-tab" data-qr="plin" aria-pressed="false">Plin</button>
+        </div>
+        <div class="qr-box" id="depQrBox">
+          <div class="qr-fake" id="depQrFake" aria-hidden="true"></div>
+          <span class="qr-fake__scan"></span>
+          <span class="qr-fake__badge" id="depQrBadge">YAPE</span>
+        </div>
+        <p class="qr-box__note">QR de demostraci&#243;n &#8212; se reemplazar&#225; por el QR real de <strong id="depQrMethodName">Yape</strong> apenas la due&#241;a lo suba.</p>
+        <p class="deposit-step__amount">Monto de la reserva: <strong id="depAmount">S/ 0.00</strong></p>
+        <button class="btn btn--primary" id="crConfirmDeposit" style="width:100%;">Ya pagu&#233; mi reserva, continuar por WhatsApp</button>
+        <button class="btn btn--ghost" id="crBackToReview" style="width:100%;margin-top:8px;">&#8592; Volver</button>
+        <p class="sheet__note" style="margin-top:10px;">Al confirmar se abre WhatsApp para que env&#237;es tu comprobante. La due&#241;a valida el pago y te confirma la reserva.</p>
+      </div>
     </div>
 
     <div class="sheet__body" id="clientConfirmBody" hidden>
@@ -1362,6 +1870,49 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="reviewModal" hidden>
+  <div class="sheet glass-strong">
+    <button class="sheet__close" id="reviewModalClose" aria-label="Cerrar">&times;</button>
+    <div class="sheet__top"><h3>Cu&#233;ntanos c&#243;mo te fue</h3><p>Tu rese&#241;a ayuda a otras familias a decidir</p></div>
+    <div class="sheet__scallop" aria-hidden="true"></div>
+    <div class="sheet__body">
+      <div class="field"><label for="revName">Tu nombre</label><input id="revName" type="text" placeholder="Ej. Familia Ram&#237;rez"></div>
+      <div class="field">
+        <label>Calificaci&#243;n</label>
+        <div class="star-picker" id="starPicker">
+          <button type="button" data-star="1">&#9733;</button>
+          <button type="button" data-star="2">&#9733;</button>
+          <button type="button" data-star="3">&#9733;</button>
+          <button type="button" data-star="4">&#9733;</button>
+          <button type="button" data-star="5">&#9733;</button>
+        </div>
+      </div>
+      <div class="field"><label for="revText">Tu experiencia</label><textarea id="revText" rows="3" placeholder="Cu&#233;ntanos c&#243;mo estuvo la fiesta..."></textarea></div>
+      <div class="field">
+        <label>Foto de tu evento (opcional)</label>
+        <label class="review-photo-picker" id="revPhotoPicker">
+          <input type="file" id="revPhotoInput" accept="image/*" hidden>
+          <span class="review-photo-picker__hint" id="revPhotoHint">&#128247; Toca para tomar o subir una foto</span>
+          <img id="revPhotoPreview" hidden alt="Vista previa de tu foto">
+        </label>
+      </div>
+      <button class="btn btn--primary" id="revSubmit" style="width:100%;">Publicar mi rese&#241;a</button>
+      <p class="sheet__note" style="margin-top:10px;">Se publica con tu nombre y foto (si subes una). No se comparte tu tel&#233;fono.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="compareModal" hidden>
+  <div class="sheet glass-strong sheet--wide">
+    <button class="sheet__close" id="compareModalClose" aria-label="Cerrar">&times;</button>
+    <div class="sheet__top"><h3>Compara tus combos</h3><p>Elige el que m&#225;s te convenga</p></div>
+    <div class="sheet__scallop" aria-hidden="true"></div>
+    <div class="sheet__body">
+      <div class="compare-table" id="compareTable"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   var ICONS = {
@@ -1378,7 +1929,8 @@
     caritas: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 7.5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 9.5C10.3 6.2 7.6 4.6 5.6 5.8S4 10.6 6 13c1.4 1.7 3.9 3.1 6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 9.5c1.7-3.3 4.4-4.9 6.4-3.7S20 10.6 18 13c-1.4 1.7-3.9 3.1-6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     babyshower: '<svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="15" r="4.6" stroke="currentColor" stroke-width="1.6"/><path d="M6.4 15h9.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11 10.4V8.2A2.7 2.7 0 0 1 13.7 5.5h.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16.6" cy="5.4" r="2.1" stroke="currentColor" stroke-width="1.6"/></svg>',
     mozo: '<svg viewBox="0 0 24 24" fill="none"><path d="M10.4 9.6L4.9 7.2a1 1 0 0 0-1.4.9v7.8a1 1 0 0 0 1.4.9l5.5-2.4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.6 9.6l5.5-2.4a1 1 0 0 1 1.4.9v7.8a1 1 0 0 1-1.4.9l-5.5-2.4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><rect x="9.8" y="8.6" width="4.4" height="6.8" rx="1.4" stroke="currentColor" stroke-width="1.6"/></svg>',
-    mobiliario: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5V9.5a2.5 2.5 0 0 1 2.5-2.5h9A2.5 2.5 0 0 1 19 9.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 12.5a2.5 2.5 0 0 0-2.5 2.5V18h19v-3a2.5 2.5 0 0 0-5 0v.8H7.5V15A2.5 2.5 0 0 0 5 12.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 18v2M19 18v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+    mobiliario: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5V9.5a2.5 2.5 0 0 1 2.5-2.5h9A2.5 2.5 0 0 1 19 9.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 12.5a2.5 2.5 0 0 0-2.5 2.5V18h19v-3a2.5 2.5 0 0 0-5 0v.8H7.5V15A2.5 2.5 0 0 0 5 12.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5 18v2M19 18v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    'hora-loca': '<svg viewBox="0 0 24 24" fill="none"><path d="M9 18V6.8a1 1 0 0 1 1.3-.95l8 2.4a1 1 0 0 1 .7.95V16" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.5" cy="18" r="2.2" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="16" r="2.2" stroke="currentColor" stroke-width="1.6"/></svg>'
   };
   var CAT_COLORS = {
     local: ['#3E7C74', '#DCEBE8'],
@@ -1394,19 +1946,21 @@
     caritas: ['#E15D5D', '#FADFDF'],
     babyshower: ['#C77DAE', '#F5E2EE'],
     mozo: ['#5A6B7C', '#E2E6EA'],
-    mobiliario: ['#8A6A4F', '#EDE4DA']
+    mobiliario: ['#8A6A4F', '#EDE4DA'],
+    'hora-loca': ['#3E5FA8', '#DCE4F5']
   };
   var CAT_GRAD2 = {
     local: '#5AA396', 'snacks-dulces': '#E88FB0', 'snacks-salados': '#EFB65E', combos: '#DB8A5F',
     torta: '#D2A55E', dulces: '#A85179', shows: '#9E77D4', gymkanas: '#7385B5',
     foto360: '#59A6CB', alcancias: '#84B061', caritas: '#EE8C8C', babyshower: '#DBA3C8',
-    mozo: '#7F91A2', mobiliario: '#AD8C6E'
+    mozo: '#7F91A2', mobiliario: '#AD8C6E', 'hora-loca': '#7C9CE0'
   };
 
-  /* Fotos reales recortadas del catalogo impreso del negocio (img/cat/). */
+  /* Fotos reales recortadas del catalogo impreso del negocio (img/cat/).
+     hora-loca: falta la foto real todavia -- ver aviso al final del cambio. */
   var CAT_PHOTO = {};
   ['local','snacks-dulces','snacks-salados','combos','torta','dulces','shows',
-   'gymkanas','foto360','alcancias','caritas','babyshower','mozo','mobiliario']
+   'gymkanas','foto360','alcancias','caritas','babyshower','mozo','mobiliario','hora-loca']
     .forEach(function (id) { CAT_PHOTO[id] = 'img/cat/' + id + '.jpg'; });
   var LOGO_SRC = 'img/cat/logo.jpg';
 
@@ -1424,7 +1978,9 @@
    'alcancia-paquete',
    'local-happy','local-full','local-premium','local-hora-extra',
    'gymkana-estandar','gymkana-gold',
-   'alcancia-adicional','babyshower-1','babyshower-2']
+   'alcancia-adicional','babyshower-1','babyshower-2',
+   'sonido-usb-bluetooth','dj-5h','luces-led-hora-loca','arlequin',
+   'robot-led','robot-led-laser','robot-led-co2']
     .forEach(function (id) { PROD_PHOTO[id] = 'img/prod/' + id + '.jpg'; });
 
   /* Si la categoria tiene un solo producto, la foto de categoria sirve como
@@ -1578,10 +2134,250 @@
       { id: 'silla-chiavari', name: 'Silla de metal dorada', desc: 'Modelo Chiavari. Precio por unidad', price: 5.5, unit: 'unidad' },
       { id: 'mesa-8', name: 'Mesa redonda vestida (8p)', desc: 'Precio por unidad', price: 30, unit: 'unidad' },
       { id: 'mesa-10', name: 'Mesa redonda vestida (10p)', desc: 'Precio por unidad', price: 40, unit: 'unidad' }
+    ]},
+    { id: 'hora-loca', name: 'Sonido y Hora Loca', items: [
+      { id: 'sonido-usb-bluetooth', name: 'Equipo de sonido con USB y Bluetooth', desc: 'Precio por evento', price: 70, unit: 'evento' },
+      { id: 'dj-5h', name: 'DJ por 5 horas con parlante', desc: 'Precio por evento', price: 400, unit: 'evento' },
+      { id: 'luces-led-hora-loca', name: '4 tachitos LED + 2 cabezas móviles de luces LED', desc: 'Precio por evento', price: 200, unit: 'evento' },
+      { id: 'arlequin', name: 'Cada arlequín', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 180, unit: 'personaje' },
+      { id: 'personaje-cabezon', name: 'Personaje cabezón', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 320, unit: 'personaje' },
+      { id: 'robot-led', name: 'Robot LED', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 270, unit: 'personaje' },
+      { id: 'robot-led-laser', name: 'Robot LED láser', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 300, unit: 'personaje' },
+      { id: 'robot-led-co2', name: 'Robot LED CO₂', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 350, unit: 'personaje' }
     ]}
   ];
 
+  /* HISTORY se persiste en localStorage: sin esto, el bloqueo de fechas
+     por 3 dias y la analitica se perderian cada vez que se recarga la pagina. */
+  var HISTORY_KEY = 'ff_proto_history';
   var HISTORY = [];
+  try { HISTORY = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) { HISTORY = []; }
+  function saveHistory() {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(HISTORY)); } catch (e) { /* localStorage lleno o bloqueado: no debe romper el flujo */ }
+  }
+
+  /* =================== HORARIO DE ATENCION =================== */
+  function isOpenNow() {
+    var now = new Date();
+    var day = now.getDay(); /* 0=domingo ... 6=sabado */
+    var hour = now.getHours() + now.getMinutes() / 60;
+    if (hour < 9) return false;
+    var closeHour = (day === 5 || day === 6) ? 23 : 21; /* vie-sab hasta 11pm, resto hasta 9pm */
+    return hour < closeHour;
+  }
+
+  /* =================== BLOQUEO DE FECHAS (3 dias en espera de abono) =================== */
+  function dateBlockInfo(iso) {
+    var now = Date.now();
+    var THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
+    var blocking = HISTORY.find(function (r) {
+      if (r.eventDate !== iso || r.status === 'cancelado') return false;
+      if (r.status === 'confirmado') return true;
+      var ts = parseInt(String(r.id).replace(/^h/, ''), 10) || 0;
+      return (now - ts) < THREE_DAYS;
+    });
+    return blocking || null;
+  }
+
+  /* El asistente de IA (api/chat.js) no tiene acceso al calendario -- es
+     un endpoint sin estado. Le mandamos un resumen corto de que fechas
+     estan ocupadas ahora mismo (con hora, si la hay) para que pueda
+     cruzarlas cuando el cliente pregunte por una fecha, en vez de decir
+     siempre que si hay disponibilidad. */
+  function getBookedDatesForBot() {
+    var now = Date.now();
+    var THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
+    var seen = {};
+    var out = [];
+    HISTORY.forEach(function (r) {
+      if (!r.eventDate || r.status === 'cancelado' || seen[r.eventDate]) return;
+      var isConfirmed = r.status === 'confirmado';
+      var ts = parseInt(String(r.id).replace(/^h/, ''), 10) || 0;
+      var withinHold = (now - ts) < THREE_DAYS;
+      if (!isConfirmed && !withinHold) return;
+      seen[r.eventDate] = true;
+      var hours = (r.eventStart && r.eventEnd) ? (r.eventStart + ' a ' + r.eventEnd) : null;
+      out.push({
+        date: r.eventDate,
+        hours: hours,
+        status: isConfirmed ? 'confirmado' : 'reservado_pendiente_pago'
+      });
+    });
+    return out;
+  }
+
+  /* =================== ANALITICA (variables de la conversacion) =================== */
+  var ANALYTICS_KEY = 'ff_proto_analytics';
+  var ANALYTICS = [];
+  try { ANALYTICS = JSON.parse(localStorage.getItem(ANALYTICS_KEY) || '[]'); } catch (e) { ANALYTICS = []; }
+  function trackEvent(name, meta) {
+    ANALYTICS.push({ name: name, meta: meta || null, ts: Date.now() });
+    if (ANALYTICS.length > 1000) ANALYTICS = ANALYTICS.slice(-1000);
+    try { localStorage.setItem(ANALYTICS_KEY, JSON.stringify(ANALYTICS)); } catch (e) { /* nunca debe romper la app por esto */ }
+  }
+  trackEvent('page_view');
+
+  /* =================== RESEÑAS DE CLIENTES (con foto opcional) =================== */
+  var REVIEWS_KEY = 'ff_proto_reviews';
+  var REVIEWS = [];
+  try { REVIEWS = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]'); } catch (e) { REVIEWS = []; }
+  function saveReviews() {
+    try { localStorage.setItem(REVIEWS_KEY, JSON.stringify(REVIEWS)); } catch (e) { /* si se llena el localStorage (fotos pesan), no debe romper el flujo */ }
+  }
+  /* =================== GALERIA DE EVENTOS REALES =================== */
+  /* Fotos reales de fiestas ya hechas (no las del catalogo, esas son
+     ilustraciones de producto) -- cada recuadro va rotando entre varias,
+     con los bordes difuminados via mask-image en el CSS, para que se
+     sientan como recuerdos que se desvanecen y no como una grilla fija. */
+  /* img/gallery/ (fotos reales de eventos) se borro por completo por
+     accidente -- hasta que se repongan esas fotos, la franja de bordes
+     reutiliza las fotos de categoria (img/cat/), que si existen. */
+  var GALLERY_PHOTOS = ['local', 'snacks-dulces', 'snacks-salados', 'combos', 'torta',
+    'dulces', 'shows', 'gymkanas', 'foto360', 'alcancias', 'caritas', 'babyshower',
+    'mozo', 'mobiliario', 'hora-loca'];
+  var GALLERY_PHOTOS_DIR = 'img/cat/';
+  function shuffleCopy(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+  function mountGalleryFrames(wrap, frameCount) {
+    if (!wrap || GALLERY_PHOTOS.length === 0) return;
+    wrap.innerHTML = '';
+    for (var i = 0; i < frameCount; i++) {
+      var frame = document.createElement('div');
+      frame.className = 'gallery-frame';
+      var sequence = shuffleCopy(GALLERY_PHOTOS);
+      var imgA = document.createElement('img');
+      var imgB = document.createElement('img');
+      imgA.loading = 'lazy';
+      imgB.loading = 'lazy';
+      imgA.src = GALLERY_PHOTOS_DIR + sequence[0] + '.jpg';
+      imgA.className = 'is-active';
+      imgB.src = GALLERY_PHOTOS_DIR + sequence[1 % sequence.length] + '.jpg';
+      frame.appendChild(imgA);
+      frame.appendChild(imgB);
+      wrap.appendChild(frame);
+      (function (frame, sequence) {
+        var idx = 1;
+        var showingA = true;
+        setTimeout(function loopFade() {
+          idx = (idx + 1) % sequence.length;
+          var current = showingA ? frame.children[0] : frame.children[1];
+          var next = showingA ? frame.children[1] : frame.children[0];
+          next.src = GALLERY_PHOTOS_DIR + sequence[idx] + '.jpg';
+          next.className = 'is-active';
+          current.className = '';
+          showingA = !showingA;
+          setTimeout(loopFade, 3600 + Math.random() * 1800);
+        }, 2500 + Math.random() * 3000);
+      })(frame, sequence);
+    }
+  }
+  function renderGallery() {
+    mountGalleryFrames(document.getElementById('galleryFrames'), 10);
+    mountGalleryFrames(document.getElementById('galleryRailLeft'), 2);
+    mountGalleryFrames(document.getElementById('galleryRailRight'), 2);
+    positionGalleryRails();
+  }
+  /* Los "recuerdos" de los bordes van solo entre la banda de fotos en
+     movimiento (arriba) y donde empieza "Miralos en accion" (abajo) --
+     nunca tapando la banda ni junto a reseñas/footer. Ambos limites se
+     miden de verdad (no un numero fijo a ojo) porque el alto de la banda
+     y del header pueden cambiar. */
+  function positionGalleryRails() {
+    var stage = document.getElementById('stage-client');
+    var marquee = document.querySelector('.photo-marquee');
+    var videos = document.getElementById('videosSection');
+    var rails = document.querySelectorAll('.gallery-rail');
+    if (!stage || !marquee || !videos || !rails.length) return;
+    var stageTop = stage.getBoundingClientRect().top + window.pageYOffset;
+    var marqueeBottom = marquee.getBoundingClientRect().bottom + window.pageYOffset;
+    var videosTop = videos.getBoundingClientRect().top + window.pageYOffset;
+    var top = marqueeBottom - stageTop + 900;
+    var h = Math.max(200, videosTop - stageTop - top);
+    rails.forEach(function (r) { r.style.top = top + 'px'; r.style.height = h + 'px'; });
+  }
+  window.addEventListener('load', positionGalleryRails);
+  window.addEventListener('resize', positionGalleryRails);
+  /* Reintentos cortos: el header/banda pueden correrse un poco despues de
+     "load" (fuente web que termina de cargar, imagen que define su alto
+     real) -- sin esto la franja se queda pegada a una medida vieja. */
+  setTimeout(positionGalleryRails, 400);
+  setTimeout(positionGalleryRails, 1200);
+  setTimeout(positionGalleryRails, 2500);
+
+  /* =================== VIDEOS (reels de Facebook embebidos) =================== */
+  var VIDEOS = [
+    { id: '7500398859399613701', caption: 'Baby shower "Oh Baby!" — decoración temática' },
+    { id: '7508258788412099846', caption: 'Hora loca con luces LED — ¡a bailar!' },
+    { id: '7675563666762140936', caption: 'Recepción de evento — bienvenida personalizada' },
+    { id: '7656818900352453906', caption: 'Pintura de alcancías — creatividad para los niños' },
+    { id: '7593152531874745608', caption: 'Cumpleaños infantil — un momento inolvidable' }
+  ];
+  /* Los videos se descargaron una sola vez y se sirven propios (video/gallery/<id>.mp4,
+     poster en img/videoposters/<id>.jpg) en vez de embeber el iframe de Facebook:
+     así no importa si el clip venía de Facebook, TikTok o Instagram -- todos se ven
+     igual, con nuestro propio reproductor, y no dependen de que la red social
+     original permita insertarlos (algunos reels bloquean el embed por música con
+     derechos y quedaban como "Video no disponible"). */
+  function renderVideos() {
+    var track = document.getElementById('videosTrack');
+    if (!track) return;
+    var html = VIDEOS.map(function (v) {
+      var caption = v.caption ? '<p class="video-embed__caption">' + escapeHtml(v.caption) + '</p>' : '';
+      return '<div class="video-embed">' +
+        '<div class="video-embed__frame"><video class="video-embed__el" controls muted loop playsinline preload="none" poster="img/videoposters/' + v.id + '.jpg" src="video/gallery/' + v.id + '.mp4"></video><button type="button" class="video-embed__sound" data-role="sound" aria-label="Activar sonido">&#128264;</button></div>' +
+        caption + '</div>';
+    }).join('');
+    /* Duplicado una vez, igual que el carrusel de reseñas, para que el
+       auto-scroll infinito de mas abajo tenga un clon identico a donde
+       saltar sin que se note. */
+    track.innerHTML = html + html;
+    wireVideoAutoplay();
+  }
+
+  /* Autoplay estilo TikTok/Instagram: solo el video que está a la vista en
+     el carrusel reproduce (silenciado, como exigen los navegadores para
+     autoplay sin interacción) -- los demás se pausan. Evita descargar y
+     reproducir 22 videos a la vez. */
+  function wireVideoAutoplay() {
+    var videos = document.querySelectorAll('.video-embed__el');
+    if (!('IntersectionObserver' in window)) return;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var video = entry.target;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          video.play().catch(function () { /* el navegador puede bloquear el primer intento; el usuario ya puede darle play a mano */ });
+        } else {
+          video.pause();
+        }
+      });
+    }, { root: document.getElementById('videosTrack'), threshold: [0, 0.6] });
+    videos.forEach(function (v) { observer.observe(v); });
+
+    document.querySelectorAll('#videosTrack [data-role="sound"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var video = btn.previousElementSibling;
+        video.muted = !video.muted;
+        btn.textContent = video.muted ? '🔈' : '🔊';
+      });
+    });
+  }
+
+  /* Reseñas de ejemplo que ya traía el prototipo -- se muestran igual que
+     las reales, solo que sin foto y siempre al final del carrusel. */
+  var SEED_REVIEWS = [
+    { name: 'José', rating: 5, text: 'Me gustó mucho el servicio, sobre todo los snacks dulces, todos repitieron.' },
+    { name: 'Alicia', rating: 4, text: 'Mi hijo kedo muy contento con su carita pintada, no se la keria kitar.' },
+    { name: 'Rosa', rating: 5, text: 'El local estaba precioso, la decoracion supero lo que imagine.' },
+    { name: 'Marco', rating: 3, text: 'La animadora bien pero el sonido se corto un rato, aun asi los niños se rieron mucho.' },
+    { name: 'Carla', rating: 5, text: 'Llegaron puntuales y todo salio tal cual lo coordinamos por wsp.' },
+    { name: 'Diego', rating: 4, text: 'El combo de snacks rindio para todos, ni falto ni sobro, todo bien.' }
+  ];
 
   function money(n) { return 'S/ ' + (n || 0).toFixed(2); }
 
@@ -1641,17 +2437,27 @@
     return null;
   }
 
-  /* =================== PROTOTYPE STAGE SWITCHER =================== */
+  /* =================== ACCESO PANEL INTERNO =================== */
   function goStage(name) {
-    document.querySelectorAll('.proto-switch button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.stage === name)); });
     ['internal', 'client'].forEach(function (s) { document.getElementById('stage-' + s).hidden = (s !== name); });
   }
-  document.querySelectorAll('.proto-switch button').forEach(function (btn) {
-    btn.addEventListener('click', function () { goStage(btn.dataset.stage); });
-  });
+  var ADMIN_PASSWORD = 'ADMIN';
+  var adminAccessBtn = document.getElementById('adminAccessBtn');
+  if (adminAccessBtn) {
+    setTimeout(function () { adminAccessBtn.style.display = 'none'; }, 10000);
+    adminAccessBtn.addEventListener('click', function () {
+      var pass = window.prompt('Acceso restringido. Ingresa la contraseña del panel administrativo:');
+      if (pass === null) return;
+      if (pass === ADMIN_PASSWORD) {
+        goStage('internal');
+      } else {
+        alert('Contraseña incorrecta. Este panel es solo para la dueña.');
+      }
+    });
+  }
 
   /* =================== PANEL INTERNO =================== */
-  var order = { clientName: '', clientPhone: '', eventDate: '', items: [] };
+  var order = { clientName: '', clientPhone: '', eventDate: '', eventStart: '', eventEnd: '', items: [] };
   var qtyDraft = {};
   var sizeDraft = {};
 
@@ -1964,7 +2770,10 @@
         if (!rec) return;
         rec.status = 'confirmado';
         rec.boletaNum = 'B001-' + Math.floor(1000 + Math.random() * 8999);
+        saveHistory();
         renderHistory();
+        renderCalendar();
+        renderCalWeek();
         openBoleta(rec);
       });
     });
@@ -1975,6 +2784,200 @@
       });
     });
   }
+
+  /* =================== CALENDARIO DE EVENTOS =================== */
+  var calCursor = new Date();
+  calCursor.setDate(1);
+  var calSelectedDate = null;
+
+  function eventsOnDate(iso) {
+    return HISTORY.filter(function (r) { return r.eventDate === iso && r.status !== 'cancelado'; });
+  }
+  function fmtHour(t) {
+    if (!t) return null;
+    var parts = t.split(':');
+    var h = parseInt(parts[0], 10);
+    var suf = h >= 12 ? 'pm' : 'am';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ':' + parts[1] + suf;
+  }
+  function renderCalendar() {
+    var grid = document.getElementById('calGrid');
+    var label = document.getElementById('calMonthLabel');
+    if (!grid || !label) return;
+    var year = calCursor.getFullYear();
+    var month = calCursor.getMonth();
+    label.textContent = calCursor.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+
+    var firstWeekday = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var todayIso = new Date().toISOString().slice(0, 10);
+
+    var cells = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'].map(function (d) {
+      return '<div class="cal-cell cal-cell--head">' + d + '</div>';
+    });
+    for (var i = 0; i < firstWeekday; i++) cells.push('<div class="cal-cell cal-cell--empty"></div>');
+    for (var day = 1; day <= daysInMonth; day++) {
+      var iso = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      var evs = eventsOnDate(iso);
+      var isToday = iso === todayIso;
+      var isSelected = iso === calSelectedDate;
+      var dots = evs.slice(0, 3).map(function () { return '<span class="cal-dot"></span>'; }).join('');
+      cells.push(
+        '<button type="button" class="cal-cell cal-cell--day' + (isToday ? ' cal-cell--today' : '') + (isSelected ? ' cal-cell--selected' : '') + (evs.length ? ' cal-cell--busy' : '') + '" data-iso="' + iso + '">' +
+          '<span class="cal-cell__num">' + day + '</span>' +
+          (evs.length ? '<span class="cal-cell__dots">' + dots + '</span>' : '') +
+        '</button>'
+      );
+    }
+    grid.innerHTML = cells.join('');
+
+    grid.querySelectorAll('.cal-cell--day').forEach(function (cell) {
+      cell.addEventListener('click', function () {
+        calSelectedDate = cell.dataset.iso;
+        renderCalendar();
+        renderCalDayDetail(cell.dataset.iso);
+      });
+    });
+
+    if (calSelectedDate) renderCalDayDetail(calSelectedDate);
+  }
+
+  function renderCalDayDetail(iso) {
+    var box = document.getElementById('calDayDetail');
+    var title = document.getElementById('calDayDetailTitle');
+    var list = document.getElementById('calDayDetailList');
+    var evs = eventsOnDate(iso).slice().sort(function (a, b) { return (a.eventStart || '').localeCompare(b.eventStart || ''); });
+    var d = new Date(iso + 'T00:00:00');
+    title.textContent = d.toLocaleDateString('es-PE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    if (evs.length === 0) {
+      list.innerHTML = '<p class="order-empty">No hay eventos programados este d&#237;a. Horario libre.</p>';
+    } else {
+      list.innerHTML = evs.map(function (r) {
+        var start = fmtHour(r.eventStart);
+        var end = fmtHour(r.eventEnd);
+        var hourStr = (start && end) ? (start + ' &#8211; ' + end) : (start ? 'Desde ' + start : 'Hora no especificada');
+        return '<div class="cal-event glass">' +
+          '<div><p class="cal-event__who">' + r.clientName + '</p><p class="cal-event__hours">&#128337; ' + hourStr + '</p></div>' +
+          '<span class="cal-event__total">' + money(r.total) + '</span>' +
+        '</div>';
+      }).join('');
+    }
+    box.hidden = false;
+  }
+
+  document.getElementById('calPrev').addEventListener('click', function () {
+    calCursor.setMonth(calCursor.getMonth() - 1);
+    renderCalendar();
+  });
+  document.getElementById('calNext').addEventListener('click', function () {
+    calCursor.setMonth(calCursor.getMonth() + 1);
+    renderCalendar();
+  });
+
+  /* =================== CALENDARIO: VISTA SEMANAL POR HORAS =================== */
+  var CAL_WEEK_START_HOUR = 8;
+  var CAL_WEEK_END_HOUR = 23;
+  function startOfWeek(d) {
+    var r = new Date(d);
+    r.setHours(0, 0, 0, 0);
+    r.setDate(r.getDate() - r.getDay());
+    return r;
+  }
+  var calWeekCursor = startOfWeek(new Date());
+
+  function timeToMinutes(t) {
+    if (!t) return null;
+    var p = t.split(':');
+    return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+  }
+
+  function renderCalWeek() {
+    var grid = document.getElementById('calWeekGrid');
+    var label = document.getElementById('calWeekLabel');
+    if (!grid || !label) return;
+
+    var days = [];
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(calWeekCursor);
+      d.setDate(d.getDate() + i);
+      days.push(d);
+    }
+    var fmtShort = function (d) { return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' }); };
+    label.textContent = fmtShort(days[0]) + ' – ' + fmtShort(days[6]);
+
+    var totalRows = (CAL_WEEK_END_HOUR - CAL_WEEK_START_HOUR + 1);
+    var todayIso = new Date().toISOString().slice(0, 10);
+
+    var html = '<div class="cal-week-daylabel"></div>';
+    days.forEach(function (d) {
+      var iso = d.toISOString().slice(0, 10);
+      html += '<div class="cal-week-daylabel' + (iso === todayIso ? ' cal-week-daylabel--today' : '') + '">' +
+        d.toLocaleDateString('es-PE', { weekday: 'short' }) + ' ' + d.getDate() + '</div>';
+    });
+
+    for (var h = CAL_WEEK_START_HOUR; h <= CAL_WEEK_END_HOUR; h++) {
+      html += '<div class="cal-week-hour">' + (h % 24) + ':00</div>';
+      for (var c = 0; c < 7; c++) html += '<div class="cal-week-cell"></div>';
+    }
+
+    grid.style.gridTemplateRows = '32px repeat(' + totalRows + ', 34px)';
+    grid.innerHTML = html;
+    /* Reinicia la animacion cada vez que se cambia de semana (o de mes a
+       semana) -- una animacion CSS no se vuelve a disparar sola solo
+       porque cambio el innerHTML, hay que forzar un reflow entre medio. */
+    grid.classList.remove('is-refreshing');
+    void grid.offsetWidth;
+    grid.classList.add('is-refreshing');
+
+    var rowHeight = 34;
+    var headerHeight = 32;
+    days.forEach(function (d, colIdx) {
+      var iso = d.toISOString().slice(0, 10);
+      var events = HISTORY.filter(function (r) { return r.eventDate === iso && r.status !== 'cancelado'; });
+      events.forEach(function (r) {
+        var startMin = timeToMinutes(r.eventStart);
+        var endMin = timeToMinutes(r.eventEnd);
+        if (startMin === null) { startMin = CAL_WEEK_START_HOUR * 60; endMin = startMin + 60; }
+        if (endMin === null) endMin = startMin + 60;
+        var dayStartMin = CAL_WEEK_START_HOUR * 60;
+        var top = headerHeight + ((startMin - dayStartMin) / 60) * rowHeight;
+        var height = Math.max(20, ((endMin - startMin) / 60) * rowHeight);
+        var colWidthPct = 100 / 7;
+        var leftPct = colWidthPct * colIdx;
+        var statusClass = r.status === 'confirmado' ? 'cal-week-event--confirmado' : 'cal-week-event--pendiente';
+        var hoursLabel = (r.eventStart && r.eventEnd) ? (r.eventStart + '–' + r.eventEnd) : '';
+        var el = document.createElement('div');
+        el.className = 'cal-week-event ' + statusClass;
+        el.style.top = top + 'px';
+        el.style.height = height + 'px';
+        el.style.left = 'calc(56px + ' + leftPct + '% + 3px)';
+        el.style.width = 'calc(' + colWidthPct + '% - 6px)';
+        el.title = r.clientName + ' — ' + hoursLabel;
+        el.innerHTML = escapeHtml(r.clientName) + (hoursLabel ? '<div class="cal-week-event__hours">' + hoursLabel + '</div>' : '');
+        grid.appendChild(el);
+      });
+    });
+  }
+
+  document.querySelectorAll('.cal-mode-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.cal-mode-btn').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      var mode = btn.dataset.calmode;
+      document.getElementById('calMonthView').hidden = mode !== 'month';
+      document.getElementById('calWeekView').hidden = mode !== 'week';
+      if (mode === 'week') renderCalWeek();
+    });
+  });
+  document.getElementById('calWeekPrev').addEventListener('click', function () {
+    calWeekCursor.setDate(calWeekCursor.getDate() - 7);
+    renderCalWeek();
+  });
+  document.getElementById('calWeekNext').addEventListener('click', function () {
+    calWeekCursor.setDate(calWeekCursor.getDate() + 7);
+    renderCalWeek();
+  });
 
   function openBoleta(rec) {
     document.getElementById('boletaMeta').textContent = 'Emitida el ' + new Date().toLocaleDateString('es-PE');
@@ -1996,13 +2999,44 @@
       tab.setAttribute('aria-selected', 'true');
       var view = tab.dataset.view;
       document.getElementById('view-catalog').hidden = view !== 'catalog';
+      document.getElementById('view-calendar').hidden = view !== 'calendar';
       document.getElementById('view-history').hidden = view !== 'history';
+      document.getElementById('view-analytics').hidden = view !== 'analytics';
+      if (view === 'calendar') { renderCalendar(); renderCalWeek(); }
+      if (view === 'analytics') renderAnalytics();
     });
   });
+
+  function renderAnalytics() {
+    var stages = [
+      { name: 'page_view', label: 'Entraron al sitio' },
+      { name: 'chat_open', label: 'Abrieron el chat' },
+      { name: 'item_added', label: 'Agregaron un servicio' },
+      { name: 'reserva_iniciada', label: 'Iniciaron reserva' },
+      { name: 'deposit_confirmed', label: 'Pagaron la reserva' }
+    ];
+    var counts = stages.map(function (s) { return ANALYTICS.filter(function (e) { return e.name === s.name; }).length; });
+    var base = counts[0] || 1;
+    document.getElementById('anFunnel').innerHTML = stages.map(function (s, i) {
+      var pct = Math.round((counts[i] / base) * 100);
+      return '<div class="an-stage"><div class="an-stage__num">' + counts[i] + '</div><div class="an-stage__label">' + s.label + '</div>' +
+        (i > 0 ? '<div class="an-stage__pct">' + pct + '% del total</div>' : '') + '</div>';
+    }).join('');
+
+    var hourCounts = new Array(24).fill(0);
+    ANALYTICS.forEach(function (e) { hourCounts[new Date(e.ts).getHours()]++; });
+    var maxHour = Math.max.apply(null, hourCounts.concat([1]));
+    document.getElementById('anHours').innerHTML = hourCounts.map(function (c, h) {
+      var heightPct = Math.round((c / maxHour) * 100);
+      return '<div class="an-hour-bar"><div class="an-hour-bar__fill" style="height:' + Math.max(heightPct, 3) + '%" title="' + c + ' eventos a las ' + h + 'h"></div>' + (h % 3 === 0 ? '<span class="an-hour-bar__label">' + h + 'h</span>' : '') + '</div>';
+    }).join('');
+  }
 
   document.getElementById('clientName').addEventListener('input', function (e) { order.clientName = e.target.value; });
   document.getElementById('clientPhone').addEventListener('input', function (e) { order.clientPhone = e.target.value; });
   document.getElementById('eventDate').addEventListener('input', function (e) { order.eventDate = e.target.value; });
+  document.getElementById('eventStart').addEventListener('input', function (e) { order.eventStart = e.target.value; });
+  document.getElementById('eventEnd').addEventListener('input', function (e) { order.eventEnd = e.target.value; });
 
   /* El campo arranca en la fecha de hoy: la due&#241;a solo cambia el d&#237;a y el mes,
      nunca escribe el a&#241;o, y el a&#241;o se actualiza solo cada vez que abre el
@@ -2085,8 +3119,11 @@
   document.getElementById('btnSave').addEventListener('click', function () {
     if (order.items.length === 0) { alert('Agrega al menos un servicio antes de guardar el pedido.'); return; }
     if (!requireClientData('guardar el pedido')) return;
-    HISTORY.unshift({ id: 'h' + Date.now(), clientName: order.clientName, eventDate: order.eventDate || new Date().toISOString().slice(0, 10), total: computeTotal(), status: 'guardado', items: JSON.parse(JSON.stringify(order.items)) });
+    HISTORY.unshift({ id: 'h' + Date.now(), clientName: order.clientName, eventDate: order.eventDate || new Date().toISOString().slice(0, 10), eventStart: order.eventStart || '', eventEnd: order.eventEnd || '', total: computeTotal(), status: 'guardado', items: JSON.parse(JSON.stringify(order.items)) });
+    saveHistory();
     renderHistory();
+    renderCalendar();
+    renderCalWeek();
     sendLeadToGoogleForm({
       nombre: order.clientName,
       telefono: order.clientPhone,
@@ -2110,7 +3147,7 @@
     goStage('client');
   });
 
-  renderCategories(); renderOrder(); renderHistory();
+  renderCategories(); renderOrder(); renderHistory(); renderCalendar(); renderCalWeek();
 
   /* =================== EXCEL DE CLIENTES (WhatsApp) ===================
      Por ahora usa datos de prueba -- cuando el webhook de WhatsApp este
@@ -2156,6 +3193,192 @@
     });
   }
 
+  /* Filtro rapido por tipo de evento: no cambia el catalogo, solo oculta
+     las categorias que no calzan con el tema elegido. */
+  var THEME_CATS = {
+    todos: null,
+    cumple: ['combos', 'shows', 'gymkanas', 'hora-loca', 'caritas', 'alcancias', 'foto360', 'torta', 'dulces', 'local', 'mobiliario', 'mozo'],
+    babyshower: ['babyshower', 'torta', 'dulces', 'snacks-dulces', 'snacks-salados', 'mobiliario', 'local'],
+    snacks: ['snacks-dulces', 'snacks-salados', 'dulces', 'torta']
+  };
+  document.querySelectorAll('.theme-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('.theme-chip').forEach(function (c) { c.setAttribute('aria-pressed', 'false'); });
+      chip.setAttribute('aria-pressed', 'true');
+      var allow = THEME_CATS[chip.dataset.theme];
+      document.querySelectorAll('#showcaseGrid .showcase-card').forEach(function (card) {
+        card.hidden = allow ? allow.indexOf(card.dataset.cat) === -1 : false;
+      });
+      updateRecommendCard(chip.dataset.theme);
+      trackEvent('theme_filter', { theme: chip.dataset.theme });
+      activeBudgetTheme = chip.dataset.theme;
+      var budgetRangeEl = document.getElementById('budgetRange');
+      if (budgetRangeEl) renderBudgetSuggestions(parseInt(budgetRangeEl.value, 10));
+    });
+  });
+
+  /* =================== RENDER DE RESEÑAS =================== */
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  /* Un solo carrusel para todas las reseñas: las reales (con foto, si
+     subieron una) van primero, las de ejemplo del prototipo al final.
+     Se reconstruye completo -- semilla + reales + su propio duplicado
+     para el auto-scroll infinito -- cada vez que entra una reseña nueva. */
+  function reviewCardHtml(r) {
+    var rating = Math.max(0, Math.min(5, r.rating || 0));
+    var stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    var photo = r.photo ? '<img class="review-card__photo" src="' + r.photo + '" alt="Foto de ' + escapeHtml(r.name) + '">' : '';
+    return '<div class="review-card">' +
+      '<div class="review-card__stars" aria-label="' + rating + ' estrellas">' + stars + '</div>' +
+      '<p class="review-card__text">&#8220;' + escapeHtml(r.text) + '&#8221;</p>' +
+      '<div class="review-card__who">' + photo + '<p class="review-card__name">' + escapeHtml(r.name) + '</p></div></div>';
+  }
+  function renderReviews() {
+    var track = document.getElementById('reviewsTrack');
+    if (!track) return;
+    var html = REVIEWS.concat(SEED_REVIEWS).map(reviewCardHtml).join('');
+    track.innerHTML = html + html;
+  }
+
+  /* =================== COMPARADOR DE COMBOS =================== */
+  var compareSelection = [];
+  function renderCompareBar() {
+    var bar = document.getElementById('compareBar');
+    document.getElementById('compareBarLabel').textContent = 'Comparando ' + compareSelection.length + '/3';
+    document.getElementById('compareBarBtn').disabled = compareSelection.length < 2;
+  }
+  document.getElementById('compareBarBtn').addEventListener('click', function () {
+    var items = compareSelection.map(function (id) { return findItem(id).item; });
+    var cols = items.length;
+    var rows = [
+      { label: 'Combo', cells: items.map(function (it) { return it.name; }) },
+      { label: 'Precio', cells: items.map(function (it) { return money(it.price); }), priceRow: true },
+      { label: 'Incluye', cells: items.map(function (it) { return it.desc; }) }
+    ];
+    document.getElementById('compareTable').innerHTML = rows.map(function (row) {
+      return '<div class="compare-table__row" style="--cols:' + cols + '">' +
+        row.cells.map(function (c) {
+          return '<div class="compare-table__cell' + (row.priceRow ? ' compare-table__price' : '') + '">' + escapeHtml(c) + '</div>';
+        }).join('') + '</div>';
+    }).join('');
+    document.getElementById('compareModal').hidden = false;
+    trackEvent('combos_compared', { items: compareSelection.slice() });
+  });
+  document.getElementById('compareModalClose').addEventListener('click', function () { document.getElementById('compareModal').hidden = true; });
+  document.getElementById('compareModal').addEventListener('click', function (e) { if (e.target.id === 'compareModal') document.getElementById('compareModal').hidden = true; });
+
+  /* =================== PAQUETE RECOMENDADO POR TEMA =================== */
+  var THEME_RECOMMEND = {
+    cumple: { itemId: 'combo-3', note: 'El favorito para cumpleaños: snacks variados para 50 invitados + algodón o popcorn ilimitado.' },
+    babyshower: { itemId: 'torta-promo', si: 0, note: 'Para baby showers: tortas personalizadas en cajita, quedan hermosas en la mesa de dulces.' },
+    snacks: { itemId: 'combo-2', note: 'Solo lo esencial: popcorn, algodones y panchos para 50 invitados.' }
+  };
+  function updateRecommendCard(theme) {
+    var card = document.getElementById('recommendCard');
+    var rec = THEME_RECOMMEND[theme];
+    if (!rec) { card.hidden = true; return; }
+    var found = findItem(rec.itemId);
+    if (!found) { card.hidden = true; return; }
+    document.getElementById('recommendNote').textContent = rec.note;
+    document.getElementById('recommendName').textContent = fullName(found.item, rec.si || 0);
+    document.getElementById('recommendPrice').textContent = money(priceOf(found.item, rec.si || 0));
+    card.hidden = false;
+    document.getElementById('recommendAdd').onclick = function () {
+      addToClientCart(rec.itemId, 1, false, rec.si || 0);
+      document.getElementById('recommendAdd').textContent = '✓ Agregado';
+      setTimeout(function () { document.getElementById('recommendAdd').textContent = 'Agregar al pedido'; }, 900);
+    };
+  }
+
+  /* =================== SIMULADOR DE PRESUPUESTO =================== */
+  /* Antes comparaba TODO el catalogo (incluia sillas sueltas, robots de
+     hora loca, mesas...) y el resultado se sentia random -- como
+     recomendar sin conocer al cliente. Esta lista son solo los
+     "paquetes completos" del negocio: lo que alguien compraria como base
+     de su fiesta, no complementos sueltos (silla, mesa, hora extra,
+     personaje individual de hora loca, etc). Con esto la sugerencia se
+     siente curada, no una busqueda de precio mas cercano a ciegas. */
+  var BUDGET_FLAGSHIP_IDS = [
+    'combo-1', 'combo-2', 'combo-3', 'combo-4', 'combo-5', 'combo-6',
+    'show-1', 'show-2', 'show-3', 'show-4', 'show-5', 'show-6',
+    'local-happy', 'local-full', 'local-premium',
+    'gymkana-estandar', 'gymkana-gold', 'foto360', 'alcancia-paquete',
+    'caritas', 'babyshower-1', 'babyshower-2', 'torta-promo',
+    'bocaditos-16', 'bocaditos-24', 'bocaditos-30', 'bocaditos-42'
+  ];
+  /* El simulador respeta el filtro de tema activo (Todos/Cumpleaños/Baby
+     Shower/Solo snacks) -- si estas viendo "Solo snacks" no tiene sentido
+     que te sugiera un show de animadoras. Con un tema activo (categorias
+     ya reducidas) tambien se corta a 1 sola sugerencia en vez de 3: con
+     menos categorias visibles abajo, 3 tarjetas apiladas se pasaban de
+     largo y volvian a pisar "Miralos en accion". */
+  var activeBudgetTheme = 'todos';
+  function renderBudgetSuggestions(budget) {
+    var allowCats = THEME_CATS[activeBudgetTheme];
+    var matches = CATALOG.reduce(function (acc, cat) {
+      if (allowCats && allowCats.indexOf(cat.id) === -1) return acc;
+      cat.items
+        .filter(function (it) { return BUDGET_FLAGSHIP_IDS.indexOf(it.id) !== -1; })
+        .forEach(function (it) { acc.push({ item: it, cat: cat, price: priceOf(it, 0), diff: Math.abs(priceOf(it, 0) - budget) }); });
+      return acc;
+    }, [])
+      .sort(function (a, b) { return a.diff - b.diff; })
+      .slice(0, allowCats ? 1 : 3);
+    document.getElementById('budgetSuggestions').innerHTML = matches.map(function (m) {
+      var photo = photoOf(m.item, m.cat);
+      var thumb = photo ? '<img src="' + photo + '" alt="" loading="lazy">' : '<span class="budget-chip__noimg" aria-hidden="true">🎉</span>';
+      return '<div class="budget-chip">' +
+        '<span class="budget-chip__thumb">' + thumb + '</span>' +
+        '<span class="budget-chip__body"><span class="budget-chip__name">' + m.item.name + '</span>' +
+        '<span class="budget-chip__price">' + money(m.price) + '</span></span>' +
+        '<button type="button" data-add="' + m.item.id + '">Agregar</button></div>';
+    }).join('');
+    document.getElementById('budgetSuggestions').querySelectorAll('[data-add]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var m = matches.find(function (x) { return x.item.id === btn.dataset.add; });
+        addToClientCart(btn.dataset.add, 1, false, 0);
+        btn.textContent = '✓ Agregado';
+        setTimeout(function () { btn.textContent = 'Agregar'; }, 900);
+        if (m) {
+          openChat();
+          chatSendText('Tengo un presupuesto de ' + money(budget) + ' y me interesa "' + m.item.name + '" (' + money(m.price) + '). ¿Qué más me recomiendas para completar mi fiesta con ese presupuesto?');
+        }
+      });
+    });
+  }
+  var budgetRange = document.getElementById('budgetRange');
+  var budgetValueInput = document.getElementById('budgetValueInput');
+  /* El presupuesto real de una fiesta no tiene techo -- un bautizo o baby
+     shower grande puede sumar juegos, montones de bocaditos, sillas,
+     mobiliario, todo junto. El slider no puede ser literalmente infinito,
+     pero en el ultimo tope se muestra "o mas" para dejarlo claro, en vez
+     de que S/1600 se sienta como un limite real del negocio. Y ya no es
+     solo arrastrar: el numero se puede digitar directo (alguien que ya
+     sabe su presupuesto exacto no deberia tener que "afinar" con el
+     mouse). Los dos quedan sincronizados entre si. */
+  function updateBudgetLabel() {
+    var atMax = budgetRange.value === budgetRange.max;
+    document.getElementById('budgetValueSuffix').textContent = atMax ? 'o más' : '';
+  }
+  budgetRange.addEventListener('input', function () {
+    budgetValueInput.value = budgetRange.value;
+    updateBudgetLabel();
+    renderBudgetSuggestions(parseInt(budgetRange.value, 10));
+  });
+  budgetValueInput.addEventListener('input', function () {
+    var val = parseInt(budgetValueInput.value, 10);
+    if (isNaN(val)) return;
+    val = Math.max(parseInt(budgetRange.min, 10), val);
+    budgetRange.value = Math.min(parseInt(budgetRange.max, 10), val);
+    updateBudgetLabel();
+    renderBudgetSuggestions(val);
+  });
+  updateBudgetLabel();
+  renderBudgetSuggestions(parseInt(budgetRange.value, 10));
+
   function openClientCategory(catId) {
     var cat = findCategory(catId); if (!cat) return;
     var c = CAT_COLORS[catId];
@@ -2176,16 +3399,34 @@
       clientSizeDraft[item.id] = clientSizeDraft[item.id] || 0;
       var inc = item.inc ? '<button type="button" class="inc-toggle" data-role="inc-toggle">Ver qué incluye <span class="inc-toggle__arrow">&#9662;</span></button>' +
         '<ul class="inc-list" hidden>' + item.inc.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' : '';
+      var compareCheck = catId === 'combos' ? '<label class="compare-check"><input type="checkbox" data-role="compare" ' + (compareSelection.indexOf(item.id) !== -1 ? 'checked' : '') + '> Comparar</label>' : '';
       return '<div class="item-card glass" data-item="' + item.id + '">' +
         prodThumbClient(item, cat) +
         '<div class="item-card__row"><div><p class="item-card__name">' + item.name + '</p><p class="item-card__desc">' + item.desc + '</p>' +
         inc + sizeMarkup(item) +
-        '<p class="item-card__price" data-role="price"><span class="price-pill">' + money(priceOf(item, clientSizeDraft[item.id])) + '<span class="price-pill__unit">/ ' + item.unit + '</span></span></p></div>' +
+        '<p class="item-card__price" data-role="price"><span class="price-pill">' + money(priceOf(item, clientSizeDraft[item.id])) + '<span class="price-pill__unit">/ ' + item.unit + '</span></span></p>' + compareCheck + '</div>' +
         '<div class="item-card__controls">' +
         (item.allowUnlimited ? '<button type="button" class="unlimited-pill" data-role="unlimited" aria-pressed="false">Ilimitado</button>' : '') +
         (hasQtyStepper(item) ? '<div class="stepper" data-role="stepper"><button type="button" data-role="minus">' + String.fromCharCode(8722) + '</button><span data-role="qty">' + clientQtyDraft[item.id] + '</span><button type="button" data-role="plus">+</button></div>' : '') +
         '<button type="button" class="btn-add" data-role="add">Agregar</button></div></div></div>';
     }).join('');
+
+    document.getElementById('compareBar').hidden = !(catId === 'combos' && compareSelection.length >= 2);
+    renderCompareBar();
+
+    list.querySelectorAll('[data-role="compare"]').forEach(function (chk) {
+      chk.addEventListener('change', function () {
+        var itemId = chk.closest('.item-card').dataset.item;
+        if (chk.checked) {
+          if (compareSelection.length >= 3) { chk.checked = false; alert('Puedes comparar hasta 3 combos a la vez.'); return; }
+          compareSelection.push(itemId);
+        } else {
+          compareSelection = compareSelection.filter(function (id) { return id !== itemId; });
+        }
+        document.getElementById('compareBar').hidden = compareSelection.length < 2;
+        renderCompareBar();
+      });
+    });
 
     list.querySelectorAll('.item-card').forEach(function (card) {
       var itemId = card.dataset.item;
@@ -2243,7 +3484,16 @@
     var line = { name: label, unit: item.unit, qty: finalQty, unlimited: !!unlimited, subtotal: unlimited ? unitPrice : unitPrice * finalQty };
     clientCart.push(line);
     renderClientCartbar();
+    trackEvent('item_added', { name: label });
     return line;
+  }
+  /* Antes no habia forma de sacar un item mal agregado del pedido -- solo
+     se podia seguir sumando. Se identifica por indice en clientCart (el
+     array se re-renderiza completo cada vez, asi que el indice siempre
+     esta al dia). */
+  function removeFromClientCart(index) {
+    clientCart.splice(index, 1);
+    renderClientCartbar();
   }
   function clientTotal() { return clientCart.reduce(function (s, l) { return s + l.subtotal; }, 0); }
   function renderClientCartbar() {
@@ -2256,15 +3506,92 @@
   function openClientReview() {
     document.getElementById('crTitle').textContent = 'Tu pedido';
     document.getElementById('crSubtitle').textContent = 'Revisa y contin\u00faa';
-    document.getElementById('crRows').innerHTML = clientCart.map(function (l) {
-      return '<tr><td>' + l.name + ' <span style="color:var(--ink-faint)">(' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ')</span></td><td>' + money(l.subtotal) + '</td></tr>';
+    document.getElementById('crRows').innerHTML = clientCart.map(function (l, idx) {
+      return '<tr><td>' + l.name + ' <span style="color:var(--ink-faint)">(' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ')</span></td><td>' + money(l.subtotal) + '</td>' +
+        '<td><button type="button" class="cr-row-remove" data-idx="' + idx + '" aria-label="Quitar ' + escapeHtml(l.name) + ' del pedido" title="Quitar">&#10005;</button></td></tr>';
     }).join('');
+    document.getElementById('crRows').querySelectorAll('.cr-row-remove').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        removeFromClientCart(parseInt(btn.dataset.idx, 10));
+        if (clientCart.length === 0) { document.getElementById('clientReviewModal').hidden = true; return; }
+        openClientReview();
+      });
+    });
     document.getElementById('crTotal').textContent = money(clientTotal());
+    document.getElementById('crEventDate').value = isoToDisplayDate(clientEventDate);
+    document.getElementById('crDateWarning').hidden = true;
+    document.getElementById('crHoursNote').hidden = isOpenNow();
     document.getElementById('clientReviewBody').hidden = false;
+    document.getElementById('clientDepositBody').hidden = true;
     document.getElementById('clientConfirmBody').hidden = true;
     document.getElementById('clientReviewModal').hidden = false;
+    trackEvent('review_opened');
   }
   document.getElementById('btnClientReview').addEventListener('click', openClientReview);
+
+  /* =================== MODAL: DEJAR RESEÑA (con foto opcional) =================== */
+  var reviewStars = 5;
+  var reviewPhotoData = null;
+  function paintStarPicker() {
+    document.querySelectorAll('#starPicker button').forEach(function (b) {
+      b.classList.toggle('is-active', parseInt(b.dataset.star, 10) <= reviewStars);
+    });
+  }
+  document.querySelectorAll('#starPicker button').forEach(function (b) {
+    b.addEventListener('click', function () { reviewStars = parseInt(b.dataset.star, 10); paintStarPicker(); });
+  });
+  function openReviewModal() {
+    document.getElementById('revName').value = '';
+    document.getElementById('revText').value = '';
+    reviewStars = 5;
+    reviewPhotoData = null;
+    paintStarPicker();
+    document.getElementById('revPhotoPreview').hidden = true;
+    document.getElementById('revPhotoHint').hidden = false;
+    document.getElementById('revPhotoInput').value = '';
+    document.getElementById('reviewModal').hidden = false;
+  }
+  document.getElementById('btnAddReview').addEventListener('click', openReviewModal);
+  document.getElementById('reviewModalClose').addEventListener('click', function () { document.getElementById('reviewModal').hidden = true; });
+  document.getElementById('reviewModal').addEventListener('click', function (e) { if (e.target.id === 'reviewModal') document.getElementById('reviewModal').hidden = true; });
+
+  /* La foto se reduce con un canvas antes de guardarla: una foto de celular
+     sin comprimir llenaria localStorage en pocas reseñas. */
+  document.getElementById('revPhotoInput').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var maxW = 480;
+        var scale = Math.min(1, maxW / img.width);
+        var canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        reviewPhotoData = canvas.toDataURL('image/jpeg', 0.72);
+        var preview = document.getElementById('revPhotoPreview');
+        preview.src = reviewPhotoData;
+        preview.hidden = false;
+        document.getElementById('revPhotoHint').hidden = true;
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('revSubmit').addEventListener('click', function () {
+    var name = document.getElementById('revName').value.trim();
+    var text = document.getElementById('revText').value.trim();
+    if (!name || !text) { alert('Cuéntanos tu nombre y tu experiencia antes de publicar.'); return; }
+    REVIEWS.unshift({ id: 'r' + Date.now(), name: name, rating: reviewStars, text: text, photo: reviewPhotoData, ts: Date.now() });
+    saveReviews();
+    renderReviews();
+    trackEvent('review_submitted', { rating: reviewStars, withPhoto: !!reviewPhotoData });
+    document.getElementById('reviewModal').hidden = true;
+    alert('¡Gracias por tu reseña!');
+  });
   document.getElementById('chatPrivacyLink').addEventListener('click', function (e) {
     e.preventDefault();
     document.getElementById('privacyModal').hidden = false;
@@ -2282,35 +3609,133 @@
     if (e.target.id === 'clientReviewModal') document.getElementById('clientReviewModal').hidden = true;
   });
 
-  /* Pedido del cliente (Magic Box, ago 2026): nada de pago ni cuenta/QR
-     dentro de la web -- las mam\u00e1s y abuelas que arman el pedido igual
-     quieren cerrar hablando con una persona. El cierre es siempre un
-     mensaje de WhatsApp con el detalle, nunca un cobro dentro de la app. */
+  /* Pedido del cliente (Magic Box, set 2026): el cliente elige fecha,
+     ve si ya esta apartada, paga una reserva del 20% con QR (Yape/Plin)
+     dentro de la web y recien despues abre WhatsApp con el comprobante.
+     Decision del due\u00f1o: cambiar el flujo anterior (que evitaba todo pago
+     dentro de la app) para bloquear la fecha en el momento, no despues. */
   /* Texto del pedido, compartido entre "enviar por WhatsApp" (vista
      cliente normal), "descargar mi lista" y "copiar para WhatsApp"
      (desde el chat) -- una sola fuente de verdad para el formato. */
+  var clientEventDate = '';
+  var clientSelectedQr = 'yape';
   function buildClientOrderText() {
     var clientName = order.clientName || document.getElementById('clientNameTag').textContent;
     var lines = clientCart.map(function (l) {
       return '\u2022 ' + l.name + ' (' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ') \u2014 ' + money(l.subtotal);
     }).join('\n');
-    return 'Hola! Soy ' + clientName + ', arm\u00e9 este pedido en la web de Magic Box:\n\n' + lines + '\n\nTotal: ' + money(clientTotal()) + '\n\n\u00bfMe ayudan a confirmar disponibilidad?';
+    var dateLine = clientEventDate ? ('\n\nFecha del evento: ' + clientEventDate) : '';
+    return 'Hola! Soy ' + clientName + ', arm\u00e9 este pedido en la web de Magic Box:\n\n' + lines + dateLine +
+      '\n\nTotal: ' + money(clientTotal()) + '\nReserva pagada (20%): ' + money(clientTotal() * 0.2) +
+      '\n\nAdjunto mi comprobante de pago de la reserva.';
   }
+  /* La fecha ahora se puede escribir directo (dd/mm/aaaa) ademas de
+     elegirla con el calendario -- antes type="date" obligaba a usar el
+     selector nativo, sin poder tipear. Puertas para adelante y para
+     atras entre el formato que ve la persona (dd/mm/aaaa) y el que usa
+     el resto del codigo (aaaa-mm-dd, para comparar fechas ocupadas). */
+  function isoToDisplayDate(iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    return p.length === 3 ? (p[2] + '/' + p[1] + '/' + p[0]) : '';
+  }
+  function displayToIsoDate(display) {
+    var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec((display || '').trim());
+    if (!m) return null;
+    var day = parseInt(m[1], 10), month = parseInt(m[2], 10), year = parseInt(m[3], 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    var iso = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d.getTime()) || d.getDate() !== day || (d.getMonth() + 1) !== month) return null;
+    return iso;
+  }
+  function checkEventDateBlock(iso) {
+    var warning = document.getElementById('crDateWarning');
+    var blocked = iso ? dateBlockInfo(iso) : null;
+    if (blocked) {
+      warning.textContent = 'Esa fecha ya est\u00e1 apartada por otro cliente' + (blocked.status === 'confirmado' ? '.' : ' (en espera de pago, se libera si no paga en 3 d\u00edas).') + ' Elige otra fecha o escr\u00edbenos para confirmar.';
+      warning.hidden = false;
+    } else {
+      warning.hidden = true;
+    }
+  }
+  document.getElementById('crEventDate').addEventListener('input', function (e) {
+    /* Autoformato mientras escribe: solo digitos, inserta las barras
+       solo -- asi alguien puede escribir "17092026" y le queda
+       "17/09/2026" sin tener que tipear las barras a mano. */
+    var digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+    var formatted = digits;
+    if (digits.length > 4) formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+    else if (digits.length > 2) formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+    e.target.value = formatted;
+    var iso = displayToIsoDate(formatted);
+    clientEventDate = iso || '';
+    checkEventDateBlock(clientEventDate);
+  });
+  /* Boton de calendario: atajo opcional que reusa el selector nativo
+     (input type=date, oculto) solo para elegir visualmente -- el
+     resultado se copia de vuelta al campo de texto principal. */
+  var crEventDateNative = document.getElementById('crEventDateNative');
+  document.getElementById('crEventDatePickerBtn').addEventListener('click', function () {
+    crEventDateNative.value = clientEventDate || '';
+    if (crEventDateNative.showPicker) { crEventDateNative.showPicker(); } else { crEventDateNative.focus(); crEventDateNative.click(); }
+  });
+  crEventDateNative.addEventListener('change', function () {
+    clientEventDate = crEventDateNative.value || '';
+    document.getElementById('crEventDate').value = isoToDisplayDate(clientEventDate);
+    checkEventDateBlock(clientEventDate);
+  });
+  var QR_METHOD_NAMES = { yape: 'Yape', plin: 'Plin' };
+  function setQrMethod(method) {
+    clientSelectedQr = method;
+    document.getElementById('depQrBox').dataset.method = method;
+    document.getElementById('depQrBadge').textContent = QR_METHOD_NAMES[method].toUpperCase();
+    document.getElementById('depQrMethodName').textContent = QR_METHOD_NAMES[method];
+  }
+  document.querySelectorAll('.qr-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.qr-tab').forEach(function (t) { t.setAttribute('aria-pressed', 'false'); });
+      tab.setAttribute('aria-pressed', 'true');
+      setQrMethod(tab.dataset.qr);
+    });
+  });
+  setQrMethod('yape');
   document.getElementById('crGoPay').addEventListener('click', function () {
     if (clientCart.length === 0) return;
+    if (!clientEventDate) { document.getElementById('crEventDate').focus(); document.getElementById('crDateWarning').textContent = 'Elige la fecha de tu evento para continuar.'; document.getElementById('crDateWarning').hidden = false; return; }
+    if (dateBlockInfo(clientEventDate)) return;
+    trackEvent('reserva_iniciada', { fecha: clientEventDate });
+    document.getElementById('depAmount').textContent = money(clientTotal() * 0.2);
+    document.getElementById('depHoursNote').hidden = isOpenNow();
+    document.getElementById('clientReviewBody').hidden = true;
+    document.getElementById('clientDepositBody').hidden = false;
+  });
+  document.getElementById('crBackToReview').addEventListener('click', function () {
+    document.getElementById('clientDepositBody').hidden = true;
+    document.getElementById('clientReviewBody').hidden = false;
+  });
+  document.getElementById('crConfirmDeposit').addEventListener('click', function () {
     var clientName = order.clientName || document.getElementById('clientNameTag').textContent;
     var msg = buildClientOrderText();
     HISTORY.unshift({
       id: 'h' + Date.now(),
       clientName: clientName,
-      eventDate: new Date().toISOString().slice(0, 10),
+      eventDate: clientEventDate,
+      eventStart: '',
+      eventEnd: '',
       total: clientTotal(),
+      depositAmount: clientTotal() * 0.2,
+      depositMethod: clientSelectedQr,
       status: 'solicitud_enviada',
       items: JSON.parse(JSON.stringify(clientCart))
     });
+    saveHistory();
     renderHistory();
+    renderCalendar();
+    renderCalWeek();
+    trackEvent('deposit_confirmed', { fecha: clientEventDate, monto: clientTotal() * 0.2 });
     window.open('https://wa.me/51956206360?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-    document.getElementById('clientReviewBody').hidden = true;
+    document.getElementById('clientDepositBody').hidden = true;
     document.getElementById('clientConfirmBody').hidden = false;
   });
 
@@ -2444,16 +3869,97 @@
     chatShowFinishOptions();
   }
   var chatAiHistory = [];
+  /* Id del "hold" que el chat con IA aparto en el calendario -- si el
+     cliente cambia de fecha/hora a mitad de la charla, se reemplaza en
+     vez de dejar dos bloqueos sueltos del mismo cliente. */
+  var chatAutoHoldId = null;
+  /* Apenas el bot detecta fecha+hora confirmadas (ver eventDateIso/
+     eventStart/eventEnd en la respuesta de /api/chat), se aparta solo en
+     el calendario -- mismo criterio de 3 dias que las reservas
+     "pendiente de pago" (dateBlockInfo ya trata cualquier status que no
+     sea 'confirmado'/'cancelado' asi). Sin pago ni pedido armado de por
+     medio: es justamente para que dos personas chateando por la misma
+     fecha no se crucen mientras deciden. */
+  function autoHoldFromChat(iso, start, end) {
+    var blocking = dateBlockInfo(iso);
+    var isOwnHold = blocking && chatAutoHoldId && blocking.id === chatAutoHoldId;
+    if (blocking && !isOwnHold) return; /* ya ocupado por otra reserva real -- no se pisa */
+    if (chatAutoHoldId) {
+      var idx = HISTORY.findIndex(function (r) { return r.id === chatAutoHoldId; });
+      if (idx !== -1) HISTORY.splice(idx, 1);
+    }
+    var rec = {
+      id: 'h' + Date.now(),
+      clientName: (chatContactName || document.getElementById('clientNameTag').textContent || 'Cliente') + ' (chat IA)',
+      clientPhone: chatContactPhone || '',
+      eventDate: iso, eventStart: start, eventEnd: end,
+      total: 0, status: 'chat_ia', items: []
+    };
+    HISTORY.unshift(rec);
+    chatAutoHoldId = rec.id;
+    saveHistory();
+    renderCalendar();
+    renderCalWeek();
+  }
   function openChat() {
+    trackEvent('chat_open');
     document.getElementById('chatFullscreen').hidden = false;
+    document.getElementById('stage-client').classList.add('chat-split-open');
+    /* Se oculta el simulador de presupuesto mientras el chat esta abierto
+       -- el catalogo se angosta y el panel ya no tiene donde acomodarse
+       sin pisar contenido. Solo se oculta a la vista: lo que ya se agrego
+       al pedido con "Agregar" sigue en el carrito igual, no se toca. */
+    document.getElementById('budgetSim').style.display = 'none';
     document.getElementById('chatMessages').innerHTML = '';
     chatAiHistory = [];
+    /* "Cliente" es el placeholder generico del HTML cuando la due\u00f1a no
+       precargo un nombre real -- saludar "Hola, Cliente!" se siente a
+       bot mal armado. Si no hay nombre real todavia, va solo "Hola!". */
     var name = document.getElementById('clientNameTag').textContent;
-    chatPush('bot', '\u00a1Hola, <strong>' + name + '</strong>! \u00a1Qu\u00e9 emoci\u00f3n, vamos a planear tu fiesta! \ud83c\udf89 Soy un asistente virtual (con IA) \u2014 pero me conozco Magic Box al detalle. Cu\u00e9ntame qu\u00e9 est\u00e1s celebrando y te ayudo a armar todo, o toca una categor\u00eda abajo si ya sabes por d\u00f3nde empezar.');
+    var greetName = (name && name !== 'Cliente') ? (', <strong>' + name + '</strong>') : '';
+    chatPush('bot', '\u00a1Hola' + greetName + '! \u00a1Qu\u00e9 emoci\u00f3n, vamos a planear tu fiesta! \ud83c\udf89 Soy un asistente virtual (con IA) \u2014 pero me conozco Magic Box al detalle. Cu\u00e9ntame qu\u00e9 est\u00e1s celebrando y te ayudo a armar todo, o toca una categor\u00eda abajo si ya sabes por d\u00f3nde empezar.');
     chatShowCategories();
   }
-  function closeChat() { document.getElementById('chatFullscreen').hidden = true; }
+  function closeChat() {
+    document.getElementById('chatFullscreen').hidden = true;
+    document.getElementById('stage-client').classList.remove('chat-split-open');
+    document.getElementById('budgetSim').style.display = '';
+  }
   document.getElementById('btnClientChat').addEventListener('click', openChat);
+
+  /* Burbuja del conejo: rota mensajes cada cierto tiempo para llamar la
+     atencion hacia el chat con IA (y de paso refuerza el disclosure legal
+     de que es IA) -- se repite mientras el cliente no haya abierto el
+     chat, y para en cuanto lo abre para no molestar. */
+  (function () {
+    var hint = document.getElementById('chatHint');
+    if (!hint) return;
+    var HINT_MESSAGES = [
+      '&#128048; &#161;Hola! Te ayudo a armar tu pedido con IA &#10024;',
+      '&#128048; T&#243;came para coordinar tu fiesta &#127881;',
+      '&#128048; Yo te ayudo a elegir, &#161;pregunta lo que quieras! &#128172;'
+    ];
+    var hintIndex = 0;
+    var chatOpened = false;
+    var hideTimer = null;
+    function showHint() {
+      if (chatOpened) return;
+      hint.innerHTML = HINT_MESSAGES[hintIndex % HINT_MESSAGES.length] + '<span class="chat-hint__arrow"></span>';
+      hintIndex++;
+      hint.hidden = true;
+      void hint.offsetWidth; /* fuerza reflow para reiniciar la animacion CSS */
+      hint.hidden = false;
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () { hint.hidden = true; }, 5100);
+    }
+    setTimeout(showHint, 1200);
+    setInterval(function () { if (!chatOpened) showHint(); }, 22000);
+    document.getElementById('btnClientChat').addEventListener('click', function () {
+      chatOpened = true;
+      clearTimeout(hideTimer);
+      hint.hidden = true;
+    });
+  })();
   document.getElementById('chatClose').addEventListener('click', closeChat);
 
   /* ---- Preguntas en lenguaje libre: van a /api/chat (Gemini del lado del
@@ -2517,11 +4023,12 @@
   var chatInputForm = document.getElementById('chatInputForm');
   var chatInputText = document.getElementById('chatInputText');
   var chatSending = false;
-  chatInputForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var text = chatInputText.value.trim();
+  /* Logica compartida de "mandar un mensaje al chat" -- la usa tanto el
+     input libre de abajo como cualquier atajo que quiera hablarle al bot
+     en nombre del cliente (ej. el simulador de presupuesto). */
+  function chatSendText(text) {
+    text = (text || '').trim();
     if (!text || chatSending) return;
-    chatInputText.value = '';
     chatPush('user', text.replace(/</g, '&lt;'));
 
     if (chatAwaitingContact === 'name') {
@@ -2559,7 +4066,7 @@
     fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: chatAiHistory.slice(0, -1) })
+      body: JSON.stringify({ message: text, history: chatAiHistory.slice(0, -1), bookedDates: getBookedDatesForBot() })
     }).then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
         chatHideTyping();
@@ -2571,32 +4078,53 @@
         var matches = matchCatalogItemsInText(res.data.reply);
         var bubble = chatPush('bot', renderBotText(res.data.reply) + chatPhotoGallery(matches));
         wireChatPhotoGallery(bubble, matches);
+        if (res.data.eventDateIso && res.data.eventStart && res.data.eventEnd) {
+          autoHoldFromChat(res.data.eventDateIso, res.data.eventStart, res.data.eventEnd);
+        }
       })
       .catch(function () {
         chatHideTyping();
         chatPush('bot', 'No pude conectarme. Revisa tu internet o escr\u00edbenos por WhatsApp.');
       })
       .then(function () { chatSending = false; chatInputText.focus(); });
+  }
+  chatInputForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = chatInputText.value.trim();
+    if (!text || chatSending) return;
+    chatInputText.value = '';
+    chatSendText(text);
   });
 
-  renderShowcase();
-
-  /* =================== CARRUSEL DE OPINIONES: auto-scroll infinito ===
-     Duplica las tarjetas una sola vez -- al llegar a la mitad del ancho
-     (que es donde termina el set original y empieza el clon identico),
-     resta esa mitad al scrollLeft. Como el clon es igual al original, el
-     salto es invisible: se ve como un loop continuo sin fin. Se pausa al
-     tocar/pasar el mouse para poder leer con calma. */
-  (function () {
-    var track = document.querySelector('.reviews-track');
+  function renderPhotoMarquee() {
+    var track = document.getElementById('photoMarqueeTrack');
     if (!track) return;
-    track.innerHTML += track.innerHTML;
+    var imgs = CATALOG.map(function (cat) {
+      return '<img src="' + CAT_PHOTO[cat.id] + '" alt="" loading="lazy">';
+    }).join('');
+    track.innerHTML = imgs + imgs;
+  }
+  renderPhotoMarquee();
+  renderShowcase();
+  renderGallery();
+  renderVideos();
+  renderReviews();
 
+  /* =================== CARRUSELES: auto-scroll infinito =================
+     El track ya llega duplicado una vez (semilla+reales x2 en reseñas,
+     catalogo x2 en videos) -- al llegar a la mitad del ancho (que es
+     donde termina el set original y empieza el clon identico), resta esa
+     mitad al scrollLeft. Como el clon es igual al original, el salto es
+     invisible: se ve como un loop continuo sin fin. Se pausa al
+     tocar/pasar el mouse para poder interactuar (leer, o darle play a un
+     video) con calma. Misma logica para ambos carruseles -- una sola
+     funcion reutilizable en vez de duplicar el codigo. */
+  function makeInfiniteCarousel(track, speed) {
+    if (!track) return;
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) return;
 
     var paused = false;
-    var speed = 0.6;
     var pauseWatchdog = null;
     function pauseTrack() {
       paused = true;
@@ -2624,7 +4152,9 @@
       requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
-  })();
+  }
+  makeInfiniteCarousel(document.querySelector('.reviews-track'), 1.1);
+  makeInfiniteCarousel(document.getElementById('videosTrack'), 0.7);
 
   /* Rotacion infinita entre varios videos de fondo del hero -- se ve mas
      "vivo" que repetir el mismo clip corto una y otra vez. Al terminar
