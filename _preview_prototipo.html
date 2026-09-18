@@ -2172,7 +2172,7 @@
     var THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
     var blocking = HISTORY.find(function (r) {
       if (r.eventDate !== iso || r.status === 'cancelado') return false;
-      if (r.status === 'confirmado') return true;
+      if (r.status === 'confirmado' || r.status === 'bloqueado_manual') return true;
       var ts = parseInt(String(r.id).replace(/^h/, ''), 10) || 0;
       return (now - ts) < THREE_DAYS;
     });
@@ -2191,7 +2191,7 @@
     var out = [];
     HISTORY.forEach(function (r) {
       if (!r.eventDate || r.status === 'cancelado' || seen[r.eventDate]) return;
-      var isConfirmed = r.status === 'confirmado';
+      var isConfirmed = r.status === 'confirmado' || r.status === 'bloqueado_manual';
       var ts = parseInt(String(r.id).replace(/^h/, ''), 10) || 0;
       var withinHold = (now - ts) < THREE_DAYS;
       if (!isConfirmed && !withinHold) return;
@@ -2200,7 +2200,7 @@
       out.push({
         date: r.eventDate,
         hours: hours,
-        status: isConfirmed ? 'confirmado' : 'reservado_pendiente_pago'
+        status: r.status === 'bloqueado_manual' ? 'bloqueado' : (isConfirmed ? 'confirmado' : 'reservado_pendiente_pago')
       });
     });
     return out;
@@ -2744,11 +2744,12 @@
   }
 
   function renderHistory() {
-    if (HISTORY.length === 0) {
+    var visible = HISTORY.filter(function (r) { return r.status !== 'bloqueado_manual'; });
+    if (visible.length === 0) {
       document.getElementById('historyList').innerHTML = '<p class="order-empty">Todav&#237;a no hay pedidos guardados.</p>';
       return;
     }
-    document.getElementById('historyList').innerHTML = HISTORY.map(function (r) {
+    document.getElementById('historyList').innerHTML = visible.map(function (r) {
       var d = new Date(r.eventDate + 'T00:00:00');
       var evStr = d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
       var badge = '';
@@ -2843,6 +2844,31 @@
     if (calSelectedDate) renderCalDayDetail(calSelectedDate);
   }
 
+  /* Bloqueo manual: la dueña puede apartar una fecha sin pedido (feriado,
+     viaje, compromiso fuera del sistema) o liberar cualquier registro que
+     este ocupando el calendario (pendiente, confirmado o bloqueo manual)
+     antes de que se cumplan los 3 dias automaticos. Reusa HISTORY con un
+     status propio para que dateBlockInfo/getBookedDatesForBot lo traten
+     como ocupacion permanente, igual que 'confirmado'. */
+  function toggleManualBlock(iso) {
+    var rec = { id: 'bm' + Date.now(), clientName: 'Bloqueado por la dueña', clientPhone: '', eventDate: iso, eventStart: null, eventEnd: null, total: 0, status: 'bloqueado_manual', items: [] };
+    HISTORY.unshift(rec);
+    saveHistory();
+    renderCalendar();
+    renderCalWeek();
+    renderCalDayDetail(iso);
+  }
+  function releaseCalEvent(recId, iso) {
+    var rec = HISTORY.find(function (r) { return r.id === recId; });
+    if (!rec) return;
+    rec.status = 'cancelado';
+    saveHistory();
+    renderHistory();
+    renderCalendar();
+    renderCalWeek();
+    renderCalDayDetail(iso);
+  }
+
   function renderCalDayDetail(iso) {
     var box = document.getElementById('calDayDetail');
     var title = document.getElementById('calDayDetailTitle');
@@ -2851,17 +2877,25 @@
     var d = new Date(iso + 'T00:00:00');
     title.textContent = d.toLocaleDateString('es-PE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
     if (evs.length === 0) {
-      list.innerHTML = '<p class="order-empty">No hay eventos programados este d&#237;a. Horario libre.</p>';
+      list.innerHTML = '<p class="order-empty">No hay eventos programados este d&#237;a. Horario libre.</p>' +
+        '<button type="button" class="history-row__btn" id="calBlockDayBtn" style="margin-top:10px;">Bloquear esta fecha</button>';
+      var blockBtn = document.getElementById('calBlockDayBtn');
+      if (blockBtn) blockBtn.addEventListener('click', function () { toggleManualBlock(iso); });
     } else {
       list.innerHTML = evs.map(function (r) {
+        var isManualBlock = r.status === 'bloqueado_manual';
         var start = fmtHour(r.eventStart);
         var end = fmtHour(r.eventEnd);
-        var hourStr = (start && end) ? (start + ' &#8211; ' + end) : (start ? 'Desde ' + start : 'Hora no especificada');
+        var hourStr = isManualBlock ? 'Fecha bloqueada manualmente' : ((start && end) ? (start + ' &#8211; ' + end) : (start ? 'Desde ' + start : 'Hora no especificada'));
         return '<div class="cal-event glass">' +
           '<div><p class="cal-event__who">' + r.clientName + '</p><p class="cal-event__hours">&#128337; ' + hourStr + '</p></div>' +
-          '<span class="cal-event__total">' + money(r.total) + '</span>' +
+          (isManualBlock ? '' : '<span class="cal-event__total">' + money(r.total) + '</span>') +
+          '<button type="button" class="history-row__btn" data-release="' + r.id + '">' + (isManualBlock ? 'Desbloquear' : 'Liberar fecha') + '</button>' +
         '</div>';
       }).join('');
+      list.querySelectorAll('[data-release]').forEach(function (btn) {
+        btn.addEventListener('click', function () { releaseCalEvent(btn.dataset.release, iso); });
+      });
     }
     box.hidden = false;
   }
@@ -3653,7 +3687,7 @@
     var warning = document.getElementById('crDateWarning');
     var blocked = iso ? dateBlockInfo(iso) : null;
     if (blocked) {
-      warning.textContent = 'Esa fecha ya est\u00e1 apartada por otro cliente' + (blocked.status === 'confirmado' ? '.' : ' (en espera de pago, se libera si no paga en 3 d\u00edas).') + ' Elige otra fecha o escr\u00edbenos para confirmar.';
+      warning.textContent = (blocked.status === 'bloqueado_manual' ? 'Esa fecha no est\u00e1 disponible.' : ('Esa fecha ya est\u00e1 apartada por otro cliente' + (blocked.status === 'confirmado' ? '.' : ' (en espera de pago, se libera si no paga en 3 d\u00edas).'))) + ' Elige otra fecha o escr\u00edbenos para confirmar.';
       warning.hidden = false;
     } else {
       warning.hidden = true;
