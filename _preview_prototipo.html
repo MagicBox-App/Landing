@@ -204,7 +204,7 @@
      un bloque entero arriba del catalogo empujando todo hacia abajo. En
      pantallas mas chicas sigue arriba, en su lugar de siempre. */
   @media (min-width: 1280px) {
-    #budgetSim { position: absolute; left: 60px; top: 750px; width: 220px; margin-bottom: 0; }
+    #budgetSim { position: absolute; left: 60px; top: 780px; width: 220px; margin-bottom: 0; }
     /* Angosto (240px): el nombre del producto no entra al lado del boton
        -- se corta a "C." feisimo. En vertical (foto arriba, texto y
        boton abajo, a todo el ancho) el nombre tiene espacio real. */
@@ -2303,6 +2303,30 @@
   }
   window.addEventListener('load', positionGalleryRails);
   window.addEventListener('resize', positionGalleryRails);
+  /* El simulador de presupuesto (#budgetSim) solo se vuelve position:absolute
+     en pantallas >=1280px (ver media query en el <style>), clavado a un
+     top:750px fijo pensado para la altura "tipica" del hero+filtros de arriba.
+     Cuando esa altura cambia un poco (mas sugerencias de presupuesto, texto
+     que ocupa otra linea, etc.) el simulador se corre para abajo y termina
+     tapando el inicio de "Miralos en accion". Aca se recorta el top para que
+     su base nunca pase mas alla del borde superior de esa seccion. */
+  function positionBudgetSim() {
+    var bs = document.getElementById('budgetSim');
+    var stageEl = document.getElementById('stage-client');
+    var videos = document.getElementById('videosSection');
+    if (!bs || !stageEl || !videos) return;
+    if (window.innerWidth < 1280) { bs.style.top = ''; return; }
+    var stageTop = stageEl.getBoundingClientRect().top + window.pageYOffset;
+    var videosTop = videos.getBoundingClientRect().top + window.pageYOffset;
+    var desiredTop = 780;
+    var maxTop = videosTop - stageTop - bs.offsetHeight - 6;
+    bs.style.top = Math.max(0, Math.min(desiredTop, maxTop)) + 'px';
+  }
+  window.addEventListener('load', positionBudgetSim);
+  window.addEventListener('resize', positionBudgetSim);
+  setTimeout(positionBudgetSim, 400);
+  setTimeout(positionBudgetSim, 1200);
+  setTimeout(positionBudgetSim, 2500);
   /* Reintentos cortos: el header/banda pueden correrse un poco despues de
      "load" (fuente web que termina de cargar, imagen que define su alto
      real) -- sin esto la franja se queda pegada a una medida vieja. */
@@ -3382,6 +3406,7 @@
         }
       });
     });
+    if (typeof positionBudgetSim === 'function') positionBudgetSim();
   }
   var budgetRange = document.getElementById('budgetRange');
   var budgetValueInput = document.getElementById('budgetValueInput');
