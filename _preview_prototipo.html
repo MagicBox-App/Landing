@@ -4059,9 +4059,68 @@
     chatQuickReplies([]);
     chatPush('bot', 'Antes de darte el resumen, \u00bfcu\u00e1l es tu nombre?');
   }
+  /* El resumen de "Ver resumen y enviar" solo manda la lista de items con
+     precios (buildClientOrderText) -- no lleva nada de lo que la persona
+     convers\u00f3 con el asistente. Para pedidos armados a punta de chat esa
+     conversaci\u00f3n tiene contexto real (preferencias, dudas resueltas, fecha
+     mencionada) que la due\u00f1a pierde si solo le llega la lista pelada. Este
+     bot\u00f3n manda las dos cosas juntas por WhatsApp. */
+  function buildChatTranscriptText() {
+    var MAX_MESSAGES = 40; // ida y vuelta larga -- recorta las mas viejas, no las recientes
+    var history = chatAiHistory.slice(-MAX_MESSAGES);
+    return history.map(function (m) {
+      return (m.role === 'user' ? 'Cliente' : 'Asistente') + ': ' + m.text;
+    }).join('\n');
+  }
+  function buildChatOrderConfirmText() {
+    var clientName = chatContactName || order.clientName || document.getElementById('clientNameTag').textContent || 'Cliente';
+    var cartLines = clientCart.length ? clientCart.map(function (l) {
+      return '\u2022 ' + l.name + ' (' + (l.unlimited ? 'ilimitado' : qtyUnit(l.qty, l.unit)) + ') \u2014 ' + money(l.subtotal);
+    }).join('\n') : '(A\u00fan no agregu\u00e9 items al carrito, solo estuve conversando)';
+    var eventDate = clientEventDate || chatContactFecha || '';
+    var dateLine = eventDate ? ('\nFecha del evento: ' + eventDate) : '';
+    var totalLine = clientCart.length ? ('\nTotal estimado: ' + money(clientTotal())) : '';
+    var transcript = buildChatTranscriptText();
+    return 'Hola! Soy ' + clientName + ', quiero confirmar este pedido que arm\u00e9 con el asistente de Magic Box:\n\n' +
+      cartLines + dateLine + totalLine +
+      (transcript ? ('\n\n--- As\u00ed fue mi conversaci\u00f3n con el asistente ---\n' + transcript) : '');
+  }
+  function chatConfirmFullOrder() {
+    var clientName = chatContactName || order.clientName || document.getElementById('clientNameTag').textContent || 'Cliente';
+    var msg = buildChatOrderConfirmText();
+    /* chatContactFecha es texto libre que la persona tipeo respondiendole
+       al bot ("15/10/2026", "el 15 de octubre", etc.) -- el calendario y
+       el bloqueo de fechas (dateBlockInfo) solo entienden ISO aaaa-mm-dd.
+       Si viene en dd/mm/aaaa se convierte; si no se puede parsear, se
+       manda vacio para no guardar un dato que rompa esas comparaciones
+       (el texto igual queda en el mensaje de WhatsApp, para que la dueña
+       lo lea con sus propias palabras). */
+    var eventDateIso = clientEventDate || displayToIsoDate(chatContactFecha || '') || '';
+    HISTORY.unshift({
+      id: 'h' + Date.now(),
+      clientName: clientName + ' (chat IA)',
+      clientPhone: chatContactPhone || '',
+      eventDate: eventDateIso,
+      eventStart: '', eventEnd: '',
+      total: clientTotal(),
+      status: 'solicitud_enviada',
+      items: JSON.parse(JSON.stringify(clientCart))
+    });
+    saveHistory();
+    renderHistory();
+    renderCalendar();
+    renderCalWeek();
+    trackEvent('chat_confirm_order', { fecha: clientEventDate || chatContactFecha || '' });
+    window.open('https://wa.me/51956206360?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+  }
   function chatShowFinishOptions() {
     chatPush('bot', 'Genial, esto es lo que llevas. \u00bfC\u00f3mo quieres continuar?');
     chatQuickReplies([
+      { label: '\u2705 Confirmar tu pedido', onClick: function () {
+        chatPush('user', 'Confirmar tu pedido');
+        chatConfirmFullOrder();
+        chatPush('bot', '\u00a1Listo! Te abr\u00ed WhatsApp con tu pedido y toda nuestra conversaci\u00f3n para que lo confirmemos. Si no se abri\u00f3 solo, escr\u00edbenos directo por ah\u00ed.');
+      } },
       { label: 'Ver resumen y enviar', onClick: function () { closeChat(); openClientReview(); } },
       { label: '\ud83d\udcc4 Descargar mi lista', onClick: function () {
         chatPush('user', 'Descargar mi lista');
