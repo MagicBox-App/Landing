@@ -279,6 +279,18 @@ async function saveConversation(phone, history) {
   }
 }
 
+async function getBooking(id) {
+  const fs = getClient();
+  if (!fs || !id) return null;
+  try {
+    const snap = await fs.collection(BOOKINGS).doc(id).get();
+    return snap.exists ? rowOf(snap) : null;
+  } catch (err) {
+    console.error('Firestore getBooking error', err.message);
+    return null;
+  }
+}
+
 /* Resumen de chats de WhatsApp para el Excel del panel (solo admin). */
 async function listConversations() {
   const fs = getClient();
@@ -298,7 +310,7 @@ async function listConversations() {
 }
 
 module.exports = {
-  listConversations,
+  listConversations, getBooking,
   getClient, getConversation, saveConversation,
   getBookedDates, reserveBooking, holdFailureNote,
   listBookings, insertBooking, updateBooking

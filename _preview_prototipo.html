@@ -5,21 +5,24 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
   (function () {
-    /* Oscuro por defecto (pedido del cliente) -- se decide antes de pintar
-       para no destellar en claro al cargar. */
+    /* Blanco (claro) por defecto; solo es oscuro si la persona lo eligio con
+       el boton. Se decide antes de pintar para no destellar al cargar. */
     var saved = localStorage.getItem('ff_proto_theme');
-    document.documentElement.setAttribute('data-theme', saved === 'light' ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light');
   })();
 </script>
 <style>
   :root {
-    --bg: #FBF1E4;
-    --surface: #FFFDF8;
-    --surface-2: #F6E9D8;
+    /* Claro = blanco limpio (pedido del cliente 5-oct-2026). Antes era crema
+       (#FBF1E4); las superficies secundarias llevan un rosado muy suave de la
+       marca para que tarjetas y bordes se sigan distinguiendo sobre blanco. */
+    --bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-2: #F8F2F6;
     --ink: #2C1B2A;
     --ink-soft: #6B5661;
     --ink-faint: #9A8790;
-    --line: #E7D5C0;
+    --line: #EBDDE6;
     --primary: #7C2E52;
     --primary-dark: #5C2140;
     --primary-tint: #F1DCE6;
@@ -39,9 +42,9 @@
        glass casi no se notaba en modo claro (si se notaba bien en oscuro,
        que usa .66/.86). Bajado para que el desenfoque se vea parejo en
        ambos temas. */
-    --glass-bg: rgba(255,253,248,.72);
-    --glass-bg-strong: rgba(255,253,248,.88);
-    --glass-border: rgba(255,255,255,.8);
+    --glass-bg: rgba(255,255,255,.78);
+    --glass-bg-strong: rgba(255,255,255,.92);
+    --glass-border: rgba(124,46,82,.10);
     --glass-blur: 22px;
   }
 
@@ -81,11 +84,12 @@
   /* ============ FONDO FESTIVO CON BLUR (mas colorido) ============ */
   .bg-decor { position: fixed; inset: 0; overflow: hidden; z-index: 0; background: var(--bg); }
   .blob { position: absolute; border-radius: 50%; filter: blur(70px); }
-  .blob--1 { width: 540px; height: 540px; background: var(--primary); opacity: .5; top: -170px; left: -150px; }
-  .blob--2 { width: 480px; height: 480px; background: var(--accent); opacity: .52; bottom: -170px; right: -130px; }
-  .blob--3 { width: 400px; height: 400px; background: var(--teal); opacity: .4; top: 22%; right: 6%; }
-  .blob--4 { width: 320px; height: 320px; background: var(--coral); opacity: .38; bottom: 8%; left: 4%; }
-  .blob--5 { width: 260px; height: 260px; background: var(--primary); opacity: .3; top: 55%; left: 42%; }
+  /* En claro, apenas un velo de color sobre blanco: festivo pero limpio. */
+  .blob--1 { width: 540px; height: 540px; background: var(--primary); opacity: .14; top: -170px; left: -150px; }
+  .blob--2 { width: 480px; height: 480px; background: var(--accent); opacity: .16; bottom: -170px; right: -130px; }
+  .blob--3 { width: 400px; height: 400px; background: var(--teal); opacity: .1; top: 22%; right: 6%; }
+  .blob--4 { width: 320px; height: 320px; background: var(--coral); opacity: .1; bottom: 8%; left: 4%; }
+  .blob--5 { width: 260px; height: 260px; background: var(--primary); opacity: .08; top: 55%; left: 42%; }
   /* En oscuro los mismos blobs saturan mucho mas (el fondo ya es oscuro, hay
      menos contraste que los apague). Se bajan a la mitad para que sigan
      dando ambiente sin competir con las tarjetas. */
@@ -530,6 +534,9 @@
   .cal-nav .btn--ghost:hover { background: var(--primary); color: #fff; }
   .cal-nav h3 { font-size: 18px; font-weight: 800; text-transform: capitalize; min-width: 180px; text-align: center; }
   .cal-nav .btn { padding: 8px 14px; min-height: 0; }
+  /* Flechas: sin relleno lateral (40px de ancho dejaban 12px al icono y se veia cortado como "_") */
+  .cal-nav .btn--ghost { padding: 0; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 40px; }
+  .cal-nav .btn--ghost svg { width: 20px; height: 20px; min-width: 20px; flex: none; display: block; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 18px; }
   .cal-cell { border-radius: var(--r-sm); }
   .cal-cell--head { text-align: center; font-size: 12px; font-weight: 700; color: var(--ink-faint); padding: 4px 0; }
@@ -683,7 +690,15 @@
      las mismas mostradas como cinta continua para dar vida al borde. */
   .photo-marquee {
     width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
-    overflow: hidden; height: 74px;
+    overflow: hidden; height: 74px; position: relative;
+  }
+  /* Difuminado en los bordes con el color del tema (--bg), asi cambia solo
+     entre claro y oscuro: izquierda/derecha y hacia abajo. */
+  .photo-marquee::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(to right, var(--bg) 0%, transparent 12%, transparent 88%, var(--bg) 100%),
+      linear-gradient(to bottom, transparent 40%, var(--bg) 100%);
   }
   .photo-marquee__track { display: flex; gap: 10px; width: max-content; animation: marqueeScroll 38s linear infinite; }
   .photo-marquee__track img { width: 100px; height: 74px; object-fit: cover; flex: none; opacity: .92; }
@@ -1492,9 +1507,9 @@
 
         <div id="calMonthView">
           <div class="cal-nav">
-            <button type="button" class="btn btn--ghost" id="calPrev">&#8592;</button>
+            <button type="button" class="btn btn--ghost" id="calPrev" aria-label="Mes anterior"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <h3 id="calMonthLabel"></h3>
-            <button type="button" class="btn btn--ghost" id="calNext">&#8594;</button>
+            <button type="button" class="btn btn--ghost" id="calNext" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
           <div class="cal-grid" id="calGrid"></div>
           <div class="cal-day-detail glass" id="calDayDetail" hidden>
@@ -2938,8 +2953,8 @@
       return;
     }
     document.getElementById('historyList').innerHTML = visible.map(function (r) {
-      var d = new Date(r.eventDate + 'T00:00:00');
-      var evStr = d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+      var d = r.eventDate ? new Date(r.eventDate + 'T00:00:00') : null;
+      var evStr = (d && !isNaN(d.getTime())) ? d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Fecha por confirmar';
       var badge = '';
       var btn = '';
       if (r.status === 'solicitud_enviada') {
@@ -3896,7 +3911,7 @@
       renderClientCartbar();
       return existing;
     }
-    var line = { name: label, unit: item.unit, qty: finalQty, unlimited: !!unlimited, subtotal: unlimited ? unitPrice : unitPrice * finalQty };
+    var line = { itemId: itemId, name: label, unit: item.unit, qty: finalQty, unlimited: !!unlimited, subtotal: unlimited ? unitPrice : unitPrice * finalQty };
     clientCart.push(line);
     renderClientCartbar();
     trackEvent('item_added', { name: label });
@@ -4212,7 +4227,8 @@
     var si = 0;
     var asksQty = hasQtyStepper(item) || !!item.allowUnlimited;
     var intro = item.sizes ? 'Elige la cantidad de <strong>' + item.name + '</strong>:'
-      : asksQty ? '\u00bfCu\u00e1ntos/as necesitas de <strong>' + item.name + '</strong>?'
+      : hasQtyStepper(item) ? '\u00bfCu\u00e1ntos/as necesitas de <strong>' + item.name + '</strong>?'
+      : item.allowUnlimited ? '<strong>' + item.name + '</strong>: si lo quieres sin l\u00edmite, marca <strong>Ilimitado</strong> antes de agregar.'
       : '<strong>' + item.name + '</strong>';
     var html = '<p>' + intro + '</p>' +
       sizeMarkup(item) +
@@ -4282,8 +4298,64 @@
   }
   function chatFinish() {
     if (clientCart.length === 0) { chatPush('bot', 'Todav\u00eda no agregaste nada. Elige una categor\u00eda primero.'); chatShowCategories(); return; }
+    /* Antes de cerrar: lo que el asistente recomendo en la charla y no
+       quedo en el pedido (p. ej. el local que se converso pero no se toco
+       en el catalogo). Se ofrece una sola vez. */
+    if (!chatSuggestOffered) {
+      var pending = chatRecommendedNotInCart();
+      if (pending.length) { chatSuggestOffered = true; chatOfferRecommended(pending); return; }
+    }
     if (!chatContactName || !chatContactPhone) { chatAskContactInfo(); return; }
     chatShowFinishOptions();
+  }
+  var chatSuggestOffered = false;
+  function cartHasItem(item) {
+    return clientCart.some(function (l) { return l.itemId === item.id || String(l.name).indexOf(item.name) === 0; });
+  }
+  /* Productos que el asistente nombro en sus ultimas respuestas. Se
+     ignoran los mensajes que son listas de precios (4 o mas productos):
+     ahi no esta recomendando, esta mostrando el catalogo. */
+  function chatRecommendedNotInCart() {
+    var seen = {}, out = [];
+    chatAiHistory.filter(function (m) { return m.role === 'model'; }).slice(-6).forEach(function (m) {
+      var norm = normalizeText(m.text);
+      var found = [];
+      CATALOG.forEach(function (cat) {
+        cat.items.forEach(function (item) {
+          var n = normalizeText(item.name);
+          if (n.length >= 4 && norm.indexOf(n) !== -1) found.push({ item: item, cat: cat });
+        });
+      });
+      if (found.length >= 4) return;
+      found.forEach(function (f) {
+        if (seen[f.item.id] || cartHasItem(f.item)) return;
+        seen[f.item.id] = true;
+        out.push(f);
+      });
+    });
+    return out.slice(0, 3);
+  }
+  function chatOfferRecommended(pending) {
+    var names = pending.map(function (p) { return '<strong>' + p.item.name + '</strong>'; });
+    chatPush('bot', 'Antes de cerrar: en la charla te recomend\u00e9 ' + (names.length > 1 ? names.slice(0, -1).join(', ') + ' y ' + names[names.length - 1] : names[0]) + ', pero no est\u00e1' + (names.length > 1 ? 'n' : '') + ' en tu pedido. ' + (names.length > 1 ? '\u00bfTe los agrego?' : '\u00bfTe lo agrego?'));
+    chatQuickReplies(pending.map(function (p) {
+      var from = p.item.sizes ? 'desde ' + money(priceOf(p.item, 0)) : money(p.item.price);
+      return { label: '\u2795 ' + p.item.name + ' (' + from + ')', onClick: function () {
+        chatPush('user', 'Agregar ' + p.item.name);
+        if (p.item.sizes || hasQtyStepper(p.item) || p.item.allowUnlimited) { chatAskQty(p.item); return; }
+        addToClientCart(p.item.id, 1, false, 0);
+        var rest = pending.filter(function (x) { return x !== p && !cartHasItem(x.item); });
+        chatPush('bot', '\u2705 Agregado. Ahora llevas <strong>' + money(clientTotal()) + '</strong>.');
+        if (rest.length) chatOfferRecommended(rest); else chatFinish();
+      } };
+    }).concat([{ label: 'No, as\u00ed est\u00e1 bien', onClick: function () { chatPush('user', 'No, as\u00ed est\u00e1 bien'); chatFinish(); } }]));
+  }
+  /* Fecha/horario que la persona ya dio en la charla (lo detecta el
+     servidor en cada respuesta). Con esto el cierre no vuelve a preguntar. */
+  var chatKnownEvent = null;
+  function knownEventText() {
+    if (!chatKnownEvent) return '';
+    return isoToDmyPlain(chatKnownEvent.iso) + (chatKnownEvent.start && chatKnownEvent.end ? ' de ' + chatKnownEvent.start + ' a ' + chatKnownEvent.end : '');
   }
   var chatAiHistory = [];
   /* Id del "hold" que el chat con IA aparto en el calendario -- si el
@@ -4332,6 +4404,7 @@
     document.getElementById('budgetSim').style.display = 'none';
     document.getElementById('chatMessages').innerHTML = '';
     chatAiHistory = [];
+    chatSuggestOffered = false;
     /* "Cliente" es el placeholder generico del HTML cuando la due\u00f1a no
        precargo un nombre real -- saludar "Hola, Cliente!" se siente a
        bot mal armado. Si no hay nombre real todavia, va solo "Hola!". */
@@ -4456,7 +4529,7 @@
        manda vacio para no guardar un dato que rompa esas comparaciones
        (el texto igual queda en el mensaje de WhatsApp, para que la dueña
        lo lea con sus propias palabras). */
-    var eventDateIso = clientEventDate || displayToIsoDate(chatContactFecha || '') || '';
+    var eventDateIso = clientEventDate || displayToIsoDate(chatContactFecha || '') || (chatKnownEvent && chatKnownEvent.iso) || '';
     /* Si el chat ya habia apartado fecha+horario, el pedido se queda con
        ese horario (el servidor cancela el hold y deja este en su lugar). */
     var ownHold = HISTORY.find(function (r) { return isOwnChatHold(r) || (chatAutoHoldId && r.id === chatAutoHoldId); });
@@ -4525,6 +4598,14 @@
     }
     if (chatAwaitingContact === 'phone') {
       chatContactPhone = text;
+      /* Si la fecha ya salio en la charla, no se vuelve a preguntar. */
+      if (chatKnownEvent && chatKnownEvent.iso) {
+        chatContactFecha = knownEventText();
+        chatAwaitingContact = null;
+        chatPush('bot', 'Gracias. Tengo anotado tu evento para el <strong>' + chatContactFecha + '</strong> ✅');
+        chatAfterContact();
+        return;
+      }
       chatAwaitingContact = 'fecha';
       chatPush('bot', '¡Última pregunta! ¿Para qué fecha sería el evento?');
       return;
@@ -4532,6 +4613,10 @@
     if (chatAwaitingContact === 'fecha') {
       chatContactFecha = text;
       chatAwaitingContact = null;
+      chatAfterContact();
+      return;
+    }
+    function chatAfterContact() {
       sendLeadToGoogleForm({
         nombre: chatContactName,
         telefono: chatContactPhone,
@@ -4569,6 +4654,15 @@
         var matches = matchCatalogItemsInText(res.data.reply);
         var bubble = chatPush('bot', renderBotText(res.data.reply) + chatPhotoGallery(matches));
         wireChatPhotoGallery(bubble, matches);
+        if (res.data.eventDateIso) {
+          /* Lo que la persona ya dijo de su evento: el cierre del pedido no
+             vuelve a preguntarlo. */
+          chatKnownEvent = {
+            iso: res.data.eventDateIso,
+            start: res.data.eventStart || (chatKnownEvent && chatKnownEvent.iso === res.data.eventDateIso ? chatKnownEvent.start : null),
+            end: res.data.eventEnd || (chatKnownEvent && chatKnownEvent.iso === res.data.eventDateIso ? chatKnownEvent.end : null)
+          };
+        }
         if (res.data.eventDateIso && res.data.eventStart && res.data.eventEnd) {
           autoHoldFromChat(res.data.eventDateIso, res.data.eventStart, res.data.eventEnd, res.data.holdId);
         }
@@ -4668,10 +4762,10 @@
   }
 
   /* =================== TOGGLE DE TEMA =================
-     Oscuro por defecto -- pedido explicito del cliente en la reunion del
-     13-ago-2026: "oscuro se ve mas profesional... blanco es como
-     cualquiera que hace una pagina". Ya no sigue al sistema operativo por
-     defecto; si la persona toca el boton, su eleccion manda y se recuerda. */
+     Claro (blanco) por defecto -- pedido del cliente el 5-oct-2026 (antes,
+     en la reunion del 13-ago-2026, se habia pedido oscuro). No sigue al
+     sistema operativo; si la persona toca el boton, su eleccion manda y se
+     recuerda. */
   var sysDark = window.matchMedia('(prefers-color-scheme: dark)');
 
   function isDarkNow() {
@@ -4691,21 +4785,17 @@
   }
 
   var savedTheme = localStorage.getItem('ff_proto_theme');
-  document.documentElement.setAttribute('data-theme', (savedTheme === 'light') ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', (savedTheme === 'dark') ? 'dark' : 'light');
   paintThemeIcon();
 
   document.querySelectorAll('.js-theme').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var next = isDarkNow() ? 'light' : 'dark';
-      /* Si la eleccion coincide con lo que ya hace el sistema, se borra la
-         preferencia en vez de fijarla: asi vuelve a seguir al sistema. */
-      if ((next === 'dark') === sysDark.matches) {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.removeItem('ff_proto_theme');
-      } else {
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('ff_proto_theme', next);
-      }
+      /* Siempre se fija y se recuerda la eleccion: como el default es claro
+         (no el del sistema), borrar la preferencia haria que un "oscuro"
+         elegido se pierda al recargar. */
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('ff_proto_theme', next); } catch (e) { /* sin localStorage: dura la visita */ }
       paintThemeIcon();
     });
   });

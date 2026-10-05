@@ -17,7 +17,7 @@
  */
 
 const crypto = require('crypto');
-const { getClient, listBookings, insertBooking, updateBooking, reserveBooking, listConversations } = require('./_db');
+const { getClient, listBookings, insertBooking, updateBooking, reserveBooking, listConversations, getBooking } = require('./_db');
 
 const STATUSES = ['guardado', 'solicitud_enviada', 'confirmado', 'bloqueado_manual', 'cancelado', 'chat_ia'];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -124,6 +124,18 @@ module.exports = async function handler(req, res) {
     }
     if (!fields.status) fields.status = 'guardado';
     const chatHoldId = body.sessionId ? 'web_' + String(body.sessionId).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32) : null;
+
+    /* Si el pedido llega sin fecha (la persona la escribio en texto libre)
+       pero su chat ya habia apartado fecha y horario, se usan esos: asi el
+       horario no se pierde al reemplazar el apartado por el pedido. */
+    if (chatHoldId && !fields.event_date) {
+      const hold = await getBooking(chatHoldId);
+      if (hold && hold.status !== 'cancelado' && hold.event_date) {
+        fields.event_date = hold.event_date;
+        if (!fields.event_start) fields.event_start = hold.event_start || null;
+        if (!fields.event_end) fields.event_end = hold.event_end || null;
+      }
+    }
 
     const newId = 'h' + Date.now() + crypto.randomBytes(3).toString('hex');
     let row;

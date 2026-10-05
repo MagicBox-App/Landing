@@ -46,11 +46,20 @@ function eventFacts(history, message) {
     .map(function (m) { return m.text; })
     .concat([message]).join(' '));
   const padded = ' ' + userText + ' ';
+  /* Los mismos detectores del modo sin IA (fechas "20/11", horas sueltas
+     "a las 3 de la tarde" + "termina 6", tipeos "d ela", "perosnas"...).
+     require diferido: _offline.js tambien usa este modulo. */
+  const O = require('./_offline');
+  const userMsgs = (Array.isArray(history) ? history : []).filter(function (m) { return m && m.role === 'user'; })
+    .map(function (m) { return O.normText(m.text); }).concat([O.normText(message)]);
+  const times = O.timesFromConversation(history, message);
   return {
-    date: new RegExp('\\b(' + MONTHS + ')\\b|\\b\\d{1,2} ?/ ?\\d{1,2}\\b|\\b(este|el proximo|proximo) (sabado|domingo|viernes|lunes|martes|miercoles|jueves)\\b').test(userText),
-    time: /\b\d{1,2} ?(am|pm|hrs?|horas)\b|\b\d{1,2} \d{2}\b|\bde \d{1,2} a \d{1,2}\b|mediodia/.test(userText),
-    district: DISTRICTS.some(function (d) { return padded.indexOf(' ' + d + ' ') !== -1; }) || /\bdistrito\b/.test(userText),
-    guests: /\b\d+ ?(invitados|personas|ninos|nenes|chicos|chicas|adultos|pax|peques)\b/.test(userText)
+    date: userMsgs.some(function (t) { return !!O.parseDate(t); }) ||
+      new RegExp('\\b(' + MONTHS + ')\\b|\\b(este|el proximo|proximo) (sabado|domingo|viernes|lunes|martes|miercoles|jueves)\\b').test(userText),
+    time: !!times.range || /\bmediodia\b/.test(userText),
+    timeStartOnly: !!times.start && !times.end,
+    district: DISTRICTS.some(function (d) { return padded.indexOf(' ' + d + ' ') !== -1; }) || /\b(distrito|en casa|en mi casa|en un local)\b/.test(userText),
+    guests: userMsgs.some(function (t) { return !!O.parseGuests(t); })
   };
 }
 
@@ -86,6 +95,7 @@ const ASK = {
 function nextQuestion(history, message) {
   const f = eventFacts(history, message);
   if (!f.date) return pick(ASK.date);
+  if (!f.time && f.timeStartOnly) return pick(['¿Y a qué hora terminaría la fiesta? ⏰', '¿Hasta qué hora sería? Así te aparto el horario completo ⏰']);
   if (!f.time) return pick(ASK.time);
   if (!f.district) return pick(ASK.district);
   if (!f.guests) return pick(ASK.guests);
@@ -393,6 +403,10 @@ function cannedReply(message, history, ctx) {
   });
   if (matched.length !== 1) return null;
   const intent = matched[0];
+  /* "¿qué me recomiendas para un baby shower?": la recomendacion generica
+     es de cumpleaños; si nombran otro tipo de evento responde el modo sin
+     IA, que tiene una propuesta especifica para cada uno. */
+  if (intent.name === 'recomendacion' && /\b(baby|shower|bautiz\w*|comunion|quince|promo\w*|graduacion|aniversario|boda|matrimonio|reunion)\b/.test(text)) return null;
   const pool = Array.isArray(intent.replies) ? intent.replies : (intent.replies[ctx.channel] || intent.replies.web);
   let reply = fill(pickFresh(pool, history));
   if (intent.askAfter && maybe(0.7)) reply += '\n\n' + nextQuestion(history, message);
@@ -402,5 +416,5 @@ function cannedReply(message, history, ctx) {
 
 module.exports = {
   cannedReply, normalize, pick, maybe, fill, nextQuestion, eventFacts, parseCatalog,
-  CATEGORY_KEYWORDS, PHONE, ADDRESS, DISTRICTS, MONTHS
+  CATEGORY_KEYWORDS, PRICE_WORDS, PHONE, ADDRESS, DISTRICTS, MONTHS
 };

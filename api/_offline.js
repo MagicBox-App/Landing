@@ -27,7 +27,10 @@ function normText(s) {
   return String(s || '').toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9ñ\/:.,\- ]+/g, ' ')
-    .replace(/\s+/g, ' ').trim();
+    .replace(/\s+/g, ' ').trim()
+    /* errores de tipeo frecuentes en el celular */
+    .replace(/\bd ela\b/g, 'de la').replace(/\bdela\b/g, 'de la').replace(/\bde l a\b/g, 'de la')
+    .replace(/\ba la s\b/g, 'a las').replace(/\balas\b/g, 'a las');
 }
 
 /* ---------------- Fechas y horas (hora de Lima, UTC-5) ---------------- */
@@ -128,8 +131,67 @@ function parseTimeRange(text) {
   return null;
 }
 
+/* Horas sueltas: "a las 3 de la tarde" (inicio), "termina a las 6",
+   "acabe 6 de la tarde" (fin). Devuelve { start?, end? } con lo que haya
+   en ESTE texto; parseTimeRange ya cubre "de 3 a 8" en una sola frase. */
+const END_WORDS = /(hasta|termin|acab|finaliz|fin\b|sal(e|imos|en)\b|cierr)/;
+const START_WORDS = /(a las|las|desde|inici|empiez|empez|comienz|arranc|entrad|llegamos|para las)/;
+function to24(h, suffix, fallbackPm) {
+  if (/pm|tarde|noche/.test(suffix || '')) return h < 12 ? h + 12 : h;
+  if (/am|manana/.test(suffix || '')) return h === 12 ? 0 : h;
+  return fallbackPm && h >= 1 && h <= 8 ? h + 12 : h; /* "a las 3" en una fiesta = 3pm */
+}
+function parseTimes(text) {
+  const range = parseTimeRange(text);
+  if (range) return range;
+  const re = /(?:^|[^\d\/])(\d{1,2})(?:[:.](\d{2}))?(?!\d)\s*(am|pm|a\s?m|p\s?m|hrs?|horas|de la tarde|de la noche|de la manana|en la tarde|en la noche)?/g;
+  let m, start = null, end = null;
+  while ((m = re.exec(text))) {
+    const h = +m[1], mm = m[2] ? +m[2] : 0;
+    const before = text.slice(Math.max(0, m.index - 18), m.index + (m[0].indexOf(m[1]) > 0 ? m[0].indexOf(m[1]) : 0));
+    const after = text.slice(re.lastIndex, re.lastIndex + 16);
+    if (h > 24 || mm > 59) continue;
+    if (/^\s*(de\s+)?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|sept|setiembre|octubre|noviembre|diciembre)/.test(after)) continue; /* es una fecha */
+    if (/^\s*\/|^\s*(inv|pe|ni|nen|chic|adul|pax|peq|amig|criat|sol|luca|anos|ano)\w*/.test(after) && !m[3]) continue; /* invitados, plata, edad */
+    if (/(s\/|cumple|tiene|edad)\s*$/.test(before)) continue;
+    const suffix = (m[3] || '').replace(/\s/g, '');
+    const isEnd = END_WORDS.test(before);
+    const isStart = !isEnd && (START_WORDS.test(before) || !!suffix);
+    if (!isEnd && !isStart) continue;
+    const hh = to24(h, suffix, true);
+    const val = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+    if (isEnd) end = { h: h, mm: mm, suffix: suffix, val: val };
+    else if (!start) start = { val: val };
+  }
+  const out = {};
+  if (start) out.start = start.val;
+  if (end) {
+    /* "de 3pm ... termina a las 6" sin sufijo: si queda antes del inicio, es de la tarde/noche */
+    let hh = to24(end.h, end.suffix, false);
+    if (start && !end.suffix && hh * 60 + end.mm <= toMins(start.val) && hh < 12) hh += 12;
+    out.end = (hh < 10 ? '0' : '') + hh + ':' + (end.mm < 10 ? '0' : '') + end.mm;
+  }
+  return (out.start || out.end) ? out : null;
+}
+
+/* Junta inicio y fin aunque vengan en mensajes distintos (lo mas reciente
+   manda). now = el mensaje actual aporto algo de horario. */
+function timesFromConversation(history, message) {
+  const cur = parseTimes(normText(message));
+  let start = cur && cur.start, end = cur && cur.end;
+  const users = (Array.isArray(history) ? history : []).filter(function (m) { return m && m.role === 'user'; });
+  for (let i = users.length - 1; i >= 0 && (!start || !end); i--) {
+    const t = parseTimes(normText(users[i].text));
+    if (!t) continue;
+    if (!start && t.start) start = t.start;
+    if (!end && t.end) end = t.end;
+  }
+  const valid = start && end && toMins(end) > toMins(start) && toMins(end) - toMins(start) <= 12 * 60;
+  return { start: start || null, end: end || null, range: valid ? { start: start, end: end } : null, now: !!cur };
+}
+
 function parseGuests(text) {
-  let m = /\b(\d{2,3})\s*(invitados|personas|ninos|ninas|nenes|chicos|chicas|adultos|pax|peques|criaturas|amiguitos)\b/.exec(text);
+  let m = /(?:^|\D)(\d{1,3})\s*(inv\w*|pe[rs]\w*|ni[nñ]\w*|nen\w*|chic\w*|adult\w*|pax|peq\w*|criat\w*|amig\w*|asistentes)\b/.exec(text);
   if (!m) m = /\b(?:somos|seremos|vendran|vienen|para)\s+(?:unos?\s+|como\s+|aprox(?:imadamente)?\s+)?(\d{2,3})\b(?!\s*(?:soles|am|pm|hrs|horas|:|de (?:la|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)))/.exec(text);
   if (!m) return null;
   const n = +m[1];
@@ -241,39 +303,59 @@ function offlineReply(message, history, bookedDates, ctx) {
   const B = ctx.channel === 'whatsapp' ? function (s) { return '*' + s + '*'; } : function (s) { return '**' + s + '**'; };
   const parts = [];
   let confident = false;
+  let askedQuestion = false; /* si ya se pregunto algo concreto, no se agrega la pregunta generica del final */
   let pitchedVenue = alreadySaid(history, 'nuestro local') || alreadySaid(history, 'Paquete Happy');
 
   const dateHit = lastFromHistory(history, message, parseDate);
-  const timeHit = lastFromHistory(history, message, parseTimeRange);
+  const times = timesFromConversation(history, message);
   const guests = parseGuests(text);
   const budget = parseBudget(text);
   const eventType = parseEventType(text);
   const date = dateHit && dateHit.value;
-  const range = timeHit && timeHit.value;
-  let result = { eventDateIso: null, eventStart: null, eventEnd: null };
+  const range = times.range;
+  /* La fecha se informa aunque falte el horario: asi la pagina ya no
+     vuelve a preguntarla al cerrar el pedido. El apartado en el calendario
+     solo ocurre con fecha + inicio + fin (lo decide api/chat.js). */
+  let result = { eventDateIso: date ? iso(date) : null, eventStart: range ? range.start : null, eventEnd: range ? range.end : null };
 
   // 1) Fecha / horario: disponibilidad real
-  if (date && (dateHit.now || (timeHit && timeHit.now))) {
+  if (date && (dateHit.now || times.now)) {
     confident = true;
     const dIso = iso(date);
     const av = availability(dIso, range, bookedDates);
-    const when = B(dateLabel(date)) + (range ? ' de ' + hourLabel(range.start) + ' a ' + hourLabel(range.end) : '');
+    const when = B(dateLabel(date)) + (range ? ' de ' + hourLabel(range.start) + ' a ' + hourLabel(range.end) : (times.start ? ' desde las ' + hourLabel(times.start) : ''));
     if (av.free === false) {
+      askedQuestion = true;
       parts.push(av.fullDay
         ? C.pick(['Uy, el ' + when + ' ya está tomado 😕', 'Ese día (' + when + ') ya tenemos el local reservado 😕']) +
           ' ¿Te sirve otra fecha cercana? Dime cuál y te la reviso al toque.'
         : C.pick(['Uy, ese horario se cruza con otra fiesta (ocupado de ' + av.clash + ') 😕', 'Ese horario ya está tomado: hay un evento de ' + av.clash + ' 😕']) +
           ' Ese mismo día podemos antes o después de ese rango, o si prefieres revisamos otra fecha.');
     } else if (av.free === null) {
+      askedQuestion = true;
       parts.push('El ' + when + ' hay un evento de ' + av.partial.join(' y de ') + ', así que quedan horarios libres fuera de ese rango 😊 ¿En qué horario lo pensabas?');
     } else {
-      parts.push(C.pick(['¡Buenísimo! El ' + when + ' está libre 🎉', '¡Tengo buenas noticias! El ' + when + ' está disponible 🥳', '¡Perfecto! El ' + when + ' lo tenemos libre ✨']));
-      if (range) {
-        result = { eventDateIso: dIso, eventStart: range.start, eventEnd: range.end };
+      const heldBefore = range && (Array.isArray(history) ? history : []).some(function (m) {
+        return m && m.role === 'model' && /apart|separ/i.test(m.text) && String(m.text).indexOf(hourLabel(range.start) + ' a ' + hourLabel(range.end)) !== -1;
+      });
+      if (heldBefore) {
+        parts.push('Sí, ya tienes apartado el ' + when + ' ✅ Nadie más lo puede tomar mientras lo confirmas.');
+      } else {
+        parts.push(C.pick(['¡Buenísimo! El ' + when + ' está libre 🎉', '¡Tengo buenas noticias! El ' + when + ' está disponible 🥳', '¡Perfecto! El ' + when + ' lo tenemos libre ✨']));
+      }
+      if (heldBefore) {
+        /* ya se dijo que quedo apartado */
+      } else if (range) {
         parts.push(C.pick(['Ya te lo dejo apartado por 3 días para que nadie te lo gane.', 'Te lo separo por 3 días mientras decides, así nadie más lo toma 😉']));
+      } else if (times.start) {
+        askedQuestion = C.pick(['¿Y a qué hora terminaría? Así te lo aparto completo ⏰', 'Anotado el inicio 👍 ¿A qué hora terminaría la fiesta?']);
+      } else if (times.end) {
+        askedQuestion = 'Anotado que termina a las ' + hourLabel(times.end) + ' 👍 ¿A qué hora empezaría?';
       }
       const wd = date.getUTCDay();
-      if (wd >= 1 && wd <= 4 && price(idx, 'Local de lunes a jueves')) {
+      if (alreadySaid(history, 'local de lunes a jueves') || alreadySaid(history, 'Local de lunes a jueves')) {
+        /* ya se lo ofrecimos: no repetirlo en cada mensaje */
+      } else if (wd >= 1 && wd <= 4 && price(idx, 'Local de lunes a jueves')) {
         parts.push('Y como es ' + WEEKDAY_LABEL[wd] + ', te sale más a cuenta: el ' + B('local de lunes a jueves') + ' es solo ' + money(price(idx, 'Local de lunes a jueves')) + ' por 5 horas (hasta las 9pm) 💸');
         pitchedVenue = true;
       } else if (!pitchedVenue) {
@@ -281,6 +363,20 @@ function offlineReply(message, history, bookedDates, ctx) {
         pitchedVenue = true;
       }
     }
+  }
+
+  // 1b) Respuesta sobre donde sera la fiesta ("en su local", "en Surco")
+  const asksPrice = C.PRICE_WORDS.test(plain);
+  const ourVenue = !asksPrice && /\b(su local|el local de ustedes|en el local|en tu local|en su salon|la perla|en el suyo)\b/.test(plain);
+  const district = !asksPrice && C.DISTRICTS.find(function (d) { return (' ' + plain + ' ').indexOf(' ' + d + ' ') !== -1; });
+  if (ourVenue) {
+    confident = true;
+    parts.push(C.pick(['¡Perfecto, en nuestro local de La Perla! 🏠 Te va a encantar: salón, patio con grass sintético, cocina y cochera.', '¡Genial, en nuestro local entonces! 🏠 Es amplio y muy cómodo, con patio de grass y cochera.']));
+  } else if (district && !/perla|local/.test(district)) {
+    confident = true;
+    parts.push('¡Anotado, en ' + district.replace(/\b\w/g, function (c) { return c.toUpperCase(); }) + '! 📍 Llevamos shows, snacks y todo lo demás hasta allá.' +
+      (pitchedVenue ? '' : ' Y si prefieres no preocuparte por el espacio, nuestro local en La Perla tiene todo listo desde ' + money(price(idx, 'Local de lunes a jueves') || price(idx, 'Paquete Happy')) + ' 😉'));
+    pitchedVenue = true;
   }
 
   // 2) Invitados
@@ -291,9 +387,22 @@ function offlineReply(message, history, bookedDates, ctx) {
     } else {
       parts.push(C.pick([guests + ' invitados, ¡qué lindo! 🎉', 'Para ' + guests + ' personas queda genial 😊', '¡' + guests + ' invitados, fiesta asegurada! 🎈']) +
         (pitchedVenue ? '' : ' Entran cómodos en nuestro local (hasta 100 personas).'));
-      if (guests >= 30 && !alreadySaid(history, 'Combo')) {
-        parts.push('Para esa cantidad, los ' + B('combos de snacks') + ' rinden muy bien: por ejemplo el Combo 3 (50 panchos + 50 salchipapas + algodón o popcorn ilimitado) a ' + money(price(idx, 'Combo 3')) + '.');
-      }
+      /* Propuesta concreta con total, armada con lo que ya se sabe de la
+         charla: dia de semana -> local de lunes a jueves; fiesta en otro
+         distrito -> sin local; presupuesto -> se recorta si no alcanza. */
+      const allUser = (Array.isArray(history) ? history : []).filter(function (m) { return m && m.role === 'user'; })
+        .map(function (m) { return C.normalize(m.text); }).concat([plain]).join(' | ');
+      const elsewhere = C.DISTRICTS.some(function (d) { return !/perla|local/.test(d) && (' ' + allUser + ' ').indexOf(' ' + d + ' ') !== -1; }) || /\ben (mi |la )?casa\b/.test(allUser);
+      const wdDate = date ? date.getUTCDay() : -1;
+      const venue = elsewhere ? null : (wdDate >= 1 && wdDate <= 4 && price(idx, 'Local de lunes a jueves') ? 'Local de lunes a jueves' : 'Paquete Happy');
+      const snack = guests >= 30 ? 'Combo 3' : 'Combo 1';
+      let pick = [venue, 'Animadora temática', snack].filter(Boolean);
+      const budgetHit = lastFromHistory(history, message, parseBudget);
+      const sum = function (arr) { return arr.reduce(function (s, n) { return s + price(idx, n); }, 0); };
+      if (budgetHit && sum(pick) > budgetHit.value) pick = pick.filter(function (n) { return n !== snack; });
+      parts.push('Te propongo para ' + guests + ' invitados: ' + pick.map(function (n) { return B(n) + ' (' + money(price(idx, n)) + ')'; }).join(' + ') +
+        ' = ' + B(money(sum(pick))) + '. Todo se ajusta a tu gusto 😉');
+      askedQuestion = C.pick(['¿Te gusta así? Si quieres, toca cada servicio en el catálogo y queda en tu pedido 🎉', '¿Lo armamos así o le cambiamos algo? Puedes agregar cada servicio desde el catálogo 😊']);
     }
   }
 
@@ -328,8 +437,8 @@ function offlineReply(message, history, bookedDates, ctx) {
     pitchedVenue = true;
   }
 
-  // 5) Categoria mencionada (aunque el mensaje traiga numeros)
-  if (!confident) {
+  // 5) Pregunta de precios de una categoria (aunque el mensaje traiga numeros)
+  if (!confident && asksPrice) {
     const cats = Object.keys(C.CATEGORY_KEYWORDS).filter(function (c) { return C.CATEGORY_KEYWORDS[c].test(plain); });
     if (cats.length === 1 && idx.cats[cats[0]]) {
       confident = true;
@@ -351,10 +460,13 @@ function offlineReply(message, history, bookedDates, ctx) {
     ]));
   }
 
-  parts.push(C.nextQuestion(history, message));
+  /* La pregunta siempre va al final. askedQuestion: true = la pregunta ya
+     va dentro de un parrafo de arriba; texto = esa es la pregunta final. */
+  if (typeof askedQuestion === 'string') parts.push(askedQuestion);
+  else if (!askedQuestion) parts.push(C.nextQuestion(history, message));
   let reply = parts.join('\n\n');
   if (ctx.channel === 'whatsapp') reply = reply.replace(/\*\*/g, '*');
   return Object.assign({ reply: reply, confident: confident }, result);
 }
 
-module.exports = { offlineReply, normText, parseDate, parseTimeRange, parseGuests, parseBudget, parseEventType };
+module.exports = { offlineReply, normText, parseTimes, timesFromConversation, parseDate, parseTimeRange, parseGuests, parseBudget, parseEventType };
