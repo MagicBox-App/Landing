@@ -13,10 +13,11 @@
  *     pedido) y solo si la fecha no choca con otra reserva.
  *   - Admin: cualquier estado (pedido guardado, bloqueo manual, etc.).
  * POST /api/bookings  { action: 'update', id, fields }   (solo admin)
+ * POST /api/bookings  { action: 'chats' }   (solo admin: resumen de chats de WhatsApp para el Excel)
  */
 
 const crypto = require('crypto');
-const { getClient, listBookings, insertBooking, updateBooking, reserveBooking } = require('./_db');
+const { getClient, listBookings, insertBooking, updateBooking, reserveBooking, listConversations } = require('./_db');
 
 const STATUSES = ['guardado', 'solicitud_enviada', 'confirmado', 'bloqueado_manual', 'cancelado', 'chat_ia'];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -147,6 +148,14 @@ module.exports = async function handler(req, res) {
     if (chatHoldId) await updateBooking(chatHoldId, { status: 'cancelado' });
 
     res.status(200).json({ booking: row });
+    return;
+  }
+
+  if (body.action === 'chats') {
+    if (admin !== true) { res.status(401).json({ error: 'Solo el panel interno puede ver los chats.' }); return; }
+    const chats = await listConversations();
+    if (chats === null) { res.status(502).json({ error: 'No se pudieron leer los chats.' }); return; }
+    res.status(200).json({ chats: chats });
     return;
   }
 

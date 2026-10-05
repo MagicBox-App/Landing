@@ -279,7 +279,26 @@ async function saveConversation(phone, history) {
   }
 }
 
+/* Resumen de chats de WhatsApp para el Excel del panel (solo admin). */
+async function listConversations() {
+  const fs = getClient();
+  if (!fs) return null;
+  try {
+    const snap = await fs.collection(CONVERSATIONS).orderBy('updated_at', 'desc').limit(1000).get();
+    return snap.docs.map(function (d) {
+      const data = d.data();
+      const history = Array.isArray(data.history) ? data.history : [];
+      const lastUser = history.filter(function (m) { return m && m.role === 'user'; }).slice(-1)[0];
+      return { phone: d.id, updated_at: data.updated_at || null, messages: history.length, last_user_text: lastUser ? String(lastUser.text).slice(0, 500) : '' };
+    });
+  } catch (err) {
+    console.error('Firestore listConversations error', err.message);
+    return null;
+  }
+}
+
 module.exports = {
+  listConversations,
   getClient, getConversation, saveConversation,
   getBookedDates, reserveBooking, holdFailureNote,
   listBookings, insertBooking, updateBooking

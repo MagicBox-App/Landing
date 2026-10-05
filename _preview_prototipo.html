@@ -1520,7 +1520,7 @@
       </section>
       <section id="view-history" hidden>
         <div class="view-head"><h1>Historial de pedidos</h1><p>Se guardan en la nube: se ven igual desde el celular, la tablet o la laptop.</p></div>
-        <button type="button" class="btn btn--secondary" id="btnDownloadLeadsExcel" style="margin-bottom:16px;">&#128190; Descargar Excel de clientes (WhatsApp)</button>
+        <button type="button" class="btn btn--secondary" id="btnDownloadLeadsExcel" style="margin-bottom:16px;">&#128190; Descargar Excel con todo (reservas, pedidos y chats)</button>
         <div class="history-list" id="historyList"></div>
       </section>
       <section id="view-analytics" hidden>
@@ -2217,6 +2217,7 @@
       boletaNum: row.boleta_num || undefined,
       status: row.status,
       source: row.source || '',
+      createdAt: row.created_at || '',
       items: Array.isArray(row.items) ? row.items : [],
       heldAt: Date.parse(row.updated_at || row.created_at || '') || Date.now()
     };
@@ -3469,16 +3470,90 @@
   });
   setInterval(function () { if (!document.hidden && !adminPollTimer) loadBookingsFromServer(); }, 120000);
 
-  /* =================== EXCEL DE CLIENTES (WhatsApp) ===================
-     Por ahora usa datos de prueba -- cuando el webhook de WhatsApp este
-     conectado a Firestore, esta funcion va a leer la coleccion
-     whatsapp_leads en vez de leer este arreglo fijo. El .xlsx se genera
-     100% en el navegador con SheetJS, sin pasar por ningun servidor. */
-  var LEADS_DEMO = [
-    { Fecha: '2026-08-15 10:32', Nombre: 'Valeria Cruz', Teléfono: '987654321', 'Consulta / Mensaje': 'Quiero cotizar un baby shower para 30 personas', 'Categoría de interés': 'Baby Shower', Estado: 'Cotizado', 'Monto cotizado': 460, Fuente: 'WhatsApp Bot' },
-    { Fecha: '2026-08-16 18:05', Nombre: 'Jorge Pérez', Teléfono: '956112233', 'Consulta / Mensaje': 'Necesito local para 100 personas el 22 de agosto', 'Categoría de interés': 'Alquiler de Local', Estado: 'Nuevo', 'Monto cotizado': '', Fuente: 'WhatsApp Bot' },
-    { Fecha: '2026-08-17 09:14', Nombre: 'Milagros Soto', Teléfono: '941223344', 'Consulta / Mensaje': 'Cuánto cuesta el combo 3 para 50 invitados', 'Categoría de interés': 'Combos de Snacks', Estado: 'Cerrado', 'Monto cotizado': 700, Fuente: 'Chat Web' }
-  ];
+  /* =================== EXCEL CON TODO (reservas, servicios, chats) ===================
+     Datos reales del calendario en la nube (Firestore via /api/bookings):
+     primero se recarga del servidor para que el Excel salga al dia, y los
+     chats de WhatsApp se piden aparte (solo con la clave del panel). El
+     .xlsx se arma 100% en el navegador con SheetJS. */
+  var STATUS_LABEL = {
+    guardado: 'Cotización guardada',
+    solicitud_enviada: 'Pedido enviado (pendiente de pago)',
+    confirmado: 'Confirmado (pagado)',
+    bloqueado_manual: 'Fecha bloqueada por la dueña',
+    cancelado: 'Cancelado / liberado',
+    chat_ia: 'Apartado por el chat (3 días)'
+  };
+  var SOURCE_LABEL = { web: 'Página web', whatsapp: 'WhatsApp', prueba: 'Prueba' };
+  function isoToDmyPlain(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? m[3] + '/' + m[2] + '/' + m[1] : '';
+  }
+  function stampToLocal(s) {
+    var t = Date.parse(s || '');
+    if (!t) return '';
+    var d = new Date(t), p = function (n) { return String(n).padStart(2, '0'); };
+    return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function itemsOf(r) { return Array.isArray(r.items) ? r.items : []; }
+  function bookingRows() {
+    return HISTORY.slice().sort(function (a, b) { return String(b.eventDate).localeCompare(String(a.eventDate)); }).map(function (r) {
+      var d = r.eventDate ? new Date(r.eventDate + 'T00:00:00') : null;
+      var status = STATUS_LABEL[r.status] || r.status || '';
+      if (isExpiredChatHold(r)) status = 'Apartado por el chat (vencido)';
+      return {
+        'Fecha del evento': isoToDmyPlain(r.eventDate),
+        'Día': d ? d.toLocaleDateString('es-PE', { weekday: 'long' }) : '',
+        'Horario': (r.eventStart && r.eventEnd) ? (r.eventStart + ' a ' + r.eventEnd) : (r.status === 'bloqueado_manual' ? 'Todo el día' : ''),
+        'Cliente': r.clientName || '',
+        'Teléfono': r.clientPhone || '',
+        'Estado': status,
+        'Origen': SOURCE_LABEL[r.source] || (r.status === 'chat_ia' ? 'Chat' : 'Panel interno'),
+        'Total (S/)': Number(r.total) || 0,
+        'Adelanto (S/)': r.depositAmount != null ? Number(r.depositAmount) : '',
+        'Método de pago': r.depositMethod || '',
+        'N° boleta': r.boletaNum || '',
+        'Servicios': itemsOf(r).map(function (it) { return (it.qty || 1) + 'x ' + it.name; }).join(', '),
+        'Registrado el': stampToLocal(r.createdAt),
+        'Última actualización': r.heldAt ? stampToLocal(new Date(r.heldAt).toISOString()) : ''
+      };
+    });
+  }
+  function itemRows() {
+    var out = [];
+    HISTORY.forEach(function (r) {
+      if (r.status === 'cancelado') return;
+      itemsOf(r).forEach(function (it) {
+        out.push({
+          'Fecha del evento': isoToDmyPlain(r.eventDate),
+          'Cliente': r.clientName || '',
+          'Estado': STATUS_LABEL[r.status] || r.status || '',
+          'Servicio': it.name || '',
+          'Cantidad': it.unlimited ? 'Ilimitado' : (it.qty || 1),
+          'Subtotal (S/)': Number(it.subtotal) || 0
+        });
+      });
+    });
+    return out;
+  }
+  function chatRows(chats) {
+    return (chats || []).map(function (c) {
+      return {
+        'Teléfono': c.phone,
+        'Último mensaje': stampToLocal(c.updated_at),
+        'Mensajes en la charla': c.messages,
+        'Lo último que escribió el cliente': c.last_user_text
+      };
+    });
+  }
+  function sheetWithWidths(rows, emptyHeaders) {
+    var ws = rows.length ? XLSX.utils.json_to_sheet(rows) : XLSX.utils.aoa_to_sheet([emptyHeaders, ['(sin datos todavía)']]);
+    var headers = rows.length ? Object.keys(rows[0]) : emptyHeaders;
+    ws['!cols'] = headers.map(function (h) {
+      var max = rows.reduce(function (m, r) { return Math.max(m, String(r[h] == null ? '' : r[h]).length); }, h.length);
+      return { wch: Math.min(Math.max(max + 2, 10), 60) };
+    });
+    return ws;
+  }
   /* Fecha y hora en el nombre del archivo: sin esto, el explorador de
      archivos de Android/Windows reemplaza silenciosamente la descarga
      anterior con el mismo nombre (o la renombra "(1)", "(2)"...) y es
@@ -3489,10 +3564,28 @@
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '_' + p(d.getHours()) + '-' + p(d.getMinutes());
   }
   document.getElementById('btnDownloadLeadsExcel').addEventListener('click', function () {
-    var ws = XLSX.utils.json_to_sheet(LEADS_DEMO);
-    var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
-    XLSX.writeFile(wb, 'clientes-magic-box-' + fileTimestamp() + '.xlsx');
+    var btn = this;
+    if (typeof XLSX === 'undefined') { alert('No se pudo cargar el generador de Excel. Revisa tu conexión y recarga la página.'); return; }
+    var label = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'Preparando Excel…';
+    Promise.all([
+      loadBookingsFromServer(),
+      bookingsApi('POST', { action: 'chats' }).then(function (res) { return res.ok && res.data ? res.data.chats : []; })
+    ]).then(function (results) {
+      var chats = results[1] || [];
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, sheetWithWidths(bookingRows(), ['Fecha del evento', 'Cliente', 'Teléfono', 'Estado', 'Total (S/)']), 'Reservas y pedidos');
+      XLSX.utils.book_append_sheet(wb, sheetWithWidths(itemRows(), ['Fecha del evento', 'Cliente', 'Servicio', 'Cantidad', 'Subtotal (S/)']), 'Detalle de servicios');
+      XLSX.utils.book_append_sheet(wb, sheetWithWidths(chatRows(chats), ['Teléfono', 'Último mensaje', 'Mensajes en la charla', 'Lo último que escribió el cliente']), 'Chats de WhatsApp');
+      XLSX.writeFile(wb, 'magic-box-reservas-y-clientes-' + fileTimestamp() + '.xlsx');
+      if (!serverCalendar) alert('Ojo: no se pudo conectar con la nube, el Excel tiene solo lo guardado en este dispositivo.');
+    }).catch(function () {
+      alert('No se pudo generar el Excel. Intenta de nuevo en un momento.');
+    }).then(function () {
+      btn.disabled = false;
+      btn.innerHTML = label;
+    });
   });
 
   /* =================== VISTA CLIENTE =================== */
