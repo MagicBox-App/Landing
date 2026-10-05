@@ -4,13 +4,28 @@
     {
       "name": "dev",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["dev-server.js"],
+      "runtimeArgs": [
+        "dev-server.js"
+      ],
       "port": 8934
+    },
+    {
+      "name": "dev-sin-db",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "-e",
+        "process.env.FIREBASE_SERVICE_ACCOUNT='';process.env.PORT='8935';require('./dev-server.js')"
+      ],
+      "port": 8935
     },
     {
       "name": "static",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8934"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8934"
+      ],
       "port": 8934
     }
   ]

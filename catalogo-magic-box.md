@@ -43,7 +43,15 @@
 |---|---|---|
 | Happy | Local 5h (100p), cocina, estacionamiento, atril bienvenida | S/800 |
 | Full | Local 5h, cocina, estacionamiento, decoración 3 paneles 3.5m, sonido USB/BT/mic, 70 sillas | S/1,250 |
-| Premium | Local 6h, decoración 3-4 paneles 5m, entrada con globos, sonido, 70 sillas | S/1,500 |
+| Lunes a jueves | Local 5h, solo de lunes a jueves, hasta las 9pm como máximo | S/550 |
+
+> Actualización 24/09/2026 (pedido de la dueña por WhatsApp): **se eliminó el
+> Paquete Premium** y se agregaron el local de lunes a jueves y los extras de
+> abajo.
+
+Extras del local:
+- Foam personalizado para atril de bienvenida: S/45
+- Entrada con arco de globos (solo globos): S/60
 
 ### Detalle completo (texto para la web)
 
@@ -68,24 +76,10 @@
 - Equipo de sonido con USB, Bluetooth y micrófono.
 - 70 sillas blancas.
 
-**PREMIUM — S/ 1,500.00**
-- Alquiler de local por 6 horas.
+**LUNES A JUEVES — S/ 550.00**
+- Alquiler de local por 5 horas, de lunes a jueves.
+- Horario máximo hasta las 9:00 pm.
 - Aforo máximo 100 personas.
-- Amplia cocina con microondas y refrigeradora.
-- Área de estacionamiento.
-- Decoración de 3 o 4 paneles temáticos de 5 m con estructura que incluye:
-  - Decoración temática a elección.
-  - Mesitas con accesorios para los bocaditos y torta.
-  - Porta regalos.
-  - Escalera para las sorpresas.
-  - Hasta 4 fondos personalizados y más accesorios como flores y detalles especiales.
-- Decoración de entrada con globos y cartel de bienvenida.
-- Equipo de sonido con USB, Bluetooth y micrófono.
-- 70 sillas blancas.
-
-> Diferencia clave Full vs Premium: +1 hora, paneles de 5 m con estructura
-> (vs 3.5 m), hasta 4 fondos (vs 2), y decoración de entrada con globos y
-> cartel de bienvenida.
 
 ## Carritos de snacks (personal uniformado, servicio 3h, no incl. movilidad ni IGV)
 *"¡Dulces y sabores que hacen tu evento inolvidable!"*
@@ -96,13 +90,13 @@
 | Producto | 50u | 75u | 100u |
 |---|---|---|---|
 | Algodón dulce (máquina c/personal) | S/180 | S/225 | S/280 |
-| Algodón dulce (en domo) | S/160 | S/215 | S/260 |
+| Algodón dulce (en domo, presentada en vasos acrílicos con tapa y en escalera) | S/160 | S/215 | S/260 |
 | Manzana acaramelada en escalera | S/190 | S/260 | S/290 |
 | Frutibar (frutas, snacks, 3 complementos, 3 salsas) | S/410 | S/525 | S/680 |
 | Churros rellenos de manjar | S/160 | S/225 | S/280 |
 | Churros rellenos de chocolate | S/180 | S/247 | S/300 |
 
-Dispensador de jugos (chicha morada / maracuyá, caseros): 14L (7+7) S/180 · 30L (15+15) S/320
+Dispensador de jugos (chicha morada / maracuyá, caseros, incluye vasos descartables): 15L S/210 · 30L S/350
 
 ### Snacks salados
 | Producto | 50u | 75u | 100u |
@@ -129,9 +123,10 @@ movilidad ni IGV, se entregan tickets personalizados.
 
 ## Torta en maqueta
 - Alquiler de maqueta de torta (3 pisos): S/200
-- Torta en cajita temática (queque vainilla c/chispas de chocolate, relleno
-  manjar/fudge, capa de buttercream): S/6 c/u
-- Promo maqueta + 50 tortas en cajita: S/475 · +75: S/620 · +100: S/760
+- Torta en cajita temática (queque con chispas de chocolate, de vainilla o
+  naranja; relleno de manjar blanco o fudge; capa de buttercream; en caja
+  personalizada): S/6 c/u
+- Promo maqueta (diseño a elegir) + 50 tortas en cajita personalizada: S/475 · +75: S/620 · +100: S/760
 - También se puede cotizar la maqueta en 1, 2 o 3 pisos, totalmente
   personalizada al gusto del cliente.
 
@@ -192,6 +187,17 @@ Incluye: videos ilimitados, accesorios, alfombra, iluminación LED, operador
 técnico. Entrega instantánea (en tiempo real) por QR o WhatsApp.
 - 2 horas: S/600 · 3 horas: S/750 · 4 horas: S/950 (no incluye movilidad)
 
+## Fotografía y filmación (cumpleaños y baby shower)
+- Fotografía — S/350: 3 horas de cobertura, 200 fotos editadas.
+- Filmación — S/350: 3 horas de cobertura, 1 video de 20 min.
+- Paquete 1 — S/550: 3h de grabación, 150 fotos editadas, video largo
+  horizontal de 5-7 min, video reel horizontal o vertical de 30-45 seg.
+- Paquete 2 — S/600: 3h de grabación, 200 fotos editadas, video largo
+  horizontal de 7-10 min, video reel horizontal o vertical de 45 seg - 1 min.
+- Paquete 3 — S/700: 3h de grabación, 250 fotos editadas, video largo
+  horizontal de 20-30 min, video de 5 min, video reel horizontal o vertical
+  de 30-45 seg.
+
 ## Pintura de alcancías
 Descripción: experiencia creativa donde cada niño escoge la alcancía de su
 personaje favorito y la pinta guiado por el personal; se la lleva de recuerdo.
@@ -249,6 +255,9 @@ moderno, materiales de calidad y ambiente acogedor.
 - Sillas de metal doradas (Chiavari): S/5.50 c/u
 - Mesa redonda vestida (8 personas): S/30.00
 - Mesa redonda vestida (10 personas): S/40.00
+- Pista LED: S/65 por m²
+- Juego bar LED (1 mesa alta + 2 sillas altas): S/150 · (+3 sillas): S/180 · (+4 sillas): S/210
+- Sala LED (1 mesa + 6 puf): S/180
 
 Mensajes de marca: *"Calidad, elegancia y los mejores precios"* ·
 *"¡Tu evento, nuestro compromiso!"*
@@ -262,6 +271,7 @@ hora loca con personajes opcionales.
 | Equipo de sonido con USB y Bluetooth | S/70 |
 | DJ por 5 horas con parlante | S/400 |
 | 4 tachitos LED + 2 cabezas móviles de luces LED | S/200 |
+| Hora loca con 2 personajes temáticos (45 min: limbo LED, soga LED, luces, globos pencil, pista USB) | S/450 |
 
 Show hora loca con juegos y bailes (50 minutos), incluye globos Pencil.
 Personajes opcionales para el show:
@@ -289,12 +299,18 @@ por elegirnos!"*
 - Titular de las cuentas: **Claudia Casaretto Mostacero** (datos bancarios
   completos omitidos aquí por ser info sensible en un repo público — pídelos
   por WhatsApp o revisa la página 19 del PDF original).
-- Adelanto de reserva: 20% del total.
+- Adelanto de reserva: 20% del total. **Alquiler del local** (según el
+  contrato 2026): separación de S/300 y saldo hasta el miércoles de la semana
+  del evento.
 - Garantía del local: S/150, se devuelve al terminar el evento si no hay daños.
 - IGV: los carritos de snacks y combos **no incluyen IGV**.
 
 ### Cobros extra y logística
-- Hora extra de local: S/120/hora.
+- Hora extra de local: S/120/hora o fracción (15 min de tolerancia).
+- Equipo eléctrico externo conectado al local (inflables, carritos, máquinas,
+  pantallas): S/15 por equipo. Uso no autorizado de implementos de cocina: S/50.
+- Pica pica, confeti o tecnopor: S/100 de limpieza especial. Retiro tardío de
+  decoración/mobiliario externo: S/70.
 - Limpieza obligatoria del local: S/50 (incluye bolsas de basura, 2 rollos de
   papel higiénico, papel toalla, jabón líquido y lavavajillas).
 - Recargo por pisos superiores: si el evento es en 2do/3er piso sin ascensor,

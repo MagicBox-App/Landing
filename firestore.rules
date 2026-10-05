@@ -21,5 +21,13 @@ service cloud.firestore {
     match /order_history/{orderId} {
       allow read, write: if request.auth != null;
     }
+
+    // Calendario, candados por fecha y chats de WhatsApp del sitio en
+    // produccion: SOLO el servidor (api/_db.js con firebase-admin, que no
+    // pasa por estas reglas). Nadie puede leerlos ni escribirlos desde un
+    // navegador, aunque conozca el id del proyecto.
+    match /event_bookings/{id} { allow read, write: if false; }
+    match /booking_locks/{date} { allow read, write: if false; }
+    match /whatsapp_conversations/{phone} { allow read, write: if false; }
   }
 }

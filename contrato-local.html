@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contrato de alquiler de local</title>
+<!-- Plantilla del contrato de alquiler del local (transcrita de "Contrato 2026.pdf").
+     El panel interno la carga, reemplaza los {{MARCADORES}} con los datos del
+     pedido y la abre para imprimir o guardar como PDF. El nombre y DNI de la
+     propietaria NO van aqui (el repo es publico): los manda /api/bookings solo
+     al panel con la contraseña (variables CONTRATO_PROPIETARIO_NOMBRE / _DNI). -->
+<style>
+  body { font-family: Georgia, 'Times New Roman', serif; color: #111; background: #fff; max-width: 760px; margin: 0 auto; padding: 32px 28px 60px; font-size: 15px; line-height: 1.55; }
+  h1 { text-align: center; font-size: 22px; letter-spacing: .02em; margin: 0 0 22px; }
+  h2 { font-size: 15.5px; margin: 22px 0 8px; text-transform: uppercase; }
+  h3 { font-size: 15px; margin: 16px 0 6px; }
+  p { margin: 0 0 9px; text-align: justify; }
+  p.field { text-align: left; margin-bottom: 5px; overflow-wrap: anywhere; }
+  @media (max-width: 560px) { body { padding: 20px 16px 40px; } .firmas { flex-direction: column; gap: 6px; } }
+  ul { margin: 4px 0 10px; padding-left: 26px; }
+  li { margin-bottom: 3px; }
+  .fill { font-weight: bold; border-bottom: 1px solid #555; padding: 0 3px; }
+  .firmas { display: flex; gap: 40px; margin-top: 18px; }
+  .firmas > div { flex: 1; }
+  .toolbar { position: sticky; top: 0; background: #fff8e6; border: 1px solid #f0d58c; border-radius: 10px; padding: 10px 14px; margin-bottom: 22px; font-family: system-ui, sans-serif; font-size: 14px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .toolbar button { font: inherit; font-weight: 600; background: #7b4db8; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+  @media print { .toolbar { display: none; } body { padding: 0; } h2 { break-after: avoid; } .firmas { break-inside: avoid; } }
+  @page { margin: 2cm; }
+</style>
+</head>
+<body>
+<div class="toolbar">Revisa los datos y luego <button type="button" onclick="window.print()">Imprimir / Guardar PDF</button> Los espacios en blanco se completan a mano.</div>
+<h1>CONTRATO DE ALQUILER DE LOCAL<br>POR HORAS</h1>
+<p>Conste por el presente documento el Contrato de Alquiler de Local por Horas que celebran, de una parte:</p>
+<h3>1. EL PROPIETARIO</h3>
+<p class="field">Nombre completo: {{PROPIETARIO_NOMBRE}}</p>
+<p class="field">DNI: {{PROPIETARIO_DNI}}</p>
+<p class="field">Dirección: Av. De los Insurgentes N.° 425, La Perla, Callao.</p>
+<p>En adelante, EL PROPIETARIO.</p>
+<h3>2. EL CLIENTE</h3>
+<p class="field">Nombre completo: {{CLIENTE_NOMBRE}}</p>
+<p class="field">DNI: {{CLIENTE_DNI}}</p>
+<p class="field">Dirección: {{CLIENTE_DIRECCION}}</p>
+<p class="field">Teléfono: {{CLIENTE_TELEFONO}}</p>
+<p class="field">Tipo de evento: {{TIPO_EVENTO}}</p>
+<p class="field">Fecha del contrato: {{FECHA_CONTRATO}}</p>
+<p class="field">Fecha del evento: {{FECHA_EVENTO}}</p>
+<p class="field">Horario contratado: Desde {{HORA_INICIO}} hasta {{HORA_FIN}}</p>
+<p class="field">Cantidad de invitados: {{INVITADOS}} personas.</p>
+<p>En adelante, EL CLIENTE.</p>
+<p>Ambas partes acuerdan celebrar el presente contrato bajo las siguientes condiciones:</p>
+<h2>PRIMERA: OBJETO DEL CONTRATO</h2>
+<p>EL PROPIETARIO otorga en alquiler a EL CLIENTE el inmueble ubicado en Av. De los Insurgentes N.° 425, La Perla, Callao, específicamente los siguientes ambientes:</p>
+<ul>
+  <li>Salón.</li>
+  <li>Patio interior con grass sintético.</li>
+  <li>Cocina.</li>
+  <li>Cochera exterior.</li>
+  <li>Patio interior.</li>
+  <li>Servicios higiénicos.</li>
+</ul>
+<p>El alquiler se concede exclusivamente para la realización del evento indicado en este contrato y durante la fecha y horario previamente acordados.</p>
+<p>EL CLIENTE se compromete a utilizar los ambientes de manera responsable y únicamente para la finalidad declarada.</p>
+<h2>SEGUNDA: PRECIO Y FORMA DE PAGO</h2>
+<p>El precio total acordado por el alquiler del local es de:</p>
+<p class="field">PRECIO TOTAL: S/ {{PRECIO_TOTAL}} ({{PRECIO_TOTAL_LETRAS}}).</p>
+<p>Para separar y reservar la fecha, EL CLIENTE deberá realizar un pago de:</p>
+<p class="field">MONTO DE SEPARACIÓN: S/ 300.00 (trescientos nuevos soles).</p>
+<p>El saldo pendiente será de:</p>
+<p class="field">SALDO: S/ {{SALDO}} ({{SALDO_LETRAS}}).</p>
+<p>Fecha límite para cancelar el saldo: miércoles de la semana del evento.</p>
+<p>La reserva de la fecha quedará confirmada una vez realizado el pago de separación y aceptadas las condiciones del presente contrato.</p>
+<p>Los pagos podrán realizarse mediante el medio de pago acordado entre ambas partes.</p>
+<p>El pago por el servicio de limpieza y el depósito de garantía establecidos en las cláusulas correspondientes serán considerados conceptos adicionales al precio del alquiler.</p>
+<h2>TERCERA: CONDICIONES DE ENTREGA DEL LOCAL</h2>
+<p>EL PROPIETARIO entregará el local en condiciones adecuadas de limpieza, funcionamiento y uso para la realización del evento.</p>
+<p>Asimismo, procurará que los servicios básicos propios del inmueble, como agua, energía eléctrica y servicios higiénicos, se encuentren operativos al momento de la entrega.</p>
+<p>EL CLIENTE declara recibir el local en las condiciones acordadas y se compromete a comunicar oportunamente cualquier observación que encuentre al momento de su ingreso.</p>
+<h2>CUARTA: RESPONSABILIDAD POR LOS ASISTENTES</h2>
+<p>EL CLIENTE será responsable de sus invitados, proveedores, personal contratado y demás personas que ingresen al local con motivo de su evento.</p>
+<p>EL CLIENTE deberá velar por el comportamiento adecuado de los asistentes y tomar las medidas necesarias para prevenir daños, accidentes o situaciones que puedan afectar a las personas, al inmueble o a los bienes existentes en él.</p>
+<p>EL PROPIETARIO no será responsable por daños o incidentes ocasionados por acciones, omisiones, negligencia o imprudencia de EL CLIENTE, sus invitados, proveedores o personal contratado, salvo cuando exista responsabilidad directamente atribuible a EL PROPIETARIO conforme a la legislación aplicable.</p>
+<p>Entre las situaciones que estarán bajo responsabilidad de EL CLIENTE, cuando sean ocasionadas por sus asistentes o actividades del evento, se encuentran:</p>
+<ul>
+  <li>Caídas, resbalones o tropiezos.</li>
+  <li>Lesiones ocasionadas durante juegos, bailes o actividades recreativas.</li>
+  <li>Accidentes derivados del uso inadecuado del mobiliario o equipos.</li>
+  <li>Atragantamientos o reacciones alérgicas relacionados con alimentos o bebidas proporcionados por EL CLIENTE o sus proveedores.</li>
+  <li>Conductas imprudentes o negligentes de los asistentes.</li>
+  <li>Daños ocasionados por elementos de decoración, equipos o actividades contratadas por EL CLIENTE.</li>
+</ul>
+<h2>QUINTA: MENORES DE EDAD</h2>
+<p>Los menores de edad que ingresen al local deberán permanecer en todo momento bajo la supervisión y responsabilidad de sus padres, tutores o adultos responsables.</p>
+<p>EL PROPIETARIO no presta servicios de cuidado, vigilancia ni supervisión de menores.</p>
+<p>Los padres, tutores o adultos responsables deberán permanecer atentos a los menores y adoptar las medidas necesarias para garantizar su cuidado y seguridad durante todo el evento.</p>
+<p>Cuando el evento incluya juegos, inflables u otros elementos recreativos contratados por EL CLIENTE, será responsabilidad exclusiva de los padres, tutores o adultos responsables supervisar el uso de dichos elementos por parte de los menores.</p>
+<p>EL PROPIETARIO no asume responsabilidad por caídas, golpes, lesiones, accidentes u otros daños que pudieran sufrir los menores durante el evento cuando estos sean consecuencia de su comportamiento, falta de supervisión, uso de juegos o actividades recreativas, o cualquier otra circunstancia no atribuible directamente a EL PROPIETARIO.</p>
+<p>EL CLIENTE acepta esta condición y se compromete a informar a los padres, tutores y demás adultos responsables que asistan al evento sobre su deber de supervisión.</p>
+<h2>SEXTA: USO RESPONSABLE DEL LOCAL</h2>
+<p>EL CLIENTE se compromete a utilizar el local exclusivamente para el evento contratado y a respetar la infraestructura, mobiliario, equipos, instalaciones y demás bienes proporcionados por EL PROPIETARIO.</p>
+<p>Queda prohibido:</p>
+<ul>
+  <li>Ingresar sustancias ilegales.</li>
+  <li>Realizar actos violentos o que pongan en riesgo a otras personas.</li>
+  <li>Exceder el aforo máximo establecido.</li>
+  <li>Realizar actividades que puedan causar daños al inmueble.</li>
+  <li>Utilizar las instalaciones para una finalidad distinta a la declarada.</li>
+  <li>Fumar dentro de los ambientes del local.</li>
+  <li>Ingresar mascotas, salvo autorización expresa de EL PROPIETARIO.</li>
+  <li>Utilizar fuegos artificiales o elementos similares.</li>
+  <li>Utilizar velas encendidas u otros elementos con fuego.</li>
+  <li>Utilizar confeti, pica pica o materiales similares que puedan generar daños o limpieza especial.</li>
+</ul>
+<p>EL CLIENTE será responsable por los daños ocasionados por él, sus invitados, proveedores o personal contratado.</p>
+<h2>SÉPTIMA: DECORACIÓN, MOBILIARIO Y ELEMENTOS EXTERNOS</h2>
+<p>No está permitido clavar, perforar, taladrar, pintar ni realizar modificaciones en paredes, techos, pisos, puertas o cualquier otra parte del inmueble.</p>
+<p>La decoración colocada en paredes o techos deberá utilizar únicamente cinta de papel tipo masking tape, evitando cualquier elemento que pueda deteriorar las superficies.</p>
+<p>No está permitido pintar, modificar ni utilizar indebidamente los utensilios o bienes existentes en el local.</p>
+<p>Cualquier decoración, mobiliario adicional, equipo electrónico, menaje u otro elemento que EL CLIENTE desee ingresar deberá ser previamente comunicado y autorizado por EL PROPIETARIO.</p>
+<p>La instalación y retiro de dichos elementos deberá realizarse en los horarios previamente coordinados con EL PROPIETARIO.</p>
+<p>Cualquier daño ocasionado al local, mobiliario o bienes existentes será asumido por EL CLIENTE, previa verificación del daño correspondiente.</p>
+<h2>OCTAVA: USO DE EQUIPOS ELÉCTRICOS ADICIONALES</h2>
+<p>Cuando EL CLIENTE ingrese o solicite de manera externa proveedores al local, equipos, máquinas o elementos que requieran conexión a la energía eléctrica del inmueble, deberá comunicarlo previamente a EL PROPIETARIO.</p>
+<p>Se aplicará un cargo adicional de S/ 15.00 (quince soles) por cada equipo o máquina conectada, por concepto de uso de la instalación eléctrica del local.</p>
+<p>Este cargo podrá aplicarse, entre otros, a:</p>
+<ul>
+  <li>Juegos inflables que requieran conexión eléctrica.</li>
+  <li>Carritos de snacks.</li>
+  <li>Máquinas de popcorn o canchita.</li>
+  <li>Máquinas de algodón de azúcar.</li>
+  <li>Máquinas o equipos que utilicen resistencia eléctrica.</li>
+  <li>Televisores o pantallas LED utilizados como parte de la decoración.</li>
+  <li>Otros equipos eléctricos adicionales ingresados por EL CLIENTE.</li>
+</ul>
+<p>El cargo será calculado por cada equipo conectado, independientemente del tiempo de uso durante el evento.</p>
+<p>EL CLIENTE deberá informar previamente la cantidad y tipo de equipos que utilizará, a fin de determinar el monto correspondiente antes del inicio del evento.</p>
+<p>La conexión de cualquier equipo estará sujeta a la autorización de EL PROPIETARIO y a las condiciones de seguridad de la instalación eléctrica del local. EL PROPIETARIO podrá negar la conexión de un equipo cuando considere que su uso podría sobrecargar o poner en riesgo la instalación eléctrica.</p>
+<p>EL CLIENTE será responsable de cualquier daño ocasionado por los equipos que ingrese al local, así como por sus cables, conexiones, extensiones o accesorios.</p>
+<h2>NOVENA: VOLUMEN Y HORARIO DE USO</h2>
+<p>EL CLIENTE podrá utilizar música y equipos de sonido manteniendo un volumen moderado y respetando las restricciones aplicables al inmueble y a la zona.</p>
+<p>Se permitirá un solo parlante durante el evento. En caso de contratar una orquesta electrónica, igualmente se permitirá únicamente un parlante.</p>
+<p>Como referencia para el uso del local, el nivel máximo establecido será de 60 dB, sujeto a las condiciones y disposiciones aplicables.</p>
+<p>El horario máximo para actividades con música será:</p>
+<ul>
+  <li>Viernes y sábado: hasta las 11:00 p. m.</li>
+  <li>Domingo a jueves: hasta las 9:00 p. m.</li>
+</ul>
+<p>EL CLIENTE se compromete a reducir o detener el volumen cuando EL PROPIETARIO lo solicite por razones de convivencia, seguridad o cumplimiento de las disposiciones aplicables.</p>
+<h2>DÉCIMA: USO DEL ÁREA DE COCINA</h2>
+<p>El área de cocina podrá utilizarse exclusivamente para la colocación, conservación y organización de bocaditos, alimentos y bebidas.</p>
+<p>Se permite utilizar el horno microondas y la refrigeradora, previa comunicación a EL PROPIETARIO.</p>
+<p>No está permitido:</p>
+<ul>
+  <li>Cocinar dentro del local.</li>
+  <li>Utilizar cocinas portátiles, parrillas, freidoras u otros equipos destinados a cocinar.</li>
+  <li>Utilizar cubiertos, platos, vasos, utensilios u otros implementos de cocina pertenecientes al local sin autorización previa.</li>
+</ul>
+<p>El uso no autorizado de los implementos de cocina dará lugar a un cargo de S/ 50.00 (cincuenta soles), sin perjuicio del cobro correspondiente en caso de daño o pérdida.</p>
+<h2>UNDÉCIMA: AFORO MÁXIMO</h2>
+<p>Para efectos del alquiler, el aforo máximo establecido para el evento será de 100 personas.</p>
+<p>Este número incluye invitados, proveedores, personal contratado, menores de edad y cualquier otra persona que permanezca dentro de los ambientes alquilados durante el evento.</p>
+<p>EL CLIENTE se compromete a respetar estrictamente este límite.</p>
+<p>En caso de detectarse un número superior de personas, EL PROPIETARIO podrá solicitar el retiro de las personas excedentes.</p>
+<p>Si el exceso de personas genera un riesgo para los asistentes, el inmueble o el normal desarrollo del evento, EL PROPIETARIO podrá solicitar la suspensión de las actividades hasta que se restablezca el número permitido.</p>
+<h2>DUODÉCIMA: TIEMPO ADICIONAL</h2>
+<p>El alquiler finalizará a la hora indicada en el presente contrato.</p>
+<p>Se otorgará una tolerancia de 15 minutos exclusivamente para facilitar el retiro de los asistentes.</p>
+<p>Transcurrido dicho plazo, se aplicará un cargo de S/ 120.00 (ciento veinte soles) por cada hora adicional o fracción de hora.</p>
+<p>EL CLIENTE deberá coordinar oportunamente cualquier necesidad de ampliar el horario.</p>
+<h2>DECIMOTERCERA: LIMPIEZA DEL LOCAL</h2>
+<p>EL PROPIETARIO entregará el local limpio y desinfectado.</p>
+<p>EL CLIENTE abonará S/ 50.00 (cincuenta soles) por concepto del servicio de limpieza, el cual incluye:</p>
+<ul>
+  <li>Tachos para los desperdicios.</li>
+  <li>Bolsas para basura.</li>
+  <li>2 rollos de papel higiénico.</li>
+  <li>1 rollo de papel toalla.</li>
+  <li>Jabón líquido para los servicios higiénicos.</li>
+  <li>Lavavajillas.</li>
+</ul>
+<p>La limpieza posterior al evento será realizada por EL PROPIETARIO.</p>
+<p>El servicio de limpieza no comprende reparaciones ni limpiezas especiales ocasionadas por daños, derrames extraordinarios, residuos especiales, materiales de decoración u otras situaciones que excedan el uso normal del local. Estos conceptos podrán generar un cargo adicional previa verificación.</p>
+<h2>DECIMOCUARTA: RESTRICCIONES DE DECORACIÓN Y LIMPIEZA ESPECIAL</h2>
+<p>Está prohibido utilizar fuego, materiales inflamables, elementos de ignición o efectos que puedan generar riesgo dentro del local, incluyendo aquellos utilizados como parte de servicios de bar, decoración o espectáculos.</p>
+<p>No está permitido utilizar:</p>
+<ul>
+  <li>Pica pica.</li>
+  <li>Bolitas de tecnopor.</li>
+  <li>Confeti.</li>
+  <li>Fuegos artificiales.</li>
+  <li>Velas encendidas.</li>
+  <li>Otros materiales que puedan generar daños, manchas o dificultades especiales de limpieza.</li>
+</ul>
+<p>Como alternativa, podrán utilizarse serpentinas o papel crepé cortado en tiras, siempre que su uso no genere daños al inmueble.</p>
+<p>El uso de pica pica, tecnopor, confeti u otros materiales expresamente prohibidos generará un cargo de S/ 100.00 (cien soles) por concepto de limpieza especial.</p>
+<p>Cuando la decoración o mobiliario sea contratado directamente por EL CLIENTE, deberá ser retirado el mismo día, dentro de los 30 minutos posteriores a la finalización del horario contratado, o al día siguiente entre las 6:30 a. m. y 8:30 a. m.</p>
+<p>El incumplimiento de estos horarios generará un cargo de S/ 70.00 (setenta soles), sin perjuicio de otros daños o costos que pudieran generarse.</p>
+<h2>DECIMOQUINTA: DEPÓSITO DE GARANTÍA</h2>
+<p>EL CLIENTE entregará un depósito de garantía de S/ 150.00 (ciento cincuenta soles).</p>
+<p>La garantía será devuelta una vez finalizado el evento y realizada la verificación del estado del local, mobiliario, equipos y materiales proporcionados por EL PROPIETARIO.</p>
+<p>Si se detectan daños, pérdidas o incumplimientos que generen costos adicionales, EL PROPIETARIO podrá utilizar total o parcialmente la garantía para cubrir los conceptos correspondientes, comunicando a EL CLIENTE el motivo y monto aplicado.</p>
+<p>Cuando existan elementos de decoración o mobiliario contratado por EL CLIENTE que aún deban ser retirados, la devolución de la garantía se realizará una vez que estos hayan sido retirados y se haya verificado el estado del local.</p>
+<h2>DECIMOSEXTA: RESERVA, CANCELACIÓN Y REPROGRAMACIÓN</h2>
+<p>La reserva de la fecha quedará confirmada una vez que EL CLIENTE haya realizado el pago de separación acordado y ambas partes hayan aceptado las condiciones del presente contrato.</p>
+<h3>Cancelación con un mes o menos de anticipación</h3>
+<p>Si EL CLIENTE decide cancelar el evento cuando falte un mes o menos para la fecha reservada, el monto entregado por concepto de separación no será reembolsable.</p>
+<p>Esto se debe a que la fecha fue reservada exclusivamente para EL CLIENTE y, al encontrarse próxima la fecha del evento, EL PROPIETARIO ha limitado o dejado de ofrecer dicha fecha a otros posibles clientes.</p>
+<h3>Cancelación con más de un mes de anticipación</h3>
+<p>Si EL CLIENTE comunica su cancelación con más de un mes de anticipación, el monto entregado para separar la fecha tampoco será devuelto en dinero.</p>
+<p>Sin embargo, EL CLIENTE podrá solicitar una reprogramación del evento, la cual estará sujeta a la disponibilidad de nuevas fechas del local dentro de los 7 meses posteriores a la fecha originalmente reservada.</p>
+<p>La reprogramación deberá acordarse con EL PROPIETARIO y no generará devolución del monto entregado inicialmente por la separación.</p>
+<p>Si la nueva fecha elegida tiene un precio diferente, las partes podrán acordar el ajuste correspondiente.</p>
+<p>Una vez reprogramado el evento, las condiciones de cancelación volverán a aplicarse a la nueva fecha reservada.</p>
+<p>En ningún caso el monto entregado exclusivamente por concepto de separación de fecha será considerado un monto reembolsable en efectivo.</p>
+<h2>DECIMOSÉPTIMA: INGRESO DE BEBIDAS ALCOHÓLICAS</h2>
+<p>EL CLIENTE deberá informar previamente a EL PROPIETARIO si durante el evento se ingresarán bebidas alcohólicas o se contratará un servicio de bar.</p>
+<p>En caso de ingreso de cerveza, únicamente se permitirá el ingreso en latas.</p>
+<p>No se permitirá el ingreso de cajas de cerveza.</p>
+<p>El consumo de bebidas alcohólicas deberá realizarse de manera responsable y respetando las normas de seguridad y convivencia del local.</p>
+<h2>DECIMOCTAVA: PROHIBICIÓN DE SUSTANCIAS ILÍCITAS</h2>
+<p>Está prohibido ingresar, distribuir, comercializar o consumir sustancias ilícitas dentro del local.</p>
+<p>EL CLIENTE deberá comunicar esta prohibición a sus invitados y personas que participen en el evento.</p>
+<h2>DECIMONOVENA: ALTERCADOS, VIOLENCIA Y CONSUMO DE SUSTANCIAS ILÍCITAS</h2>
+<p>Si durante el evento se produce una situación de violencia, altercado grave o se detecta el consumo o posesión de sustancias ilícitas, EL PROPIETARIO podrá solicitar el retiro inmediato de las personas involucradas.</p>
+<p>Si la situación representa un riesgo para las personas, el inmueble o la seguridad del evento, EL PROPIETARIO podrá disponer la suspensión o finalización del evento.</p>
+<p>Cuando corresponda, se podrá solicitar la intervención de las autoridades competentes.</p>
+<h2>VIGÉSIMA: CASOS FORTUITOS, FUERZA MAYOR Y SERVICIOS EXTERNOS</h2>
+<p>EL PROPIETARIO no será responsable por interrupciones o inconvenientes originados por hechos ajenos a su control razonable, tales como cortes imprevistos de energía eléctrica o agua provenientes de los servicios públicos, emergencias, disposiciones de autoridad, desastres naturales u otros acontecimientos imprevisibles o inevitables.</p>
+<p>En estos casos, EL PROPIETARIO comunicará la situación a EL CLIENTE y ambas partes procurarán adoptar una solución razonable de acuerdo con las circunstancias.</p>
+<h2>VIGESIMOPRIMERA: DAÑOS, PÉRDIDAS Y RESPONSABILIDAD SOBRE LOS BIENES</h2>
+<p>EL CLIENTE será responsable por los daños o pérdidas ocasionados al inmueble, mobiliario, equipos, utensilios, instalaciones o demás bienes proporcionados por EL PROPIETARIO cuando estos sean causados por EL CLIENTE, sus invitados o las personas que hayan ingresado al local con motivo de su evento.</p>
+<p>La reparación o reposición se determinará según el daño efectivamente ocasionado y el costo razonable de reparación o reemplazo correspondiente.</p>
+<p>Los objetos personales de EL CLIENTE, sus invitados y demás asistentes permanecerán bajo su propia responsabilidad. EL PROPIETARIO no se responsabiliza por pérdidas o sustracciones de bienes personales que no sean atribuibles directamente a una actuación u omisión de EL PROPIETARIO.</p>
+<h2>VIGESIMOSEGUNDA: EMERGENCIAS Y RESPONSABILIDAD DEL CLIENTE</h2>
+<p>Ante cualquier accidente, emergencia o situación que ponga en riesgo a una persona durante el evento, EL CLIENTE deberá asumir las acciones necesarias para atender la emergencia y solicitar directamente la asistencia de los servicios correspondientes, así como comunicar inmediatamente la situación a EL PROPIETARIO.</p>
+<p>EL PROPIETARIO no presta servicios médicos, de vigilancia, seguridad privada ni supervisión de los asistentes.</p>
+<p>Para facilitar la atención ante una eventual emergencia, EL CLIENTE podrá comunicarse con los siguientes números:</p>
+<p>🚨 EMERGENCIAS</p>
+<ul>
+  <li>Serenazgo de La Perla: 908 863 164 — atención permanente.</li>
+  <li>Bomberos: 116.</li>
+  <li>Policía Nacional: 105.</li>
+  <li>SAMU – Emergencias médicas: 106.</li>
+</ul>
+<p>EL CLIENTE deberá informar estas condiciones a los adultos responsables, invitados y demás personas que participen en el evento cuando resulte pertinente.</p>
+<h2>VIGESIMOTERCERA: INVENTARIO Y VERIFICACIÓN DEL LOCAL</h2>
+<p>Como parte del presente contrato, EL PROPIETARIO y EL CLIENTE podrán verificar los bienes y mobiliario entregados para el evento mediante un Acta de Inventario y Estado de Bienes, que podrá adjuntarse como anexo al presente contrato.</p>
+<p>En dicha acta podrá registrarse la cantidad y condición de los principales bienes entregados, tales como mesas, sillas, equipos, utensilios y demás elementos incluidos en el alquiler.</p>
+<p>Al finalizar el evento, se realizará la verificación correspondiente para determinar si existen faltantes, daños o deterioros que deban ser asumidos por EL CLIENTE de acuerdo con las condiciones del presente contrato.</p>
+<h2>VIGESIMOCUARTA: ACEPTACIÓN DE LAS CONDICIONES</h2>
+<p>EL CLIENTE declara haber leído y comprendido las condiciones del presente contrato y manifiesta su conformidad con ellas.</p>
+<p>Asimismo, declara haber recibido información suficiente sobre las características del local, los ambientes incluidos en el alquiler, el horario contratado, el aforo, las restricciones de uso, los pagos y los cargos establecidos en el presente documento.</p>
+<p>Cualquier condición adicional deberá constar por escrito y ser aceptada por ambas partes.</p>
+<h2>VIGESIMOQUINTA: FIRMA DE LAS PARTES</h2>
+<p>En señal de conformidad, ambas partes firman el presente contrato, dejando constancia de su aceptación de las condiciones aquí establecidas.</p>
+<p class="field">Lugar: La Perla, Callao</p>
+<p class="field">Fecha: {{FECHA_CONTRATO}}</p>
+<div class="firmas"><div>
+<h3>EL PROPIETARIO</h3>
+<p class="field">Nombre: {{PROPIETARIO_NOMBRE}}</p>
+<p class="field">DNI: {{PROPIETARIO_DNI}}</p>
+<p class="field">Firma: ______________________________________</p>
+</div><div>
+<h3>EL CLIENTE</h3>
+<p class="field">Nombre: {{CLIENTE_NOMBRE}}</p>
+<p class="field">DNI: {{CLIENTE_DNI}}</p>
+<p class="field">Firma: ______________________________________</p>
+</div></div>
+</body>
+</html>

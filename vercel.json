@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/chat.js": { "maxDuration": 30 },
+    "api/whatsapp.js": { "maxDuration": 20 },
+    "api/bookings.js": { "maxDuration": 15 }
+  },
   "routes": [
     { "src": "^/$", "dest": "/_preview_prototipo.html" },
     { "handle": "filesystem" }

@@ -1965,10 +1965,11 @@
     chatAiHistory.push({ role: 'user', text: text });
     chatSending = true;
     chatShowTyping();
+    var cartStr = clientCart.length ? clientCart.map(function(item) { return item.qty + 'x ' + item.name + ' (' + money(item.subtotal) + ')'; }).join(', ') + '. Total: ' + money(clientTotal()) : 'El carrito esta vacio.';
     fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: chatAiHistory.slice(0, -1) })
+      body: JSON.stringify({ message: text, history: chatAiHistory.slice(0, -1), bookedDates: (typeof getBookedDatesForBot === 'function' ? getBookedDatesForBot() : []), cart: cartStr })
     }).then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
         chatHideTyping();

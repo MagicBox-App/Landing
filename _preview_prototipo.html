@@ -1925,6 +1925,7 @@
     shows: '<svg viewBox="0 0 24 24" fill="none"><path d="M4.5 19.5L15 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 3.5l1 2.2 2.2 1-2.2 1-1 2.2-1-2.2-2.2-1 2.2-1 1-2.2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 4l.6 1.3L9 6l-1.4.7L7 8l-.6-1.3L5 6l1.4-.7L7 4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
     gymkanas: '<svg viewBox="0 0 24 24" fill="none"><path d="M8 4h8v5.5a4 4 0 0 1-8 0V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6H5.6A2.4 2.4 0 0 0 8 10.8M16 6h2.4A2.4 2.4 0 0 1 16 10.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13.5V17M9.6 20.5l.4-3.5h4l.4 3.5h-4.8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     foto360: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7.5" width="18" height="12.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="13.8" r="3.4" stroke="currentColor" stroke-width="1.6"/><path d="M8.6 7.5l1.1-2a1 1 0 0 1 .9-.5h2.8a1 1 0 0 1 .9.5l1.1 2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    fotografia: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="12.5" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M15.5 10.5l5-2.8v8.6l-5-2.8" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7" cy="10.5" r="1.2" fill="currentColor"/></svg>',
     alcancias: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.7 1.7-1.5 0-1-.9-1.4-.9-2.4 0-.9.8-1.6 1.7-1.6h1.6a4.9 4.9 0 0 0 4.9-4.9C21 6.8 17 3 12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.6" cy="11.5" r="1.1" fill="currentColor"/><circle cx="9.8" cy="7.6" r="1.1" fill="currentColor"/><circle cx="14.6" cy="7.4" r="1.1" fill="currentColor"/></svg>',
     caritas: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 7.5v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 9.5C10.3 6.2 7.6 4.6 5.6 5.8S4 10.6 6 13c1.4 1.7 3.9 3.1 6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 9.5c1.7-3.3 4.4-4.9 6.4-3.7S20 10.6 18 13c-1.4 1.7-3.9 3.1-6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     babyshower: '<svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="15" r="4.6" stroke="currentColor" stroke-width="1.6"/><path d="M6.4 15h9.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M11 10.4V8.2A2.7 2.7 0 0 1 13.7 5.5h.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16.6" cy="5.4" r="2.1" stroke="currentColor" stroke-width="1.6"/></svg>',
@@ -1942,6 +1943,7 @@
     shows: ['#7B4DB8', '#E8DEF5'],
     gymkanas: ['#4C5B8C', '#E1E4F0'],
     foto360: ['#2F7FA8', '#D8E9F2'],
+    fotografia: ['#22527A', '#DCE8F1'],
     alcancias: ['#5F8C3E', '#E4EFD8'],
     caritas: ['#E15D5D', '#FADFDF'],
     babyshower: ['#C77DAE', '#F5E2EE'],
@@ -1952,15 +1954,15 @@
   var CAT_GRAD2 = {
     local: '#5AA396', 'snacks-dulces': '#E88FB0', 'snacks-salados': '#EFB65E', combos: '#DB8A5F',
     torta: '#D2A55E', dulces: '#A85179', shows: '#9E77D4', gymkanas: '#7385B5',
-    foto360: '#59A6CB', alcancias: '#84B061', caritas: '#EE8C8C', babyshower: '#DBA3C8',
+    foto360: '#59A6CB', fotografia: '#4F82AB', alcancias: '#84B061', caritas: '#EE8C8C', babyshower: '#DBA3C8',
     mozo: '#7F91A2', mobiliario: '#AD8C6E', 'hora-loca': '#7C9CE0'
   };
 
-  /* Fotos reales recortadas del catalogo impreso del negocio (img/cat/).
-     hora-loca: falta la foto real todavia -- ver aviso al final del cambio. */
+  /* Portadas de categoria (img/cat/, 1200x800). Las versiones anteriores
+     quedan en img/cat/_originales-genericos/. */
   var CAT_PHOTO = {};
   ['local','snacks-dulces','snacks-salados','combos','torta','dulces','shows',
-   'gymkanas','foto360','alcancias','caritas','babyshower','mozo','mobiliario','hora-loca']
+   'gymkanas','foto360','fotografia','alcancias','caritas','babyshower','mozo','mobiliario','hora-loca']
     .forEach(function (id) { CAT_PHOTO[id] = 'img/cat/' + id + '.jpg'; });
   var LOGO_SRC = 'img/cat/logo.jpg';
 
@@ -1975,12 +1977,14 @@
    'bocaditos-16','bocaditos-24','bocaditos-30','bocaditos-42',
    'show-1','show-2','show-3','show-4','show-5','show-6',
    'silla-plastico','silla-lazo','silla-chiavari','mesa-8','mesa-10','lounge',
+   'pista-led','bar-led','sala-led',
    'alcancia-paquete',
-   'local-happy','local-full','local-premium','local-hora-extra',
+   'local-happy','local-full','local-semana','local-hora-extra','local-atril-foam','local-arco-globos',
    'gymkana-estandar','gymkana-gold',
    'alcancia-adicional','babyshower-1','babyshower-2',
-   'sonido-usb-bluetooth','dj-5h','luces-led-hora-loca','arlequin',
-   'robot-led','robot-led-laser','robot-led-co2']
+   'sonido-usb-bluetooth','dj-5h','luces-led-hora-loca','hora-loca-tematica','arlequin','personaje-cabezon',
+   'robot-led','robot-led-laser','robot-led-co2',
+   'foto-fotografia','foto-filmacion','foto-paquete-1','foto-paquete-2','foto-paquete-3']
     .forEach(function (id) { PROD_PHOTO[id] = 'img/prod/' + id + '.jpg'; });
 
   /* Si la categoria tiene un solo producto, la foto de categoria sirve como
@@ -2057,17 +2061,19 @@
     { id: 'local', name: 'Alquiler de Local', items: [
       { id: 'local-happy', name: 'Paquete Happy', desc: 'Local 5h, aforo 100p, cocina, estacionamiento, atril de bienvenida', price: 800, unit: 'evento', inc: ['Alquiler del local por 5 horas', 'Aforo m\u00e1ximo 100 personas', 'Cocina con microondas y refrigeradora', '\u00c1rea de estacionamiento', 'Atril de bienvenida (no incluye foam)'] },
       { id: 'local-full', name: 'Paquete Full', desc: 'Local 5h, decoraci\u00f3n 3 paneles de 3.5m, sonido USB/BT/mic, 70 sillas', price: 1250, unit: 'evento', inc: ['Alquiler del local por 5 horas', 'Aforo m\u00e1ximo 100 personas', 'Amplia cocina con microondas y refrigeradora', '\u00c1rea de estacionamiento', '3 paneles tem\u00e1ticos de 3.5 m a elegir', 'Mesitas para bocaditos y torta, porta regalo y escalera', 'Hasta 2 fondos personalizados', 'Sonido con USB, Bluetooth y micr\u00f3fono', '70 sillas blancas'] },
-      { id: 'local-premium', name: 'Paquete Premium', desc: 'Local 6h, decoraci\u00f3n 3-4 paneles de 5m, entrada con globos, sonido, 70 sillas', price: 1500, unit: 'evento', inc: ['Alquiler del local por 6 horas', 'Aforo m\u00e1ximo 100 personas', 'Amplia cocina con microondas y refrigeradora', '\u00c1rea de estacionamiento', '3 o 4 paneles tem\u00e1ticos de 5 m con estructura', 'Mesitas para bocaditos y torta, porta regalos y escalera', 'Hasta 4 fondos personalizados, flores y detalles especiales', 'Decoraci\u00f3n de entrada con globos y cartel de bienvenida', 'Sonido con USB, Bluetooth y micr\u00f3fono', '70 sillas blancas'] },
-      { id: 'local-hora-extra', name: 'Hora adicional de local', desc: 'Extensi\u00f3n del horario base', price: 120, unit: 'hora' }
+      { id: 'local-semana', name: 'Local de lunes a jueves', desc: 'Alquiler del local por 5 horas, de lunes a jueves (hasta las 9pm como m\u00e1ximo)', price: 550, unit: 'evento', inc: ['Alquiler del local por 5 horas', 'De lunes a jueves', 'Horario m\u00e1ximo hasta las 9:00 pm', 'Aforo m\u00e1ximo 100 personas'] },
+      { id: 'local-hora-extra', name: 'Hora adicional de local', desc: 'Extensi\u00f3n del horario base', price: 120, unit: 'hora' },
+      { id: 'local-atril-foam', name: 'Foam personalizado para atril de bienvenida', desc: 'Cartel de bienvenida con el nombre y la tem\u00e1tica de tu fiesta', price: 45, unit: 'evento' },
+      { id: 'local-arco-globos', name: 'Entrada con arco de globos', desc: 'Decoraci\u00f3n de la entrada con arco de globos (solo globos)', price: 60, unit: 'evento' }
     ]},
     { id: 'snacks-dulces', name: 'Snacks Dulces', items: [
       { id: 'algodon-maquina', name: 'Algod\u00f3n dulce (m\u00e1quina)', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 180], ['75u', 225], ['100u', 280]] },
-      { id: 'algodon-domo', name: 'Algod\u00f3n dulce (en domo)', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 160], ['75u', 215], ['100u', 260]] },
+      { id: 'algodon-domo', name: 'Algod\u00f3n dulce (en domo)', desc: 'Presentada en vasos acr\u00edlicos con tapa y en escalera', unit: 'paquete', sizes: [['50u', 160], ['75u', 215], ['100u', 260]] },
       { id: 'manzana', name: 'Manzana acaramelada', desc: 'Presentada en escalera, servicio 3h', unit: 'paquete', sizes: [['50u', 190], ['75u', 260], ['100u', 290]] },
       { id: 'frutibar', name: 'Frutibar', desc: 'Frutas, snacks, 3 complementos y 3 salsas', unit: 'paquete', sizes: [['50u', 410], ['75u', 525], ['100u', 680]] },
       { id: 'churros-manjar', name: 'Churros rellenos de manjar', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 160], ['75u', 225], ['100u', 280]] },
       { id: 'churros-chocolate', name: 'Churros rellenos de chocolate', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 180], ['75u', 247], ['100u', 300]] },
-      { id: 'jugos', name: 'Dispensador de jugos', desc: 'Chicha morada y maracuy\u00e1 caseros, mitad y mitad', unit: 'paquete', sizes: [['14 L', 180], ['30 L', 320]] }
+      { id: 'jugos', name: 'Dispensador de jugos', desc: 'Chicha morada y maracuy\u00e1 caseros, mitad y mitad. Incluye vasos descartables', unit: 'paquete', sizes: [['15 L', 210], ['30 L', 350]] }
     ]},
     { id: 'snacks-salados', name: 'Snacks Salados', items: [
       { id: 'popcorn', name: 'Popcorn en cajita', desc: 'Con personal uniformado, servicio 3h', unit: 'paquete', sizes: [['50u', 180], ['75u', 225], ['100u', 280]] },
@@ -2088,9 +2094,9 @@
       { id: 'combo-6', name: 'Combo 6', desc: '50 salchipapas + 50 manzanas acarameladas + popcorn o algod\u00f3n ilimitado', price: 740, unit: 'evento' }
     ]},
     { id: 'torta', name: 'Torta en Maqueta', items: [
-      { id: 'torta-promo', name: 'Maqueta + tortas en cajita', desc: 'Maqueta de 3 pisos + tortas en cajita personalizada', unit: 'paquete', sizes: [['50u', 475], ['75u', 620], ['100u', 760]] },
+      { id: 'torta-promo', name: 'Maqueta (diseño a elegir) + tortas en cajita', desc: 'Maqueta con el diseño a elegir + tortas en cajita personalizada', unit: 'paquete', sizes: [['50u', 475], ['75u', 620], ['100u', 760]] },
       { id: 'torta-maqueta', name: 'Solo alquiler de maqueta', desc: 'Maqueta de 3 pisos. Tambi\u00e9n se cotiza en 1 o 2 pisos', price: 200, unit: 'evento' },
-      { id: 'torta-cajita', name: 'Torta en cajita tem\u00e1tica', desc: 'Queque de vainilla con chispas, relleno de manjar o fudge, buttercream', price: 6, unit: 'unidad' }
+      { id: 'torta-cajita', name: 'Torta en cajita tem\u00e1tica', desc: 'Queque con chispas de chocolate (vainilla o naranja), relleno de manjar blanco o fudge, capa de buttercream, en caja personalizada', price: 6, unit: 'unidad' }
     ]},
     { id: 'dulces', name: 'Dulces Tem\u00e1ticos', items: [
       { id: 'bocaditos-16', name: '16 bocaditos tem\u00e1ticos', desc: '4 cupcakes, 4 cake pops, 4 manzanas y 4 alfajores', price: 140, unit: 'paquete' },
@@ -2113,6 +2119,13 @@
     { id: 'foto360', name: 'Plataforma 360\u00b0', items: [
       { id: 'foto360', name: 'Plataforma de fotos 360\u00b0', desc: 'Videos ilimitados, accesorios, alfombra, luces LED y operador t\u00e9cnico', unit: 'evento', inc: ['Videos ilimitados', 'Accesorios para los videos', 'Alfombra', 'Iluminaci\u00f3n LED', 'Operador t\u00e9cnico', 'Entrega al instante por QR o WhatsApp'], sizes: [['2 horas', 600], ['3 horas', 750], ['4 horas', 950]] }
     ]},
+    { id: 'fotografia', name: 'Fotografía y Filmación', items: [
+      { id: 'foto-fotografia', name: 'Fotografía', desc: '3 horas de cobertura y 200 fotos editadas', price: 350, unit: 'evento', inc: ['3 horas de cobertura', '200 fotos editadas'] },
+      { id: 'foto-filmacion', name: 'Filmación', desc: '3 horas de cobertura y 1 video de 20 min', price: 350, unit: 'evento', inc: ['3 horas de cobertura', '1 video de 20 minutos'] },
+      { id: 'foto-paquete-1', name: 'Paquete 1 (foto + video)', desc: '3h de grabación, 150 fotos editadas, video largo de 5-7 min y reel de 30-45 seg', price: 550, unit: 'evento', inc: ['3 horas de grabación', '150 fotos editadas', 'Video largo horizontal de 5 a 7 min', 'Video reel horizontal o vertical de 30 a 45 seg'] },
+      { id: 'foto-paquete-2', name: 'Paquete 2 (foto + video)', desc: '3h de grabación, 200 fotos editadas, video largo de 7-10 min y reel de 45 seg a 1 min', price: 600, unit: 'evento', inc: ['3 horas de grabación', '200 fotos editadas', 'Video largo horizontal de 7 a 10 min', 'Video reel horizontal o vertical de 45 seg a 1 min'] },
+      { id: 'foto-paquete-3', name: 'Paquete 3 (foto + video)', desc: '3h de grabación, 250 fotos editadas, video largo de 20-30 min, video de 5 min y reel de 30-45 seg', price: 700, unit: 'evento', inc: ['3 horas de grabación', '250 fotos editadas', 'Video largo horizontal de 20 a 30 min', 'Video de 5 min', 'Video reel horizontal o vertical de 30 a 45 seg'] }
+    ]},
     { id: 'alcancias', name: 'Pintura de Alcanc\u00edas', items: [
       { id: 'alcancia-paquete', name: 'Paquete completo (20 alcanc\u00edas)', desc: '2h, mesa con 20 sillas, mandiles, pinturas acr\u00edlicas y presentaci\u00f3n con lazo', price: 330, unit: 'evento', inc: ['2 horas de actividad', 'Mesa amplia con 20 sillas', '20 alcanc\u00edas de 16 cm con dise\u00f1os variados', 'Mandiles protectores', 'Pinturas acr\u00edlicas y pinceles', 'Personal de asistencia', 'Presentaci\u00f3n en bolsita de celof\u00e1n con lazo'] },
       { id: 'alcancia-adicional', name: 'Alcanc\u00eda adicional', desc: 'Para cada ni\u00f1o que pase de los 20 del paquete', price: 10, unit: 'unidad' }
@@ -2133,12 +2146,16 @@
       { id: 'silla-lazo', name: 'Silla vestida con lazo', desc: 'Precio por unidad', price: 3, unit: 'unidad' },
       { id: 'silla-chiavari', name: 'Silla de metal dorada', desc: 'Modelo Chiavari. Precio por unidad', price: 5.5, unit: 'unidad' },
       { id: 'mesa-8', name: 'Mesa redonda vestida (8p)', desc: 'Precio por unidad', price: 30, unit: 'unidad' },
-      { id: 'mesa-10', name: 'Mesa redonda vestida (10p)', desc: 'Precio por unidad', price: 40, unit: 'unidad' }
+      { id: 'mesa-10', name: 'Mesa redonda vestida (10p)', desc: 'Precio por unidad', price: 40, unit: 'unidad' },
+      { id: 'pista-led', name: 'Pista LED', desc: 'Pista de baile iluminada. Precio por metro cuadrado', price: 65, unit: 'm²' },
+      { id: 'bar-led', name: 'Juego bar LED', desc: '1 mesa alta iluminada + 2, 3 o 4 sillas altas', unit: 'juego', sizes: [['2 sillas', 150], ['3 sillas', 180], ['4 sillas', 210]] },
+      { id: 'sala-led', name: 'Sala LED', desc: '1 mesa + 6 puf iluminados', price: 180, unit: 'juego' }
     ]},
     { id: 'hora-loca', name: 'Sonido y Hora Loca', items: [
       { id: 'sonido-usb-bluetooth', name: 'Equipo de sonido con USB y Bluetooth', desc: 'Precio por evento', price: 70, unit: 'evento' },
       { id: 'dj-5h', name: 'DJ por 5 horas con parlante', desc: 'Precio por evento', price: 400, unit: 'evento' },
       { id: 'luces-led-hora-loca', name: '4 tachitos LED + 2 cabezas móviles de luces LED', desc: 'Precio por evento', price: 200, unit: 'evento' },
+      { id: 'hora-loca-tematica', name: 'Hora loca con 2 personajes temáticos', desc: '45 min: 2 personajes temáticos, limbo LED, soga LED, luces, globos pencil y pista USB', price: 450, unit: 'evento', inc: ['2 personajes temáticos', 'Limbo LED', 'Soga LED', 'Luces', 'Globos pencil', 'Pista USB', 'Duración: 45 minutos'] },
       { id: 'arlequin', name: 'Cada arlequín', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 180, unit: 'personaje' },
       { id: 'personaje-cabezon', name: 'Personaje cabezón', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 320, unit: 'personaje' },
       { id: 'robot-led', name: 'Robot LED', desc: 'Personaje para el show hora loca (50 min): juegos y bailes, incluye globos Pencil', price: 270, unit: 'personaje' },
@@ -2154,6 +2171,139 @@
   try { HISTORY = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch (e) { HISTORY = []; }
   function saveHistory() {
     try { localStorage.setItem(HISTORY_KEY, JSON.stringify(HISTORY)); } catch (e) { /* localStorage lleno o bloqueado: no debe romper el flujo */ }
+  }
+
+  /* =================== CALENDARIO COMPARTIDO (/api/bookings -> Firebase Firestore) ===================
+     HISTORY sigue siendo el arreglo con el que trabaja toda la pagina, pero
+     ya no es la fuente de verdad: se llena desde /api/bookings (el mismo
+     calendario que usan el chat web y el bot de WhatsApp) y cada cambio se
+     manda ahi. localStorage queda solo como cache por si no hay conexion.
+     La dueña ve todo (nombres, montos); un cliente solo ve que fechas y
+     horarios estan ocupados. */
+  var ADMIN_KEY_STORAGE = 'ff_admin_key';
+  var adminKey = null;
+  try { adminKey = sessionStorage.getItem(ADMIN_KEY_STORAGE); } catch (e) { adminKey = null; }
+  var serverCalendar = false; /* true en cuanto /api/bookings respondio: desde ahi manda el servidor */
+
+  /* Id estable de la charla con la IA en este navegador: el servidor
+     aparta UNA sola reserva por charla ('web_' + id) y no la cuenta como
+     "ocupada" para esta misma persona. */
+  var chatSessionId = null;
+  try { chatSessionId = localStorage.getItem('ff_chat_session'); } catch (e) { chatSessionId = null; }
+  if (!chatSessionId) {
+    chatSessionId = Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+    try { localStorage.setItem('ff_chat_session', chatSessionId); } catch (e) { /* sin localStorage: dura lo que la pestaña */ }
+  }
+  function isOwnChatHold(r) { return r && r.id === 'web_' + chatSessionId; }
+
+  /* Momento desde el que corren los 3 dias de un "hold". Los registros del
+     servidor traen heldAt; los viejos de localStorage lo sacan del id. */
+  function recHeldAt(r) { return r.heldAt || parseInt(String(r.id).replace(/^h/, ''), 10) || 0; }
+  /* Apartado automatico del chat que nadie concreto en 3 dias: ya no
+     ocupa la fecha y en el panel solo seria ruido. */
+  function isExpiredChatHold(r) { return r.status === 'chat_ia' && (Date.now() - recHeldAt(r)) >= 3 * 24 * 60 * 60 * 1000; }
+
+  function recFromRow(row) {
+    return {
+      id: row.id,
+      clientName: row.client_name || (row.status === 'bloqueado_manual' ? 'Bloqueado por la dueña' : 'Reservado'),
+      clientPhone: row.phone || '',
+      eventDate: row.event_date || '',
+      eventStart: row.event_start ? String(row.event_start).slice(0, 5) : '',
+      eventEnd: row.event_end ? String(row.event_end).slice(0, 5) : '',
+      total: Number(row.total) || 0,
+      depositAmount: row.deposit_amount != null ? Number(row.deposit_amount) : undefined,
+      depositMethod: row.deposit_method || undefined,
+      boletaNum: row.boleta_num || undefined,
+      status: row.status,
+      source: row.source || '',
+      items: Array.isArray(row.items) ? row.items : [],
+      heldAt: Date.parse(row.updated_at || row.created_at || '') || Date.now()
+    };
+  }
+  function rowFromRec(rec) {
+    return {
+      client_name: rec.clientName, phone: rec.clientPhone || null,
+      event_date: rec.eventDate || null, event_start: rec.eventStart || null, event_end: rec.eventEnd || null,
+      status: rec.status, total: rec.total || 0, items: rec.items || [],
+      deposit_amount: rec.depositAmount, deposit_method: rec.depositMethod, boleta_num: rec.boletaNum
+    };
+  }
+
+  function bookingsApi(method, body) {
+    var headers = { 'Content-Type': 'application/json' };
+    if (adminKey) headers['x-admin-key'] = adminKey;
+    return fetch('/api/bookings', { method: method, headers: headers, cache: 'no-store', body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, status: r.status, data: data }; });
+      })
+      .catch(function () { return { ok: false, status: 0, data: {} }; });
+  }
+
+  function refreshCalendarViews() {
+    renderHistory();
+    renderCalendar();
+    renderCalWeek();
+  }
+
+  /* Trae el calendario del servidor y reemplaza HISTORY. Devuelve la
+     respuesta para que el login sepa si la clave fue aceptada. */
+  function loadBookingsFromServer() {
+    return bookingsApi('GET').then(function (res) {
+      if (res.ok && res.data && Array.isArray(res.data.bookings)) {
+        serverCalendar = true;
+        if (res.data.owner) contractOwner = res.data.owner;
+        /* Lo que se creo aqui y todavia no llego al servidor no se pierde. */
+        var pending = HISTORY.filter(function (r) { return r._pending; });
+        HISTORY = pending.concat(res.data.bookings.map(recFromRow));
+        saveHistory();
+        refreshCalendarViews();
+      }
+      return res;
+    });
+  }
+
+  /* Guarda un registro nuevo en el servidor (se muestra al instante y se
+     confirma despues). extra: { sessionId } para que el pedido reemplace al
+     hold del chat. Si el servidor no esta disponible, queda solo local. */
+  function persistNewRecord(rec, extra) {
+    rec._pending = true;
+    return bookingsApi('POST', Object.assign({ action: 'create', record: rowFromRec(rec) }, extra || {})).then(function (res) {
+      if (res.ok && res.data && res.data.booking) {
+        Object.assign(rec, recFromRow(res.data.booking));
+        delete rec._pending;
+        if (extra && extra.sessionId) HISTORY = HISTORY.filter(function (r) { return !isOwnChatHold(r); });
+        saveHistory();
+        refreshCalendarViews();
+        return { ok: true };
+      }
+      if (res.status === 409) {
+        HISTORY = HISTORY.filter(function (r) { return r !== rec; });
+        saveHistory();
+        refreshCalendarViews();
+        return { ok: false, conflict: true, error: res.data.error };
+      }
+      if (serverCalendar) {
+        console.warn('No se pudo guardar en el calendario compartido', res.status, res.data);
+      } else {
+        delete rec._pending; /* sin servidor (modo local): queda guardado solo aqui */
+      }
+      saveHistory();
+      return { ok: false, error: res.data && res.data.error };
+    });
+  }
+
+  function persistUpdate(rec, fields) {
+    if (!serverCalendar || rec._pending) return;
+    bookingsApi('POST', { action: 'update', id: rec.id, fields: fields }).then(function (res) {
+      if (res.ok && res.data && res.data.booking) {
+        Object.assign(rec, recFromRow(res.data.booking));
+        saveHistory();
+      } else {
+        alert('Ojo: el cambio se ve aquí, pero no se pudo guardar en el calendario compartido. Revisa tu conexión y vuelve a intentarlo.');
+        loadBookingsFromServer();
+      }
+    });
   }
 
   /* =================== HORARIO DE ATENCION =================== */
@@ -2172,28 +2322,25 @@
     var THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
     var blocking = HISTORY.find(function (r) {
       if (r.eventDate !== iso || r.status === 'cancelado') return false;
+      /* El apartado que hizo el chat de ESTA persona no le bloquea su propia fecha. */
+      if (isOwnChatHold(r) || (chatAutoHoldId && r.id === chatAutoHoldId)) return false;
       if (r.status === 'confirmado' || r.status === 'bloqueado_manual') return true;
-      var ts = parseInt(String(r.id).replace(/^h/, ''), 10) || 0;
-      return (now - ts) < THREE_DAYS;
+      return (now - recHeldAt(r)) < THREE_DAYS;
     });
     return blocking || null;
   }
 
-  /* El asistente de IA (api/chat.js) no tiene acceso al calendario -- es
-     un endpoint sin estado. Le mandamos un resumen corto de que fechas
-     estan ocupadas ahora mismo (con hora, si la hay) para que pueda
-     cruzarlas cuando el cliente pregunte por una fecha, en vez de decir
-     siempre que si hay disponibilidad. */
+  /* Respaldo: api/chat.js lee las fechas ocupadas directo de Firestore.
+     Este resumen local solo se usa si Firestore no esta disponible. */
   function getBookedDatesForBot() {
     var now = Date.now();
     var THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
     var seen = {};
     var out = [];
     HISTORY.forEach(function (r) {
-      if (!r.eventDate || r.status === 'cancelado' || seen[r.eventDate]) return;
+      if (!r.eventDate || r.status === 'cancelado' || seen[r.eventDate] || isOwnChatHold(r)) return;
       var isConfirmed = r.status === 'confirmado' || r.status === 'bloqueado_manual';
-      var ts = parseInt(String(r.id).replace(/^h/, ''), 10) || 0;
-      var withinHold = (now - ts) < THREE_DAYS;
+      var withinHold = (now - recHeldAt(r)) < THREE_DAYS;
       if (!isConfirmed && !withinHold) return;
       seen[r.eventDate] = true;
       var hours = (r.eventStart && r.eventEnd) ? (r.eventStart + ' a ' + r.eventEnd) : null;
@@ -2233,7 +2380,7 @@
      accidente -- hasta que se repongan esas fotos, la franja de bordes
      reutiliza las fotos de categoria (img/cat/), que si existen. */
   var GALLERY_PHOTOS = ['local', 'snacks-dulces', 'snacks-salados', 'combos', 'torta',
-    'dulces', 'shows', 'gymkanas', 'foto360', 'alcancias', 'caritas', 'babyshower',
+    'dulces', 'shows', 'gymkanas', 'foto360', 'fotografia', 'alcancias', 'caritas', 'babyshower',
     'mozo', 'mobiliario', 'hora-loca'];
   var GALLERY_PHOTOS_DIR = 'img/cat/';
   function shuffleCopy(arr) {
@@ -2421,12 +2568,12 @@
      elige una vez, con "Agregar", o con el selector de tamaño si lo
      tiene (item.sizes). Pedido explicito del cliente: el +/- ahi confunde
      y no aplica (no vas a "pedir 3" un alquiler de local). */
-  var QTY_STEPPER_IDS = ['silla-plastico', 'silla-lazo', 'silla-chiavari', 'mesa-8', 'mesa-10', 'torta-cajita', 'alcancia-adicional', 'mozo-5h', 'local-hora-extra'];
+  var QTY_STEPPER_IDS = ['silla-plastico', 'silla-lazo', 'silla-chiavari', 'mesa-8', 'mesa-10', 'torta-cajita', 'alcancia-adicional', 'mozo-5h', 'local-hora-extra', 'pista-led', 'sala-led'];
   function hasQtyStepper(item) { return QTY_STEPPER_IDS.indexOf(item.id) !== -1; }
   function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
   /* "1 paquete" / "3 paquetes", y el caso irregular "1 unidad" / "3 unidades". */
   function qtyUnit(qty, unit) {
-    if (qty === 1) return '1 ' + unit;
+    if (qty === 1 || /²$/.test(unit)) return qty + ' ' + unit; /* "4 m²", no "4 m²s" */
     return qty + ' ' + (/dad$/.test(unit) ? unit.replace(/dad$/, 'dades') : unit + 's');
   }
   /* Repinta el precio respetando el formato del contenedor: pastilla dorada
@@ -2465,18 +2612,34 @@
   function goStage(name) {
     ['internal', 'client'].forEach(function (s) { document.getElementById('stage-' + s).hidden = (s !== name); });
   }
-  var ADMIN_PASSWORD = 'ADMIN';
+  /* La contraseña ya no esta escrita aqui (este HTML es publico): la valida
+     el servidor (ADMIN_PASSWORD en Vercel) al pedir el calendario completo. */
+  var adminPollTimer = null;
+  function enterAdmin() {
+    goStage('internal');
+    if (!adminPollTimer) {
+      /* Trae cada minuto lo nuevo que aparten el chat web o WhatsApp. */
+      adminPollTimer = setInterval(function () { if (!document.hidden) loadBookingsFromServer(); }, 60000);
+    }
+  }
   var adminAccessBtn = document.getElementById('adminAccessBtn');
   if (adminAccessBtn) {
     setTimeout(function () { adminAccessBtn.style.display = 'none'; }, 10000);
     adminAccessBtn.addEventListener('click', function () {
       var pass = window.prompt('Acceso restringido. Ingresa la contraseña del panel administrativo:');
-      if (pass === null) return;
-      if (pass === ADMIN_PASSWORD) {
-        goStage('internal');
-      } else {
-        alert('Contraseña incorrecta. Este panel es solo para la dueña.');
-      }
+      if (pass === null || pass === '') return;
+      adminKey = pass;
+      loadBookingsFromServer().then(function (res) {
+        if (res.ok && res.data && res.data.admin) {
+          try { sessionStorage.setItem(ADMIN_KEY_STORAGE, pass); } catch (e) { /* solo dura esta pestaña */ }
+          enterAdmin();
+        } else {
+          adminKey = null;
+          alert(res.status === 401
+            ? 'Contraseña incorrecta. Este panel es solo para la dueña.'
+            : 'No se pudo conectar con el calendario. Revisa tu conexión e intenta de nuevo.');
+        }
+      });
     });
   }
 
@@ -2576,7 +2739,7 @@
       existing.qty += finalQty;
       existing.subtotal = unitPrice * existing.qty;
     } else {
-      order.items.push({ lineId: 'l' + Date.now() + Math.random().toString(16).slice(2), name: label, unit: item.unit, qty: finalQty, unlimited: !!unlimited, subtotal: unlimited ? unitPrice : unitPrice * finalQty });
+      order.items.push({ lineId: 'l' + Date.now() + Math.random().toString(16).slice(2), itemId: itemId, name: label, unit: item.unit, qty: finalQty, unlimited: !!unlimited, subtotal: unlimited ? unitPrice : unitPrice * finalQty });
     }
     renderOrder();
   }
@@ -2768,7 +2931,7 @@
   }
 
   function renderHistory() {
-    var visible = HISTORY.filter(function (r) { return r.status !== 'bloqueado_manual'; });
+    var visible = HISTORY.filter(function (r) { return r.status !== 'bloqueado_manual' && !isExpiredChatHold(r); });
     if (visible.length === 0) {
       document.getElementById('historyList').innerHTML = '<p class="order-empty">Todav&#237;a no hay pedidos guardados.</p>';
       return;
@@ -2796,6 +2959,7 @@
         rec.status = 'confirmado';
         rec.boletaNum = 'B001-' + Math.floor(1000 + Math.random() * 8999);
         saveHistory();
+        persistUpdate(rec, { status: 'confirmado', boleta_num: rec.boletaNum });
         renderHistory();
         renderCalendar();
         renderCalWeek();
@@ -2816,7 +2980,7 @@
   var calSelectedDate = null;
 
   function eventsOnDate(iso) {
-    return HISTORY.filter(function (r) { return r.eventDate === iso && r.status !== 'cancelado'; });
+    return HISTORY.filter(function (r) { return r.eventDate === iso && r.status !== 'cancelado' && !isExpiredChatHold(r); });
   }
   function fmtHour(t) {
     if (!t) return null;
@@ -2878,6 +3042,7 @@
     var rec = { id: 'bm' + Date.now(), clientName: 'Bloqueado por la dueña', clientPhone: '', eventDate: iso, eventStart: null, eventEnd: null, total: 0, status: 'bloqueado_manual', items: [] };
     HISTORY.unshift(rec);
     saveHistory();
+    persistNewRecord(rec);
     renderCalendar();
     renderCalWeek();
     renderCalDayDetail(iso);
@@ -2887,6 +3052,7 @@
     if (!rec) return;
     rec.status = 'cancelado';
     saveHistory();
+    persistUpdate(rec, { status: 'cancelado' });
     renderHistory();
     renderCalendar();
     renderCalWeek();
@@ -2992,7 +3158,7 @@
     var headerHeight = 32;
     days.forEach(function (d, colIdx) {
       var iso = d.toISOString().slice(0, 10);
-      var events = HISTORY.filter(function (r) { return r.eventDate === iso && r.status !== 'cancelado'; });
+      var events = HISTORY.filter(function (r) { return r.eventDate === iso && r.status !== 'cancelado' && !isExpiredChatHold(r); });
       events.forEach(function (r) {
         var startMin = timeToMinutes(r.eventStart);
         var endMin = timeToMinutes(r.eventEnd);
@@ -3144,8 +3310,88 @@
   document.getElementById('btnContract').addEventListener('click', function () {
     if (order.items.length === 0) { alert('Agrega al menos un servicio antes de generar el contrato.'); return; }
     if (!requireClientData('generar el contrato')) return;
-    alert('Contrato generado con los datos del pedido (vista de ejemplo del prototipo).');
+    /* El contrato es solo del alquiler del local: el precio sale de las
+       lineas de la categoria "local", no del total con snacks, shows, etc. */
+    var localTotal = order.items.reduce(function (s, l) {
+      var f = l.itemId ? findItem(l.itemId) : null;
+      return s + (f && f.category.id === 'local' ? l.subtotal : 0);
+    }, 0);
+    if (localTotal === 0 && !confirm('Este pedido no incluye alquiler de local. ¿Generar el contrato igual, con el precio en blanco?')) return;
+    /* La ventana se abre YA (dentro del clic) para que el navegador no la
+       bloquee como popup; el contenido se escribe cuando llega la plantilla. */
+    var win = window.open('', '_blank');
+    if (!win) { alert('El navegador bloqueó la ventana del contrato. Permite ventanas emergentes para este sitio.'); return; }
+    win.document.write('<p style="font-family:sans-serif;padding:24px">Preparando el contrato…</p>');
+    fetch('contrato-local.html', { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('plantilla ' + r.status);
+      return r.text();
+    }).then(function (tpl) {
+      win.document.open();
+      win.document.write(fillContract(tpl, localTotal));
+      win.document.close();
+    }).catch(function () {
+      win.close();
+      alert('No se pudo cargar la plantilla del contrato. Revisa tu conexión e intenta de nuevo.');
+    });
   });
+
+  /* Datos de la propietaria (nombre y DNI): los manda /api/bookings solo
+     con la clave del panel, para no dejarlos en este HTML publico. */
+  var contractOwner = null;
+
+  var BLANK = '______________';
+  function contractField(v) {
+    return v ? '<span class="fill">' + String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</span>' : BLANK;
+  }
+  function isoToDmy(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? m[3] + ' / ' + m[2] + ' / ' + m[1] : '';
+  }
+  function fillContract(tpl, localTotal) {
+    var today = new Date();
+    var todayIso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    var saldo = localTotal > 300 ? localTotal - 300 : 0;
+    var data = {
+      PROPIETARIO_NOMBRE: contractOwner && contractOwner.name,
+      PROPIETARIO_DNI: contractOwner && contractOwner.dni,
+      CLIENTE_NOMBRE: order.clientName.trim(),
+      CLIENTE_TELEFONO: order.clientPhone.trim(),
+      CLIENTE_DNI: '', CLIENTE_DIRECCION: '', TIPO_EVENTO: '', INVITADOS: '',
+      FECHA_CONTRATO: isoToDmy(todayIso),
+      FECHA_EVENTO: isoToDmy(order.eventDate),
+      HORA_INICIO: fmtHour(order.eventStart),
+      HORA_FIN: fmtHour(order.eventEnd),
+      PRECIO_TOTAL: localTotal ? localTotal.toFixed(2) : '',
+      PRECIO_TOTAL_LETRAS: localTotal ? montoEnLetras(localTotal) : '',
+      SALDO: saldo ? saldo.toFixed(2) : '',
+      SALDO_LETRAS: saldo ? montoEnLetras(saldo) : ''
+    };
+    return tpl.replace(/\{\{([A-Z_]+)\}\}/g, function (m, key) {
+      return Object.prototype.hasOwnProperty.call(data, key) ? contractField(data[key]) : m;
+    });
+  }
+
+  /* 1250 -> "mil doscientos cincuenta soles"; 85.5 -> "ochenta y cinco con 50/100 soles". */
+  function numeroEnLetras(n) {
+    var U = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve'];
+    var D = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+    var C = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+    function bajoMil(x) {
+      if (x === 0) return '';
+      if (x === 100) return 'cien';
+      var c = Math.floor(x / 100), r = x % 100, out = C[c];
+      if (r) out += (out ? ' ' : '') + (r < 30 ? U[r] : D[Math.floor(r / 10)] + (r % 10 ? ' y ' + U[r % 10] : ''));
+      return out;
+    }
+    if (n === 0) return 'cero';
+    var miles = Math.floor(n / 1000), resto = n % 1000;
+    var txt = miles ? (miles === 1 ? 'mil' : bajoMil(miles).replace(/uno$/, 'un') + ' mil') : '';
+    return (txt + (resto ? (txt ? ' ' : '') + bajoMil(resto) : '')).trim();
+  }
+  function montoEnLetras(monto) {
+    var entero = Math.floor(monto), cent = Math.round((monto - entero) * 100);
+    return numeroEnLetras(entero).replace(/uno$/, 'un').replace(/veintiun\b/g, 'veintiún') + (cent ? ' con ' + String(cent).padStart(2, '0') + '/100' : '') + ' soles';
+  }
   /* Envia el lead directo al Google Sheet conectado al formulario, sin
      que nadie lo llene a mano -- mismo truco que usa cualquier form de
      Google: POST a .../formResponse con los codigos entry.XXX de cada
@@ -3177,8 +3423,10 @@
   document.getElementById('btnSave').addEventListener('click', function () {
     if (order.items.length === 0) { alert('Agrega al menos un servicio antes de guardar el pedido.'); return; }
     if (!requireClientData('guardar el pedido')) return;
-    HISTORY.unshift({ id: 'h' + Date.now(), clientName: order.clientName, eventDate: order.eventDate || new Date().toISOString().slice(0, 10), eventStart: order.eventStart || '', eventEnd: order.eventEnd || '', total: computeTotal(), status: 'guardado', items: JSON.parse(JSON.stringify(order.items)) });
+    var savedRec = { id: 'h' + Date.now(), clientName: order.clientName, clientPhone: order.clientPhone || '', eventDate: order.eventDate || new Date().toISOString().slice(0, 10), eventStart: order.eventStart || '', eventEnd: order.eventEnd || '', total: computeTotal(), status: 'guardado', items: JSON.parse(JSON.stringify(order.items)) };
+    HISTORY.unshift(savedRec);
     saveHistory();
+    persistNewRecord(savedRec);
     renderHistory();
     renderCalendar();
     renderCalWeek();
@@ -3207,9 +3455,23 @@
 
   renderCategories(); renderOrder(); renderHistory(); renderCalendar(); renderCalWeek();
 
+  /* Calendario real desde el servidor. Si la dueña ya habia entrado en
+     esta pestaña (clave en sessionStorage), vuelve directo al panel. Los
+     clientes lo refrescan cada 2 minutos para no ofrecer fechas que otro
+     acaba de tomar. */
+  loadBookingsFromServer().then(function (res) {
+    if (adminKey && res.ok && res.data && res.data.admin) enterAdmin();
+    else if (adminKey && res.status === 401) {
+      adminKey = null;
+      try { sessionStorage.removeItem(ADMIN_KEY_STORAGE); } catch (e) { /* nada */ }
+      loadBookingsFromServer();
+    }
+  });
+  setInterval(function () { if (!document.hidden && !adminPollTimer) loadBookingsFromServer(); }, 120000);
+
   /* =================== EXCEL DE CLIENTES (WhatsApp) ===================
      Por ahora usa datos de prueba -- cuando el webhook de WhatsApp este
-     conectado a Supabase, esta funcion va a hacer fetch a la tabla
+     conectado a Firestore, esta funcion va a leer la coleccion
      whatsapp_leads en vez de leer este arreglo fijo. El .xlsx se genera
      100% en el navegador con SheetJS, sin pasar por ningun servidor. */
   var LEADS_DEMO = [
@@ -3255,8 +3517,8 @@
      las categorias que no calzan con el tema elegido. */
   var THEME_CATS = {
     todos: null,
-    cumple: ['combos', 'shows', 'gymkanas', 'hora-loca', 'caritas', 'alcancias', 'foto360', 'torta', 'dulces', 'local', 'mobiliario', 'mozo'],
-    babyshower: ['babyshower', 'torta', 'dulces', 'snacks-dulces', 'snacks-salados', 'mobiliario', 'local'],
+    cumple: ['combos', 'shows', 'gymkanas', 'hora-loca', 'caritas', 'alcancias', 'foto360', 'fotografia', 'torta', 'dulces', 'local', 'mobiliario', 'mozo'],
+    babyshower: ['babyshower', 'torta', 'dulces', 'snacks-dulces', 'snacks-salados', 'fotografia', 'mobiliario', 'local'],
     snacks: ['snacks-dulces', 'snacks-salados', 'dulces', 'torta']
   };
   document.querySelectorAll('.theme-chip').forEach(function (chip) {
@@ -3362,8 +3624,9 @@
   var BUDGET_FLAGSHIP_IDS = [
     'combo-1', 'combo-2', 'combo-3', 'combo-4', 'combo-5', 'combo-6',
     'show-1', 'show-2', 'show-3', 'show-4', 'show-5', 'show-6',
-    'local-happy', 'local-full', 'local-premium',
+    'local-happy', 'local-full', 'local-semana', 'hora-loca-tematica',
     'gymkana-estandar', 'gymkana-gold', 'foto360', 'alcancia-paquete',
+    'foto-paquete-1', 'foto-paquete-2', 'foto-paquete-3',
     'caritas', 'babyshower-1', 'babyshower-2', 'torta-promo',
     'bocaditos-16', 'bocaditos-24', 'bocaditos-30', 'bocaditos-42'
   ];
@@ -3776,7 +4039,7 @@
   document.getElementById('crConfirmDeposit').addEventListener('click', function () {
     var clientName = order.clientName || document.getElementById('clientNameTag').textContent;
     var msg = buildClientOrderText();
-    HISTORY.unshift({
+    var depositRec = {
       id: 'h' + Date.now(),
       clientName: clientName,
       eventDate: clientEventDate,
@@ -3787,8 +4050,10 @@
       depositMethod: clientSelectedQr,
       status: 'solicitud_enviada',
       items: JSON.parse(JSON.stringify(clientCart))
-    });
+    };
+    HISTORY.unshift(depositRec);
     saveHistory();
+    persistNewRecord(depositRec, { sessionId: chatSessionId });
     renderHistory();
     renderCalendar();
     renderCalWeek();
@@ -3939,16 +4204,19 @@
      sea 'confirmado'/'cancelado' asi). Sin pago ni pedido armado de por
      medio: es justamente para que dos personas chateando por la misma
      fecha no se crucen mientras deciden. */
-  function autoHoldFromChat(iso, start, end) {
-    var blocking = dateBlockInfo(iso);
-    var isOwnHold = blocking && chatAutoHoldId && blocking.id === chatAutoHoldId;
-    if (blocking && !isOwnHold) return; /* ya ocupado por otra reserva real -- no se pisa */
-    if (chatAutoHoldId) {
-      var idx = HISTORY.findIndex(function (r) { return r.id === chatAutoHoldId; });
-      if (idx !== -1) HISTORY.splice(idx, 1);
+  /* serverHoldId: id con el que api/chat.js ya aparto el horario en el
+     calendario compartido. Aqui solo se refleja en la vista local. Si el
+     servidor esta activo y NO devolvio id, es porque ese horario choca con
+     otra reserva: no se aparta nada. Sin servidor, se aparta solo local. */
+  function autoHoldFromChat(iso, start, end, serverHoldId) {
+    if (!serverHoldId) {
+      if (serverCalendar) return;
+      if (dateBlockInfo(iso)) return; /* ya ocupado por otra reserva real -- no se pisa */
     }
+    HISTORY = HISTORY.filter(function (r) { return !isOwnChatHold(r) && !(chatAutoHoldId && r.id === chatAutoHoldId); });
     var rec = {
-      id: 'h' + Date.now(),
+      id: serverHoldId || ('h' + Date.now()),
+      heldAt: Date.now(),
       clientName: (chatContactName || document.getElementById('clientNameTag').textContent || 'Cliente') + ' (chat IA)',
       clientPhone: chatContactPhone || '',
       eventDate: iso, eventStart: start, eventEnd: end,
@@ -4096,17 +4364,23 @@
        (el texto igual queda en el mensaje de WhatsApp, para que la dueña
        lo lea con sus propias palabras). */
     var eventDateIso = clientEventDate || displayToIsoDate(chatContactFecha || '') || '';
-    HISTORY.unshift({
+    /* Si el chat ya habia apartado fecha+horario, el pedido se queda con
+       ese horario (el servidor cancela el hold y deja este en su lugar). */
+    var ownHold = HISTORY.find(function (r) { return isOwnChatHold(r) || (chatAutoHoldId && r.id === chatAutoHoldId); });
+    var sameDay = ownHold && ownHold.eventDate === eventDateIso;
+    var chatOrderRec = {
       id: 'h' + Date.now(),
       clientName: clientName + ' (chat IA)',
       clientPhone: chatContactPhone || '',
       eventDate: eventDateIso,
-      eventStart: '', eventEnd: '',
+      eventStart: sameDay ? ownHold.eventStart : '', eventEnd: sameDay ? ownHold.eventEnd : '',
       total: clientTotal(),
       status: 'solicitud_enviada',
       items: JSON.parse(JSON.stringify(clientCart))
-    });
+    };
+    HISTORY.unshift(chatOrderRec);
     saveHistory();
+    persistNewRecord(chatOrderRec, { sessionId: chatSessionId });
     renderHistory();
     renderCalendar();
     renderCalWeek();
@@ -4181,10 +4455,16 @@
     chatAiHistory.push({ role: 'user', text: text });
     chatSending = true;
     chatShowTyping();
+    var cartStr = clientCart.length ? clientCart.map(function(item) { return item.qty + 'x ' + item.name + ' (' + money(item.subtotal) + ')'; }).join(', ') + '. Total: ' + money(clientTotal()) : 'El carrito esta vacio.';
     fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: chatAiHistory.slice(0, -1), bookedDates: getBookedDatesForBot() })
+      body: JSON.stringify({
+        message: text, history: chatAiHistory.slice(0, -1), bookedDates: getBookedDatesForBot(), cart: cartStr,
+        sessionId: chatSessionId,
+        clientName: chatContactName || order.clientName || '',
+        clientPhone: chatContactPhone || ''
+      })
     }).then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
         chatHideTyping();
@@ -4197,7 +4477,7 @@
         var bubble = chatPush('bot', renderBotText(res.data.reply) + chatPhotoGallery(matches));
         wireChatPhotoGallery(bubble, matches);
         if (res.data.eventDateIso && res.data.eventStart && res.data.eventEnd) {
-          autoHoldFromChat(res.data.eventDateIso, res.data.eventStart, res.data.eventEnd);
+          autoHoldFromChat(res.data.eventDateIso, res.data.eventStart, res.data.eventEnd, res.data.holdId);
         }
       })
       .catch(function () {

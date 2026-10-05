@@ -48,19 +48,19 @@ El formulario tiene 9 campos, todos de texto libre (a propósito: así el dato q
 
 Dos descargas distintas, ambas 100% en el navegador (sin servidor), y ambas con **fecha y hora en el nombre del archivo** para que el explorador de archivos de Android/Windows nunca sobrescriba una descarga anterior:
 
-- **Panel interno → "Descargar Excel de clientes"**: genera un `.xlsx` real con [SheetJS](https://sheetjs.com/) (cargado por CDN). Hoy usa datos de prueba (`LEADS_DEMO`) — cuando Supabase esté conectado, se reemplaza por un `fetch` a la tabla real.
+- **Panel interno → "Descargar Excel de clientes"**: genera un `.xlsx` real con [SheetJS](https://sheetjs.com/) (cargado por CDN). Hoy usa datos de prueba (`LEADS_DEMO`) — cuando los leads se guarden en Firestore, se reemplaza por una lectura de esa colección.
 - **Chat del cliente → "Descargar mi lista" / "Copiar para WhatsApp"**: al terminar de elegir, el cliente puede descargar un `.txt` con su pedido, copiarlo al portapapeles, o abrir WhatsApp con el mensaje ya armado — las tres opciones comparten el mismo texto (`buildClientOrderText()`).
 
-### 5. Base de datos (Supabase) — provisionada, aún no conectada
+### 5. Base de datos (Firebase Firestore)
 
-`supabase-schema.sql` crea la tabla `whatsapp_leads` (Fecha, Nombre, Teléfono, Consulta, Categoría, Estado, Monto, Fuente) con Row Level Security activado y sin políticas — bloqueada para cualquiera excepto quien tenga la `service_role` / *Secret key*, que solo debe vivir en variables de entorno de servidor, nunca en el navegador. El proyecto ya existe y la tabla ya está creada; falta el webhook que la llene automáticamente (ver más abajo).
+El calendario compartido (reservas del panel, del chat web y de WhatsApp) y el historial del bot viven en Firestore, accedido solo desde el servidor con `firebase-admin` (`api/_db.js`). Las reservas de clientes usan una transacción con candado por fecha para que dos personas nunca tomen el mismo horario. `firestore.rules` bloquea todo acceso directo desde el navegador.
 
 ### 6. Lo que falta para el flujo 100% automático
 
 El plan completo (WhatsApp real → base de datos → Excel) tiene una pieza pendiente, fuera del control de este repo:
 
 1. **Verificar el número de WhatsApp Business con Meta** (proceso de Meta, no técnico, puede tardar días la primera vez).
-2. Una vez verificado: un webhook (función serverless, mismo patrón que `api/chat.js`) recibe cada mensaje entrante — Meta manda automáticamente el número de teléfono y el nombre de perfil de WhatsApp — y lo guarda en `whatsapp_leads` de Supabase.
+2. Una vez verificado: un webhook (función serverless, mismo patrón que `api/chat.js`) recibe cada mensaje entrante — Meta manda automáticamente el número de teléfono y el nombre de perfil de WhatsApp — y lo guarda en la colección `whatsapp_leads` de Firestore.
 3. El botón "Descargar Excel de clientes" del panel interno se conecta a esa tabla real en vez de a `LEADS_DEMO`.
 
 Mientras tanto, el Google Form + los dos canales que ya escriben ahí (panel interno, chat) cumplen la misma función de forma manual/semi-automática, sin depender de esa verificación.
@@ -86,9 +86,8 @@ No hay lint, test ni build configurado.
 | Variable | Para qué |
 |----------|----------|
 | `GEMINI_API_KEYS` | Pool de API keys de Gemini, separadas por coma — usadas solo por `api/chat.js` |
-| `SUPABASE_URL` | URL del proyecto de Supabase |
-| `SUPABASE_PUBLISHABLE_KEY` | Clave pública (segura para el navegador, protegida por RLS) |
-| `SUPABASE_SECRET_KEY` | Clave con acceso total — **solo backend**, nunca en código que corre en el navegador |
+| `FIREBASE_SERVICE_ACCOUNT` | JSON de la cuenta de servicio de Firebase (tal cual o en base64) — **solo backend** |
+| `ADMIN_PASSWORD` | Contraseña del panel interno (la valida `api/bookings.js`) |
 
 Ver `.env.example` para la plantilla y `ENV_SETUP.md` para instrucciones paso a paso.
 
@@ -107,4 +106,4 @@ Ver `.env.example` para la plantilla y `ENV_SETUP.md` para instrucciones paso a 
 ## Notas de seguridad
 
 - El repo es **público**. `config.js`, `.env` y `.vercel` están en `.gitignore` — nunca deben tener contenido real commiteado.
-- Ninguna API key (Gemini, Supabase) vive en código que se ejecuta en el navegador — todas pasan por funciones serverless o quedan protegidas por Row Level Security.
+- Ninguna API key (Gemini, Firebase) vive en código que se ejecuta en el navegador — todas pasan por funciones serverless o quedan protegidas por Row Level Security.

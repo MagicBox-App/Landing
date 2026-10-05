@@ -5,5 +5,9 @@
   "description": "Panel de cotizaciones Magic Box — sitio estatico (HTML/CSS/JS, sin build step).",
   "devDependencies": {
     "dotenv": "^17.4.2"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0",
+    "twilio": "^6.1.1"
   }
 }

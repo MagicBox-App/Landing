@@ -25,15 +25,24 @@ This is the correct dev command: it serves static files **and** runs `api/chat.j
 
 Deployment is Vercel (`vercel.json` routes `/` to `_preview_prototipo.html`, everything else falls through to the filesystem; `api/chat.js` is picked up automatically as a serverless function). There is no lint, test, or build tooling.
 
-## Chat assistant (`api/chat.js`)
+## Backend (`api/`)
 
-The client-facing assistant is the one piece of real backend. Everything about it lives in `api/chat.js`:
+Vercel functions; files starting with `_` are shared modules, not endpoints. `dev-server.js` mounts every other `api/*.js` at `/api/<name>` the same way.
 
-- It is the **only** place that talks to Gemini. The browser POSTs `{ message, history }` to `/api/chat` and never sees an API key.
-- `CATALOG_SUMMARY` and `SYSTEM_INSTRUCTION` are hard-coded strings in that file — the assistant's persona (a white rabbit mascot, sales-oriented, must disclose it is an AI) and its price list. **Catalog price changes must be mirrored here manually**; nothing derives this from `js/data.js` or `catalogo-magic-box.md`.
-- The assistant is consultative only: it recommends and quotes, but never mutates the order. Adding items stays with the normal buttons.
-- **Key pool with failover**: `GEMINI_API_KEYS` is a comma-separated list. Keys are shuffled, tried 5 at a time in parallel via `Promise.any` with an 8s per-key abort, falling through to the next batch — so a rate-limited or hung key doesn't block the request. `GEMINI_API_KEY` (singular) is accepted as a fallback.
-- Set `GEMINI_API_KEYS` in `.env` locally and in Vercel's environment variables for production.
+- **`api/_gemini.js`** — the **only** place that talks to Gemini; shared by web chat and WhatsApp. Holds `CATALOG_SUMMARY` and `SYSTEM_INSTRUCTION` (white-rabbit persona, sales-oriented, must disclose it is an AI, never names the model). **Catalog price changes must be mirrored here manually.** `askAssistant()` returns `{ reply, eventDateIso, eventStart, eventEnd }`.
+- **Key pool** (`GEMINI_API_KEYS`, comma-separated): one key per message, round-robin. A second key is only launched if the first is slow (`HEDGE_MS`); the loser is aborted. Keys that return 429/403 get an in-memory cooldown. Keys whose Google project is banned (403 `PERMISSION_DENIED`) are useless — remove them from the env var.
+- **`api/_canned.js`** — pre-written replies (greeting, address, payments, "are you a bot", per-category price lists…) with random variants, answered without calling Gemini. Only fires for short, single-intent messages **without digits**; anything else goes to the AI. The closing question follows the same 4-data checklist as the prompt.
+- **`api/_offline.js`** — rule-based "brain without AI": parses Spanish dates (`20 de noviembre`, `20/11`, `este sábado`), time ranges (`de 3 a 8` → 15:00–20:00), guests, budget and event type; checks availability against the calendar, returns `eventDateIso/eventStart/eventEnd` so holds still happen, and always pitches the venue. `offlineReply()` always returns a reply; `confident` says whether it understood something concrete.
+- **Answer order in `askAssistant()`**: canned → offline (if `confident` and ≤18 words) → Gemini → offline again if Gemini fails. A total Gemini failure opens a 90s circuit breaker (`aiDownUntil`) during which everything is answered offline. `ASSISTANT_MODE` env: `balanced` (default), `ai-first`, or `offline` (never call Gemini). The bot never returns "assistant unavailable".
+- **`api/_db.js`** — Firebase **Firestore** via `firebase-admin` (server only) is the **single calendar** (`event_bookings`) for the web chat, WhatsApp and the owner's panel, plus `whatsapp_conversations`. Statuses `confirmado`/`bloqueado_manual` block permanently; any other non-`cancelado` status is a hold that expires `HOLD_HOURS` (72) after `updated_at` (ISO strings). Every customer-side reservation (chat holds, WhatsApp holds, public orders) goes through `reserveBooking()`: a Firestore transaction that reads+writes the per-date lock doc `booking_locks/{date}`, so two clients requesting the same date contend on that doc and the loser retries and sees the clash (a plain query can't detect a concurrently created doc). Queries only use single-field filters (no composite indexes needed). `firestore.rules` denies all client access to these collections; the admin SDK bypasses rules.
+- **`api/chat.js`** (web) / **`api/whatsapp.js`** (Twilio) — each conversation owns one hold with a fixed id (`web_<sessionId>` / `wa_<phone>`), which is excluded from its own availability check so the bot never tells a client their own date is taken.
+- **`api/bookings.js`** — calendar API for the page. Public GET returns only dates/hours (no names, phones or totals); public POST can only create `solicitud_enviada` and gets 409 on a clash. With header `x-admin-key` = `ADMIN_PASSWORD` the owner's panel reads everything and can update. The panel password lives only in that env var, never in the HTML.
+- The assistant is consultative only: it never mutates the order. Adding items stays with the normal buttons.
+- Env vars (`.env` locally, Vercel in production): `GEMINI_API_KEYS`, `FIREBASE_SERVICE_ACCOUNT` (service-account JSON, raw or base64; or `FIREBASE_PROJECT_ID` + `FIREBASE_CLIENT_EMAIL` + `FIREBASE_PRIVATE_KEY`), `ADMIN_PASSWORD`, `CONTRATO_PROPIETARIO_NOMBRE` / `CONTRATO_PROPIETARIO_DNI` (owner data for the contract, only sent to the authenticated panel), and `TWILIO_AUTH_TOKEN` for WhatsApp.
+
+## Contract (`contrato-local.html`)
+
+Printable template of the venue-rental contract (transcribed from `Contrato 2026.pdf`, which is gitignored because it contains the owner's DNI). The panel's "Generar contrato" button fetches it, replaces the `{{MARKERS}}` with the order data (price = only the `local` category lines; S/300 deposit; balance), and opens it for printing. The owner's name/DNI come from `/api/bookings` (admin only), never from tracked files.
 
 ### Legacy client-side Gemini path (do not extend)
 
@@ -46,6 +55,7 @@ One IIFE, organized by banner comments — grep for `=== ` to navigate:
 - `PROTOTYPE STAGE SWITCHER` — `goStage('internal' | 'client')` toggles `#stage-internal` / `#stage-client`. The file demos **two products at once**: the owner's internal quoting panel and the customer-facing view.
 - `PANEL INTERNO` — the owner's flow (`#view-catalog`, `#view-history`), category → item → quantity, running total, fuzzy search.
 - `VISTA CLIENTE` — no login; the owner pre-loads the client name and shares a link. Has its own catalog/item views and a WhatsApp bubble.
+- `CALENDARIO COMPARTIDO` — `HISTORY` is filled from `/api/bookings` and every change is sent there (`persistNewRecord` / `persistUpdate`); `localStorage` is only an offline cache. Admin login validates the password against the server.
 - `ASISTENTE DE CHAT` — full-screen chat (`#chatFullscreen`) in the client view, POSTing to `/api/chat`. `matchCatalogItemsInText()` greps the model's reply for catalog item names to attach real photos (max 4); the model never picks images itself.
 - `TOGGLE DE TEMA` — light/dark.
 

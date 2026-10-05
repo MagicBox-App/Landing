@@ -22,17 +22,30 @@ const setQuickReplies = opts => {
 };
 const showCats = () => setQuickReplies(CATALOG.map(c => ({ value: c.name, label: c.name })));
 async function callGemini(msg) {
-  if (!window.GEMINI_API_KEY) return null;
   try {
-    const cat = CATALOG.map(c => `- ${c.name}: ${c.items.map(i => `${i.name} (${money(i.price)}/${i.unit})`).join(', ')}`).join('\n');
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${window.GEMINI_API_KEY}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: `Eres asistente de "Magic Box" (fiestas infantiles Lima). Responde en español, amigable, máx 3 líneas.\nCATÁLOGO:\n${cat}\n\nMensaje: "${msg}"\nResponde:` }] }] })
+    const history = chat.history.map(m => ({
+      role: m.sender === 'bot' ? 'model' : 'user',
+      text: m.text
+    }));
+    
+    const cartItems = typeof state !== 'undefined' && state.currentOrder && state.currentOrder.items ? state.currentOrder.items : [];
+    const cartStr = cartItems.length ? cartItems.map(item => `${item.qty}x ${item.name} (${money(item.subtotal)})`).join(', ') + `. Total: ${money(computeTotal())}` : 'El carrito esta vacio.';
+
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        history: history,
+        cart: cartStr
+      })
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
-  } catch { return null; }
+    return data.reply || null;
+  } catch {
+    return null;
+  }
 }
 const confirmAdded = line => {
   pushMessage('bot', `Listo, agregué <strong>${line.unlimited ? 'ilimitado' : line.qty} ${line.unlimited ? '' : line.unit}</strong> de <strong>${line.name}</strong> (${money(line.subtotal)}).<br>Total: <strong>${money(computeTotal())}</strong>.`);
